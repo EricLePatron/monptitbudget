@@ -1,13 +1,65 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import { BudgetSetup } from '@/components/BudgetSetup';
+import { BudgetDashboard } from '@/components/BudgetDashboard';
+import {
+  BudgetConfig,
+  Expense,
+  BudgetState,
+  loadBudgetState,
+  saveBudgetState,
+} from '@/lib/budget';
 
 const Index = () => {
+  const [state, setState] = useState<BudgetState>({ config: null, expenses: [] });
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const savedState = loadBudgetState();
+    setState(savedState);
+    setIsLoaded(true);
+  }, []);
+
+  // Save state to localStorage when it changes
+  useEffect(() => {
+    if (isLoaded) {
+      saveBudgetState(state);
+    }
+  }, [state, isLoaded]);
+
+  const handleSetupComplete = (config: BudgetConfig) => {
+    setState({ config, expenses: [] });
+  };
+
+  const handleAddExpense = (expense: Expense) => {
+    setState((prev) => ({
+      ...prev,
+      expenses: [...prev.expenses, expense],
+    }));
+  };
+
+  const handleReset = () => {
+    setState({ config: null, expenses: [] });
+  };
+
+  // Show nothing until state is loaded to prevent flash
+  if (!isLoaded) {
+    return null;
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      {!state.config ? (
+        <BudgetSetup onComplete={handleSetupComplete} />
+      ) : (
+        <BudgetDashboard
+          config={state.config}
+          expenses={state.expenses}
+          onAddExpense={handleAddExpense}
+          onReset={handleReset}
+        />
+      )}
+    </>
   );
 };
 

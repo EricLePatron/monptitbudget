@@ -1,0 +1,136 @@
+export interface BudgetConfig {
+  monthlyBudget: number;
+  month: number; // 0-11
+  year: number;
+}
+
+export interface Expense {
+  id: string;
+  amount: number;
+  date: string; // YYYY-MM-DD
+  createdAt: number;
+}
+
+export interface BudgetState {
+  config: BudgetConfig | null;
+  expenses: Expense[];
+}
+
+export type BudgetStatus = 'ok' | 'warning' | 'danger';
+
+export function getDaysInMonth(month: number, year: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+export function getCurrentDayOfMonth(): number {
+  return new Date().getDate();
+}
+
+export function getTodayKey(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+}
+
+export function getExpensesForDay(expenses: Expense[], dateKey: string): Expense[] {
+  return expenses.filter(e => e.date === dateKey);
+}
+
+export function getTotalExpensesForDay(expenses: Expense[], dateKey: string): number {
+  return getExpensesForDay(expenses, dateKey).reduce((sum, e) => sum + e.amount, 0);
+}
+
+export function getTotalExpensesUpToToday(expenses: Expense[], config: BudgetConfig): number {
+  const today = new Date();
+  return expenses
+    .filter(e => {
+      const expenseDate = new Date(e.date);
+      return expenseDate.getFullYear() === config.year && 
+             expenseDate.getMonth() === config.month &&
+             expenseDate <= today;
+    })
+    .reduce((sum, e) => sum + e.amount, 0);
+}
+
+export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]) {
+  const totalDays = getDaysInMonth(config.month, config.year);
+  const currentDay = getCurrentDayOfMonth();
+  const daysRemaining = totalDays - currentDay + 1;
+  
+  const totalSpentThisMonth = getTotalExpensesUpToToday(expenses, config);
+  const budgetRemaining = config.monthlyBudget - totalSpentThisMonth;
+  
+  const dailyBudget = budgetRemaining / daysRemaining;
+  
+  const todayKey = getTodayKey();
+  const spentToday = getTotalExpensesForDay(expenses, todayKey);
+  const remainingToday = dailyBudget - spentToday;
+  
+  // Tomorrow's projected budget
+  const budgetAfterToday = budgetRemaining - spentToday;
+  const daysAfterToday = daysRemaining - 1;
+  const tomorrowBudget = daysAfterToday > 0 ? budgetAfterToday / daysAfterToday : 0;
+  
+  return {
+    totalDays,
+    currentDay,
+    daysRemaining,
+    budgetRemaining,
+    dailyBudget,
+    spentToday,
+    remainingToday,
+    tomorrowBudget,
+    totalSpentThisMonth,
+  };
+}
+
+export function getBudgetStatus(remainingToday: number, dailyBudget: number): BudgetStatus {
+  const ratio = remainingToday / dailyBudget;
+  if (remainingToday <= 0) return 'danger';
+  if (ratio < 0.3) return 'warning';
+  return 'ok';
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatCurrencyCompact(amount: number): string {
+  const formatted = Math.abs(amount).toFixed(amount % 1 === 0 ? 0 : 2);
+  return `${amount < 0 ? '-' : ''}${formatted} €`;
+}
+
+export function getMonthName(month: number): string {
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  return months[month];
+}
+
+// Storage
+const STORAGE_KEY = 'daily-budget-tracker';
+
+export function saveBudgetState(state: BudgetState): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+export function loadBudgetState(): BudgetState {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { config: null, expenses: [] };
+    }
+  }
+  return { config: null, expenses: [] };
+}
+
+export function generateExpenseId(): string {
+  return `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
