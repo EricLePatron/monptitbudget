@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import {
@@ -12,8 +12,9 @@ import {
   generateExpenseId,
   getExpensesForDay,
 } from '@/lib/budget';
-import { Plus, RotateCcw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Plus, RotateCcw, TrendingUp, TrendingDown, Minus, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface BudgetDashboardProps {
   config: BudgetConfig;
@@ -71,6 +72,8 @@ export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: Bud
   const currentStatus = statusConfig[status];
   const StatusIcon = currentStatus.icon;
 
+  const { signOut } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -80,14 +83,24 @@ export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: Bud
             {getMonthName(config.month)} {config.year}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onReset}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <RotateCcw className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onReset}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={signOut}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Main Content */}

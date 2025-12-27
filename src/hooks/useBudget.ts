@@ -1,0 +1,196 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
+import { BudgetConfig, Expense, getTodayKey } from '@/lib/budget';
+
+export function useBudget() {
+  const { user } = useAuth();
+  const [config, setConfig] = useState<BudgetConfig | null>(null);
+  const [budgetId, setBudgetId] = useState<string | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load current budget for user
+  const loadBudget = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      // Get current month's budget
+      const { data: budgetData, error: budgetError } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('month', currentMonth)
+        .eq('year', currentYear)
+        .maybeSingle();
+
+      if (budgetError) throw budgetError;
+
+      if (budgetData) {
+        setConfig({
+          monthlyBudget: Number(budgetData.monthly_budget),
+          month: budgetData.month,
+          year: budgetData.year,
+        });
+        setBudgetId(budgetData.id);
+
+        // Load expenses for this budget
+        const { data: expensesData, error: expensesError } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('budget_id', budgetData.id)
+          .order('created_at', { ascending: false });
+
+        if (expensesError) throw expensesError;
+
+        setExpenses(
+          (expensesData || []).map((e) => ({
+            id: e.id,
+            amount: Number(e.amount),
+            date: e.date,
+            createdAt: new Date(e.created_at).getTime(),
+          }))
+        );
+      } else {
+        setConfig(null);
+        setBudgetId(null);
+        setExpenses([]);
+      }
+    } catch (error) {
+      console.error('Error loading budget:', error);
+      toast.error('Erreur lors du chargement du budget');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadBudget();
+  }, [loadBudget]);
+
+  // Create or update budget
+  const saveBudget = async (newConfig: BudgetConfig) => {
+    if (!user) return;
+
+    try {
+      // Check if budget exists for this month/year
+      const { data: existing } = await supabase
+        .from('budgets')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('month', newConfig.month)
+        .eq('year', newConfig.year)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing budget
+        const { error } = await supabase
+          .from('budgets')
+          .update({ monthly_budget: newConfig.monthlyBudget })
+          .eq('id', existing.id);
+
+        if (error) throw error;
+        setBudgetId(existing.id);
+      } else {
+        // Create new budget
+        const { data, error } = await supabase
+          .from('budgets')
+          .insert({
+            user_id: user.id,
+            monthly_budget: newConfig.monthlyBudget,
+            month: newConfig.month,
+            year: newConfig.year,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        setBudgetId(data.id);
+        setExpenses([]);
+      }
+
+      setConfig(newConfig);
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      toast.error('Erreur lors de la sauvegarde du budget');
+    }
+  };
+
+  // Add expense
+  const addExpense = async (amount: number) => {
+    if (!user || !budgetId) return;
+
+    try {
+      const todayKey = getTodayKey();
+      
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert({
+          user_id: user.id,
+          budget_id: budgetId,
+          amount,
+          date: todayKey,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newExpense: Expense = {
+        id: data.id,
+        amount: Number(data.amount),
+        date: data.date,
+        createdAt: new Date(data.created_at).getTime(),
+      };
+
+      setExpenses((prev) => [newExpense, ...prev]);
+      toast.success('Dépense ajoutée');
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      toast.error("Erreur lors de l'ajout de la dépense");
+    }
+  };
+
+  // Delete expense
+  const deleteExpense = async (expenseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', expenseId);
+
+      if (error) throw error;
+
+      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+      toast.success('Dépense supprimée');
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  // Reset budget (for new month)
+  const resetBudget = () => {
+    setConfig(null);
+    setBudgetId(null);
+    setExpenses([]);
+  };
+
+  return {
+    config,
+    expenses,
+    loading,
+    saveBudget,
+    addExpense,
+    deleteExpense,
+    resetBudget,
+  };
+}

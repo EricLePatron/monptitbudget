@@ -1,62 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { BudgetSetup } from '@/components/BudgetSetup';
 import { BudgetDashboard } from '@/components/BudgetDashboard';
-import {
-  BudgetConfig,
-  Expense,
-  BudgetState,
-  loadBudgetState,
-  saveBudgetState,
-} from '@/lib/budget';
+import { useAuth } from '@/hooks/useAuth';
+import { useBudget } from '@/hooks/useBudget';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
-  const [state, setState] = useState<BudgetState>({ config: null, expenses: [] });
-  const [isLoaded, setIsLoaded] = useState(false);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { config, expenses, loading: budgetLoading, saveBudget, addExpense, resetBudget } = useBudget();
 
-  // Load state from localStorage on mount
+  // Redirect to auth if not logged in
   useEffect(() => {
-    const savedState = loadBudgetState();
-    setState(savedState);
-    setIsLoaded(true);
-  }, []);
-
-  // Save state to localStorage when it changes
-  useEffect(() => {
-    if (isLoaded) {
-      saveBudgetState(state);
+    if (!authLoading && !user) {
+      navigate('/auth');
     }
-  }, [state, isLoaded]);
+  }, [user, authLoading, navigate]);
 
-  const handleSetupComplete = (config: BudgetConfig) => {
-    setState({ config, expenses: [] });
-  };
+  // Show loading while checking auth or budget
+  if (authLoading || budgetLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-  const handleAddExpense = (expense: Expense) => {
-    setState((prev) => ({
-      ...prev,
-      expenses: [...prev.expenses, expense],
-    }));
-  };
-
-  const handleReset = () => {
-    setState({ config: null, expenses: [] });
-  };
-
-  // Show nothing until state is loaded to prevent flash
-  if (!isLoaded) {
+  // Don't render anything if not authenticated
+  if (!user) {
     return null;
   }
 
   return (
     <>
-      {!state.config ? (
-        <BudgetSetup onComplete={handleSetupComplete} />
+      {!config ? (
+        <BudgetSetup onComplete={saveBudget} />
       ) : (
         <BudgetDashboard
-          config={state.config}
-          expenses={state.expenses}
-          onAddExpense={handleAddExpense}
-          onReset={handleReset}
+          config={config}
+          expenses={expenses}
+          onAddExpense={(expense) => addExpense(expense.amount)}
+          onReset={resetBudget}
         />
       )}
     </>
