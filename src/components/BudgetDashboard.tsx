@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
 import { FullBudgetSetupSheet } from './FullBudgetSetupSheet';
+import { ManageAccountsSheet } from './ManageAccountsSheet';
+import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import {
   BudgetConfig,
@@ -14,6 +16,7 @@ import {
   getTodayKey,
   getExpensesForDay,
 } from '@/lib/budget';
+import { Account } from '@/hooks/useAccounts';
 import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +27,13 @@ interface BudgetDashboardProps {
   onAddExpense: (amount: number, name?: string) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateConfig: (config: BudgetConfig) => void;
+  // Account management
+  accounts: Account[];
+  currentAccount: Account | null;
+  onSwitchAccount: (accountId: string) => void;
+  onCreateAccount: (name: string, emoji: string) => Promise<Account | null>;
+  onUpdateAccount: (id: string, name: string, emoji: string) => Promise<void>;
+  onDeleteAccount: (id: string) => Promise<void>;
 }
 
 export function BudgetDashboard({
@@ -32,10 +42,17 @@ export function BudgetDashboard({
   onAddExpense,
   onDeleteExpense,
   onUpdateConfig,
+  accounts,
+  currentAccount,
+  onSwitchAccount,
+  onCreateAccount,
+  onUpdateAccount,
+  onDeleteAccount,
 }: BudgetDashboardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editBudgetOpen, setEditBudgetOpen] = useState(false);
+  const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
 
@@ -87,18 +104,27 @@ export function BudgetDashboard({
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="p-4 flex items-center justify-between relative z-10">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">
-            {getMonthName(config.month)} {config.year}
-          </p>
-          <button
-            type="button"
-            onClick={() => setEditBudgetOpen(true)}
-            className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <Settings className="w-3 h-3" />
-            {formatCurrencyCompact(config.monthlyBudget)} / mois
-          </button>
+        <div className="space-y-1">
+          {/* Account Selector */}
+          <AccountSelector
+            accounts={accounts}
+            currentAccount={currentAccount}
+            onSwitch={onSwitchAccount}
+            onManage={() => setManageAccountsOpen(true)}
+          />
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground font-medium">
+              {getMonthName(config.month)} {config.year}
+            </p>
+            <button
+              type="button"
+              onClick={() => setEditBudgetOpen(true)}
+              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <Settings className="w-3 h-3" />
+              {formatCurrencyCompact(config.monthlyBudget)} / mois
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -254,6 +280,16 @@ export function BudgetDashboard({
         onOpenChange={setEditBudgetOpen}
         currentConfig={config}
         onSave={onUpdateConfig}
+      />
+
+      {/* Manage Accounts Sheet */}
+      <ManageAccountsSheet
+        open={manageAccountsOpen}
+        onOpenChange={setManageAccountsOpen}
+        accounts={accounts}
+        onCreate={onCreateAccount}
+        onUpdate={onUpdateAccount}
+        onDelete={onDeleteAccount}
       />
 
       {/* Donald Duck Sticker */}

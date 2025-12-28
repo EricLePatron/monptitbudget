@@ -4,30 +4,35 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { BudgetConfig, Expense, getTodayKey } from '@/lib/budget';
 
-export function useBudget() {
+export function useBudget(accountId: string | null) {
   const { user } = useAuth();
   const [config, setConfig] = useState<BudgetConfig | null>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load current budget for user
+  // Load current budget for user and account
   const loadBudget = useCallback(async () => {
-    if (!user) {
+    if (!user || !accountId) {
       setLoading(false);
+      setConfig(null);
+      setBudgetId(null);
+      setExpenses([]);
       return;
     }
 
     try {
+      setLoading(true);
       const now = new Date();
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      // Get current month's budget
+      // Get current month's budget for this account
       const { data: budgetData, error: budgetError } = await supabase
         .from('budgets')
         .select('*')
         .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .eq('month', currentMonth)
         .eq('year', currentYear)
         .maybeSingle();
@@ -71,7 +76,7 @@ export function useBudget() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, accountId]);
 
   useEffect(() => {
     loadBudget();
@@ -79,14 +84,15 @@ export function useBudget() {
 
   // Create or update budget
   const saveBudget = async (newConfig: BudgetConfig) => {
-    if (!user) return;
+    if (!user || !accountId) return;
 
     try {
-      // Check if budget exists for this month/year
+      // Check if budget exists for this month/year/account
       const { data: existing } = await supabase
         .from('budgets')
         .select('id')
         .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .eq('month', newConfig.month)
         .eq('year', newConfig.year)
         .maybeSingle();
@@ -106,6 +112,7 @@ export function useBudget() {
           .from('budgets')
           .insert({
             user_id: user.id,
+            account_id: accountId,
             monthly_budget: newConfig.monthlyBudget,
             month: newConfig.month,
             year: newConfig.year,
