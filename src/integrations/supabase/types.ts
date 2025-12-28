@@ -14,8 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           month: number
@@ -25,6 +53,7 @@ export type Database = {
           year: number
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id?: string
           month: number
@@ -34,6 +63,7 @@ export type Database = {
           year: number
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           month?: number
@@ -42,7 +72,15 @@ export type Database = {
           user_id?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "budgets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
