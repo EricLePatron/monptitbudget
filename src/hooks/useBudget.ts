@@ -84,7 +84,19 @@ export function useBudget(accountId: string | null) {
 
   // Create or update budget
   const saveBudget = async (newConfig: BudgetConfig) => {
-    if (!user || !accountId) return;
+    console.log('saveBudget called', { userId: user?.id, accountId, config: newConfig });
+    
+    if (!user) {
+      console.error('saveBudget: No user');
+      toast.error('Vous devez être connecté');
+      return;
+    }
+    
+    if (!accountId) {
+      console.error('saveBudget: No accountId');
+      toast.error('Aucun compte sélectionné');
+      return;
+    }
 
     try {
       // Check if budget exists for this month/year/account
@@ -96,6 +108,8 @@ export function useBudget(accountId: string | null) {
         .eq('month', newConfig.month)
         .eq('year', newConfig.year)
         .maybeSingle();
+
+      console.log('Existing budget check:', existing);
 
       if (existing) {
         // Update existing budget
@@ -120,6 +134,7 @@ export function useBudget(accountId: string | null) {
           .select()
           .single();
 
+        console.log('Budget created:', data, error);
         if (error) throw error;
         setBudgetId(data.id);
         setExpenses([]);
