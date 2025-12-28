@@ -2,18 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BudgetConfig, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
+import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
 import { ArrowRight, Wallet, Plus, Trash2, Calculator } from 'lucide-react';
 
 interface BudgetSetupProps {
   onComplete: (config: BudgetConfig) => void;
 }
 
-interface Deduction {
-  id: string;
-  label: string;
-  amount: string;
-}
 
 export function BudgetSetup({ onComplete }: BudgetSetupProps) {
   const currentDate = new Date();
@@ -45,6 +40,8 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
         monthlyBudget: budgetNumber,
         month,
         year,
+        salary: useCalculator ? salaryNumber : undefined,
+        deductions: useCalculator ? deductions : undefined,
       });
     }
   };

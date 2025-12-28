@@ -45,9 +45,11 @@ export type Database = {
         Row: {
           account_id: string | null
           created_at: string
+          deductions: Json | null
           id: string
           month: number
           monthly_budget: number
+          salary: number | null
           updated_at: string
           user_id: string
           year: number
@@ -55,9 +57,11 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string
+          deductions?: Json | null
           id?: string
           month: number
           monthly_budget: number
+          salary?: number | null
           updated_at?: string
           user_id: string
           year: number
@@ -65,9 +69,11 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string
+          deductions?: Json | null
           id?: string
           month?: number
           monthly_budget?: number
+          salary?: number | null
           updated_at?: string
           user_id?: string
           year?: number
