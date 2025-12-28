@@ -1,7 +1,15 @@
+export interface Deduction {
+  id: string;
+  label: string;
+  amount: string;
+}
+
 export interface BudgetConfig {
   monthlyBudget: number;
   month: number; // 0-11
   year: number;
+  salary?: number;
+  deductions?: Deduction[];
 }
 
 export interface Expense {

@@ -44,6 +44,8 @@ export function useBudget(accountId: string | null) {
           monthlyBudget: Number(budgetData.monthly_budget),
           month: budgetData.month,
           year: budgetData.year,
+          salary: budgetData.salary ? Number(budgetData.salary) : undefined,
+          deductions: budgetData.deductions as unknown as BudgetConfig['deductions'] ?? undefined,
         });
         setBudgetId(budgetData.id);
 
@@ -113,24 +115,34 @@ export function useBudget(accountId: string | null) {
 
       if (existing) {
         // Update existing budget
+        const updatePayload: Record<string, unknown> = { 
+          monthly_budget: newConfig.monthlyBudget,
+          salary: newConfig.salary ?? null,
+          deductions: newConfig.deductions ?? null,
+        };
+        
         const { error } = await supabase
           .from('budgets')
-          .update({ monthly_budget: newConfig.monthlyBudget })
+          .update(updatePayload)
           .eq('id', existing.id);
 
         if (error) throw error;
         setBudgetId(existing.id);
       } else {
         // Create new budget
+        const insertPayload: Record<string, unknown> = {
+          user_id: user.id,
+          account_id: accountId,
+          monthly_budget: newConfig.monthlyBudget,
+          month: newConfig.month,
+          year: newConfig.year,
+          salary: newConfig.salary ?? null,
+          deductions: newConfig.deductions ?? null,
+        };
+        
         const { data, error } = await supabase
           .from('budgets')
-          .insert({
-            user_id: user.id,
-            account_id: accountId,
-            monthly_budget: newConfig.monthlyBudget,
-            month: newConfig.month,
-            year: newConfig.year,
-          })
+          .insert(insertPayload as never)
           .select()
           .single();
 

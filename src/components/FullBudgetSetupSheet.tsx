@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BudgetConfig, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
+import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
 import { Check, Plus, Trash2, Calculator } from 'lucide-react';
 
 interface FullBudgetSetupSheetProps {
@@ -13,11 +13,6 @@ interface FullBudgetSetupSheetProps {
   onSave: (config: BudgetConfig) => void;
 }
 
-interface Deduction {
-  id: string;
-  label: string;
-  amount: string;
-}
 
 export function FullBudgetSetupSheet({
   open,
@@ -42,6 +37,21 @@ export function FullBudgetSetupSheet({
       setMonthlyBudget(currentConfig.monthlyBudget.toString());
       setMonth(currentConfig.month);
       setYear(currentConfig.year);
+      
+      // Restore calculator data if available
+      if (currentConfig.salary !== undefined && currentConfig.salary > 0) {
+        setUseCalculator(true);
+        setSalary(currentConfig.salary.toString());
+        if (currentConfig.deductions && currentConfig.deductions.length > 0) {
+          setDeductions(currentConfig.deductions);
+        } else {
+          setDeductions([{ id: '1', label: '', amount: '' }]);
+        }
+      } else {
+        setUseCalculator(false);
+        setSalary('');
+        setDeductions([{ id: '1', label: '', amount: '' }]);
+      }
     }
   }, [open, currentConfig]);
 
@@ -62,6 +72,8 @@ export function FullBudgetSetupSheet({
         monthlyBudget: budgetNumber,
         month,
         year,
+        salary: useCalculator ? salaryNumber : undefined,
+        deductions: useCalculator ? deductions : undefined,
       });
       onOpenChange(false);
     }
