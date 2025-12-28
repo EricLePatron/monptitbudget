@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
-import { ArrowRight, Wallet, Plus, Trash2, Calculator, Sparkles } from 'lucide-react';
+import { ArrowRight, Wallet, Plus, Trash2, Calculator, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface BudgetSetupProps {
   onComplete: (config: BudgetConfig) => void;
@@ -11,14 +10,16 @@ interface BudgetSetupProps {
     salary?: number;
     deductions?: Deduction[];
   } | null;
+  targetMonth: number;
+  targetYear: number;
+  onGoBack?: () => void;
 }
 
 
-export function BudgetSetup({ onComplete, previousBudgetSuggestion }: BudgetSetupProps) {
-  const currentDate = new Date();
+export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth, targetYear, onGoBack }: BudgetSetupProps) {
   const [monthlyBudget, setMonthlyBudget] = useState<string>('');
-  const [month, setMonth] = useState<number>(currentDate.getMonth());
-  const [year, setYear] = useState<number>(currentDate.getFullYear());
+  const [month] = useState<number>(targetMonth);
+  const [year] = useState<number>(targetYear);
   
   // Calculator mode
   const [useCalculator, setUseCalculator] = useState(false);
@@ -87,18 +88,21 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion }: BudgetSetu
     ));
   };
 
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: i,
-    label: getMonthName(i),
-  }));
-
-  // Dynamic years: current year and next year
-  const currentYear = new Date().getFullYear();
-  const years = [currentYear, currentYear + 1];
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in-up">
       <div className="w-full max-w-md space-y-8">
+        {/* Back button if not current month */}
+        {onGoBack && (
+          <button
+            type="button"
+            onClick={onGoBack}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour au mois en cours
+          </button>
+        )}
+
         {/* Icon */}
         <div className="flex justify-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -109,7 +113,7 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion }: BudgetSetu
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-display font-bold text-foreground">
-            Budget Quotidien
+            Budget {getMonthName(month)} {year}
           </h1>
           <p className="text-muted-foreground">
             Configurez votre budget pour savoir combien dépenser chaque jour
@@ -263,45 +267,6 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion }: BudgetSetu
                 </div>
               </div>
             )}
-
-            {/* Month & Year Selection */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Mois
-                </label>
-                <Select value={month.toString()} onValueChange={(v) => setMonth(parseInt(v))}>
-                  <SelectTrigger className="h-14 text-base">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map((m) => (
-                      <SelectItem key={m.value} value={m.value.toString()}>
-                        {m.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Année
-                </label>
-                <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v))}>
-                  <SelectTrigger className="h-14 text-base">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map((y) => (
-                      <SelectItem key={y} value={y.toString()}>
-                        {y}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
 
           {/* Preview Card */}

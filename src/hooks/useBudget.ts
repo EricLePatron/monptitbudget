@@ -2,9 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
-import { BudgetConfig, Expense, getTodayKey } from '@/lib/budget';
+import { BudgetConfig, Expense, getTodayKey, getLocalDateComponents } from '@/lib/budget';
 
-export function useBudget(accountId: string | null) {
+interface SelectedMonth {
+  month: number;
+  year: number;
+}
+
+export function useBudget(accountId: string | null, selectedMonth?: SelectedMonth) {
   const { user } = useAuth();
   const [config, setConfig] = useState<BudgetConfig | null>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
@@ -15,7 +20,12 @@ export function useBudget(accountId: string | null) {
     deductions?: BudgetConfig['deductions'];
   } | null>(null);
 
-  // Load current budget for user and account
+  // Default to current month if not specified
+  const { year: currentYear, month: currentMonth } = getLocalDateComponents();
+  const targetMonth = selectedMonth?.month ?? currentMonth;
+  const targetYear = selectedMonth?.year ?? currentYear;
+
+  // Load budget for selected month/year and account
   const loadBudget = useCallback(async () => {
     if (!user || !accountId) {
       setLoading(false);
@@ -28,18 +38,15 @@ export function useBudget(accountId: string | null) {
 
     try {
       setLoading(true);
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
 
-      // Get current month's budget for this account
+      // Get budget for target month/year for this account
       const { data: budgetData, error: budgetError } = await supabase
         .from('budgets')
         .select('*')
         .eq('user_id', user.id)
         .eq('account_id', accountId)
-        .eq('month', currentMonth)
-        .eq('year', currentYear)
+        .eq('month', targetMonth)
+        .eq('year', targetYear)
         .maybeSingle();
 
       if (budgetError) throw budgetError;
@@ -94,6 +101,7 @@ export function useBudget(accountId: string | null) {
           }))
         );
       } else {
+        // No budget for this month - create a placeholder config to show the setup
         setConfig(null);
         setBudgetId(null);
         setExpenses([]);
@@ -104,7 +112,7 @@ export function useBudget(accountId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [user, accountId]);
+  }, [user, accountId, targetMonth, targetYear]);
 
   useEffect(() => {
     loadBudget();
@@ -273,6 +281,8 @@ export function useBudget(accountId: string | null) {
     expenses,
     loading,
     previousBudgetSuggestion,
+    targetMonth,
+    targetYear,
     saveBudget,
     updateMonthlyBudget,
     addExpense,
