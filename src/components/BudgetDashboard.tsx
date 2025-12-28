@@ -18,7 +18,7 @@ import {
   getExpensesForDay,
 } from '@/lib/budget';
 import { Account } from '@/hooks/useAccounts';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2 } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -40,6 +40,11 @@ interface BudgetDashboardProps {
     salary?: number;
     deductions?: Deduction[];
   } | null;
+  // Month navigation
+  onPreviousMonth: () => void;
+  onNextMonth: () => void;
+  onGoToCurrentMonth: () => void;
+  isCurrentMonth: boolean;
 }
 
 export function BudgetDashboard({
@@ -55,6 +60,10 @@ export function BudgetDashboard({
   onUpdateAccount,
   onDeleteAccount,
   previousBudgetSuggestion,
+  onPreviousMonth,
+  onNextMonth,
+  onGoToCurrentMonth,
+  isCurrentMonth,
 }: BudgetDashboardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -119,19 +128,50 @@ export function BudgetDashboard({
             onSwitch={onSwitchAccount}
             onManage={() => setManageAccountsOpen(true)}
           />
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              {getMonthName(config.month)} {config.year}
-            </p>
+          {/* Month Navigation */}
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onPreviousMonth}
+              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
             <button
               type="button"
               onClick={() => setEditBudgetOpen(true)}
-              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer px-1"
             >
+              <span className="font-medium">{getMonthName(config.month)} {config.year}</span>
               <Settings className="w-3 h-3" />
-              {formatCurrencyCompact(config.monthlyBudget)} / mois
             </button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onNextMonth}
+              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            {!isCurrentMonth && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onGoToCurrentMonth}
+                className="h-6 text-xs text-muted-foreground hover:text-foreground ml-1"
+              >
+                <Calendar className="w-3 h-3 mr-1" />
+                Aujourd'hui
+              </Button>
+            )}
           </div>
+          <p className="text-xs text-muted-foreground">
+            {formatCurrencyCompact(config.monthlyBudget)} / mois
+          </p>
         </div>
         <div className="flex items-center gap-1">
           <Button
