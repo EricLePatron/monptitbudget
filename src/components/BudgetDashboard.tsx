@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
-import { EditBudgetSheet } from './EditBudgetSheet';
+import { FullBudgetSetupSheet } from './FullBudgetSetupSheet';
 import { DonaldSticker } from './DonaldSticker';
 import {
   BudgetConfig,
@@ -14,7 +14,7 @@ import {
   getTodayKey,
   getExpensesForDay,
 } from '@/lib/budget';
-import { Plus, RotateCcw, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2 } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,8 +23,7 @@ interface BudgetDashboardProps {
   expenses: Expense[];
   onAddExpense: (amount: number, name?: string) => void;
   onDeleteExpense: (id: string) => void;
-  onUpdateBudget: (newBudget: number) => void;
-  onReset: () => void;
+  onUpdateConfig: (config: BudgetConfig) => void;
 }
 
 export function BudgetDashboard({
@@ -32,8 +31,7 @@ export function BudgetDashboard({
   expenses,
   onAddExpense,
   onDeleteExpense,
-  onUpdateBudget,
-  onReset,
+  onUpdateConfig,
 }: BudgetDashboardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -111,15 +109,6 @@ export function BudgetDashboard({
             className="text-muted-foreground hover:text-foreground"
           >
             <History className="w-5 h-5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onReset}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw className="w-5 h-5" />
           </Button>
           <Button
             type="button"
@@ -259,12 +248,12 @@ export function BudgetDashboard({
         onDeleteExpense={onDeleteExpense}
       />
 
-      {/* Edit Budget Sheet */}
-      <EditBudgetSheet
+      {/* Full Budget Setup Sheet */}
+      <FullBudgetSetupSheet
         open={editBudgetOpen}
         onOpenChange={setEditBudgetOpen}
-        currentBudget={config.monthlyBudget}
-        onSave={onUpdateBudget}
+        currentConfig={config}
+        onSave={onUpdateConfig}
       />
 
       {/* Donald Duck Sticker */}

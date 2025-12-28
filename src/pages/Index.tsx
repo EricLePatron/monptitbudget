@@ -51,8 +51,7 @@ const Index = () => {
           expenses={expenses}
           onAddExpense={addExpense}
           onDeleteExpense={deleteExpense}
-          onUpdateBudget={updateMonthlyBudget}
-          onReset={resetBudget}
+          onUpdateConfig={saveBudget}
         />
       )}
     </>
