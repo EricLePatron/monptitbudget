@@ -1,124 +1,124 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Warm, friendly palette */
-    --background: 40 33% 98%;
-    --foreground: 220 25% 15%;
+    /* Donald Duck inspired palette - Bright sailor blue, yellow, orange, white */
+    --background: 200 60% 96%;
+    --foreground: 210 80% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 210 80% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 210 80% 20%;
 
-    /* Deep slate blue - trust & stability */
-    --primary: 220 60% 35%;
+    /* Donald's sailor blue */
+    --primary: 210 90% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 94%;
-    --secondary-foreground: 220 25% 25%;
+    /* Donald's yellow/orange accent */
+    --secondary: 45 100% 60%;
+    --secondary-foreground: 210 80% 20%;
 
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 200 30% 90%;
+    --muted-foreground: 210 30% 45%;
 
-    --accent: 220 20% 96%;
-    --accent-foreground: 220 25% 15%;
+    /* Donald's orange beak/feet color */
+    --accent: 30 95% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Semantic budget colors */
-    --budget-ok: 145 65% 42%;
+    /* Semantic budget colors - cartoon style */
+    --budget-ok: 150 70% 45%;
     --budget-ok-foreground: 0 0% 100%;
-    --budget-ok-soft: 145 50% 95%;
+    --budget-ok-soft: 150 60% 92%;
     
-    --budget-warning: 38 95% 50%;
-    --budget-warning-foreground: 0 0% 100%;
-    --budget-warning-soft: 38 90% 95%;
+    --budget-warning: 45 100% 50%;
+    --budget-warning-foreground: 210 80% 20%;
+    --budget-warning-soft: 45 90% 92%;
     
-    --budget-danger: 0 70% 55%;
+    --budget-danger: 0 80% 55%;
     --budget-danger-foreground: 0 0% 100%;
-    --budget-danger-soft: 0 60% 96%;
+    --budget-danger-soft: 0 70% 94%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 220 60% 35%;
+    --border: 210 40% 85%;
+    --input: 210 40% 88%;
+    --ring: 210 90% 45%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    /* Typography */
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    /* Typography - Cartoon fonts */
+    --font-display: 'Fredoka', 'Comic Sans MS', cursive;
+    --font-body: 'Comic Neue', 'Comic Sans MS', cursive;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 25% 15% / 0.03);
-    --shadow-md: 0 4px 12px -2px hsl(220 25% 15% / 0.08);
-    --shadow-lg: 0 12px 32px -4px hsl(220 25% 15% / 0.12);
-    --shadow-glow-ok: 0 0 40px hsl(var(--budget-ok) / 0.15);
-    --shadow-glow-warning: 0 0 40px hsl(var(--budget-warning) / 0.15);
-    --shadow-glow-danger: 0 0 40px hsl(var(--budget-danger) / 0.15);
+    /* Cartoon shadows */
+    --shadow-sm: 0 2px 4px hsl(210 80% 20% / 0.1);
+    --shadow-md: 0 4px 12px hsl(210 80% 20% / 0.15), 0 2px 4px hsl(210 80% 20% / 0.1);
+    --shadow-lg: 0 12px 32px hsl(210 80% 20% / 0.2), 0 4px 8px hsl(210 80% 20% / 0.1);
+    --shadow-glow-ok: 0 0 30px hsl(var(--budget-ok) / 0.3);
+    --shadow-glow-warning: 0 0 30px hsl(var(--budget-warning) / 0.4);
+    --shadow-glow-danger: 0 0 30px hsl(var(--budget-danger) / 0.3);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 200 60% 98%;
+    --sidebar-foreground: 210 80% 20%;
+    --sidebar-primary: 210 90% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 100% 60%;
+    --sidebar-accent-foreground: 210 80% 20%;
+    --sidebar-border: 210 40% 85%;
+    --sidebar-ring: 210 90% 45%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 220 15% 95%;
+    --background: 210 50% 12%;
+    --foreground: 200 40% 95%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 220 15% 95%;
+    --card: 210 45% 18%;
+    --card-foreground: 200 40% 95%;
 
-    --popover: 220 25% 12%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 210 45% 18%;
+    --popover-foreground: 200 40% 95%;
 
-    --primary: 220 60% 60%;
-    --primary-foreground: 220 25% 8%;
+    --primary: 210 85% 55%;
+    --primary-foreground: 210 50% 10%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 15% 90%;
+    --secondary: 45 90% 55%;
+    --secondary-foreground: 210 50% 10%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 210 30% 22%;
+    --muted-foreground: 200 20% 60%;
 
-    --accent: 220 20% 20%;
-    --accent-foreground: 220 15% 95%;
+    --accent: 30 90% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --budget-ok: 145 60% 50%;
-    --budget-ok-soft: 145 40% 15%;
+    --budget-ok: 150 65% 50%;
+    --budget-ok-soft: 150 40% 18%;
     
-    --budget-warning: 38 90% 55%;
-    --budget-warning-soft: 38 60% 15%;
+    --budget-warning: 45 95% 55%;
+    --budget-warning-soft: 45 50% 18%;
     
-    --budget-danger: 0 65% 60%;
-    --budget-danger-soft: 0 50% 15%;
+    --budget-danger: 0 75% 58%;
+    --budget-danger-soft: 0 45% 18%;
 
-    --destructive: 0 65% 60%;
+    --destructive: 0 75% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 220 60% 60%;
+    --border: 210 30% 25%;
+    --input: 210 30% 25%;
+    --ring: 210 85% 55%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 210 50% 10%;
+    --sidebar-foreground: 200 40% 95%;
+    --sidebar-primary: 210 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 45 90% 55%;
+    --sidebar-accent-foreground: 210 50% 10%;
+    --sidebar-border: 210 30% 25%;
+    --sidebar-ring: 210 85% 55%;
   }
 }
 
@@ -197,7 +197,7 @@
 
 @layer components {
   .budget-card {
-    @apply bg-card rounded-2xl p-6 shadow-md border border-border/50;
+    @apply bg-card rounded-3xl p-6 shadow-md border-2 border-border;
   }
 
   .hero-amount {
@@ -205,26 +205,55 @@
   }
 
   .status-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border-2;
   }
 
   .status-ok {
-    @apply bg-budget-ok-soft text-budget-ok;
+    @apply bg-budget-ok-soft text-budget-ok border-budget-ok/30;
   }
 
   .status-warning {
-    @apply bg-budget-warning-soft text-budget-warning;
+    @apply bg-budget-warning-soft text-budget-warning border-budget-warning/30;
   }
 
   .status-danger {
-    @apply bg-budget-danger-soft text-budget-danger;
+    @apply bg-budget-danger-soft text-budget-danger border-budget-danger/30;
+  }
+
+  /* Donald Duck speech bubble style */
+  .speech-bubble {
+    @apply relative bg-card rounded-2xl p-4 border-2 border-foreground/20 shadow-lg;
+  }
+
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 30px;
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 14px solid hsl(var(--card));
+  }
+
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 28px;
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 16px solid hsl(var(--foreground) / 0.2);
   }
 }
 
 /* Animations */
 @keyframes number-pop {
   0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
 
@@ -255,6 +284,33 @@
   }
 }
 
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  70% {
+    transform: scale(0.9) rotate(-3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
 .animate-number-pop {
   animation: number-pop 0.3s ease-out;
 }
@@ -269,4 +325,16 @@
 
 .animate-slide-in-bottom {
   animation: slide-in-bottom 0.3s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-wiggle {
+  animation: wiggle 0.3s ease-in-out;
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
 }
