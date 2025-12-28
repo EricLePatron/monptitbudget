@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,13 @@ export function EditBudgetSheet({
   onSave,
 }: EditBudgetSheetProps) {
   const [budget, setBudget] = useState<string>(currentBudget.toString());
+
+  // Sync budget state when sheet opens or currentBudget changes
+  useEffect(() => {
+    if (open) {
+      setBudget(currentBudget.toString());
+    }
+  }, [open, currentBudget]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
