@@ -36,12 +36,13 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (budgetNumber > 0) {
+      // Save calculator data if using calculator mode
       onComplete({
         monthlyBudget: budgetNumber,
         month,
         year,
-        salary: useCalculator ? salaryNumber : undefined,
-        deductions: useCalculator ? deductions : undefined,
+        salary: useCalculator && salaryNumber > 0 ? salaryNumber : undefined,
+        deductions: useCalculator && deductions.some(d => d.amount || d.label) ? deductions : undefined,
       });
     }
   };
