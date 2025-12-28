@@ -88,14 +88,15 @@ export function BudgetDashboard({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="p-4 flex items-center justify-between">
+      <header className="p-4 flex items-center justify-between relative z-10">
         <div>
           <p className="text-sm text-muted-foreground font-medium">
             {getMonthName(config.month)} {config.year}
           </p>
           <button
+            type="button"
             onClick={() => setEditBudgetOpen(true)}
-            className="text-xs text-primary hover:underline flex items-center gap-1"
+            className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
           >
             <Settings className="w-3 h-3" />
             {formatCurrencyCompact(config.monthlyBudget)} / mois
@@ -103,6 +104,7 @@ export function BudgetDashboard({
         </div>
         <div className="flex items-center gap-1">
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={() => setHistoryOpen(true)}
@@ -111,6 +113,7 @@ export function BudgetDashboard({
             <History className="w-5 h-5" />
           </Button>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={onReset}
@@ -119,6 +122,7 @@ export function BudgetDashboard({
             <RotateCcw className="w-5 h-5" />
           </Button>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={signOut}
@@ -130,7 +134,7 @@ export function BudgetDashboard({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 -mt-16">
+      <main className="flex-1 flex flex-col items-center justify-center p-6">
         {/* Status Badge */}
         <div className={cn('status-badge mb-6 animate-fade-in-up', `status-${status}`)}>
           <StatusIcon className="w-4 h-4" />
