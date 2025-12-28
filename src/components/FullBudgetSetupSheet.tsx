@@ -4,13 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
-import { Check, Plus, Trash2, Calculator } from 'lucide-react';
+import { Check, Plus, Trash2, Calculator, Sparkles } from 'lucide-react';
 
 interface FullBudgetSetupSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentConfig: BudgetConfig;
   onSave: (config: BudgetConfig) => void;
+  previousBudgetSuggestion?: {
+    salary?: number;
+    deductions?: Deduction[];
+  } | null;
 }
 
 
@@ -19,6 +23,7 @@ export function FullBudgetSetupSheet({
   onOpenChange,
   currentConfig,
   onSave,
+  previousBudgetSuggestion,
 }: FullBudgetSetupSheetProps) {
   const [monthlyBudget, setMonthlyBudget] = useState<string>('');
   const [month, setMonth] = useState<number>(currentConfig.month);
@@ -64,6 +69,28 @@ export function FullBudgetSetupSheet({
   
   const budgetNumber = useCalculator ? calculatedBudget : (parseFloat(monthlyBudget) || 0);
   const dailyBudget = budgetNumber > 0 ? budgetNumber / daysInMonth : 0;
+
+  // Check if we can show suggestion (when current config has no salary data)
+  const canShowSuggestion = previousBudgetSuggestion && 
+    previousBudgetSuggestion.salary && 
+    previousBudgetSuggestion.salary > 0 &&
+    !currentConfig.salary;
+
+  // Apply previous budget suggestion
+  const applySuggestion = () => {
+    if (previousBudgetSuggestion) {
+      if (previousBudgetSuggestion.salary) {
+        setSalary(previousBudgetSuggestion.salary.toString());
+      }
+      if (previousBudgetSuggestion.deductions && previousBudgetSuggestion.deductions.length > 0) {
+        setDeductions(previousBudgetSuggestion.deductions.map((d, i) => ({
+          ...d,
+          id: d.id || (i + 1).toString(),
+        })));
+      }
+      setUseCalculator(true);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +145,18 @@ export function FullBudgetSetupSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Suggestion from previous budget */}
+          {canShowSuggestion && (
+            <button
+              type="button"
+              onClick={applySuggestion}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-primary/50 bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary"
+            >
+              <Sparkles className="w-4 h-4" />
+              Reprendre les données du mois précédent
+            </button>
+          )}
+
           {/* Toggle Calculator Mode */}
           <button
             type="button"

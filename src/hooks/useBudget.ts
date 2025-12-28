@@ -10,6 +10,10 @@ export function useBudget(accountId: string | null) {
   const [budgetId, setBudgetId] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
+    salary?: number;
+    deductions?: BudgetConfig['deductions'];
+  } | null>(null);
 
   // Load current budget for user and account
   const loadBudget = useCallback(async () => {
@@ -18,6 +22,7 @@ export function useBudget(accountId: string | null) {
       setConfig(null);
       setBudgetId(null);
       setExpenses([]);
+      setPreviousBudgetSuggestion(null);
       return;
     }
 
@@ -38,6 +43,27 @@ export function useBudget(accountId: string | null) {
         .maybeSingle();
 
       if (budgetError) throw budgetError;
+
+      // Always fetch the most recent budget with salary/deductions for suggestions
+      const { data: latestBudget } = await supabase
+        .from('budgets')
+        .select('salary, deductions')
+        .eq('user_id', user.id)
+        .eq('account_id', accountId)
+        .not('salary', 'is', null)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestBudget) {
+        setPreviousBudgetSuggestion({
+          salary: latestBudget.salary ? Number(latestBudget.salary) : undefined,
+          deductions: latestBudget.deductions as unknown as BudgetConfig['deductions'] ?? undefined,
+        });
+      } else {
+        setPreviousBudgetSuggestion(null);
+      }
 
       if (budgetData) {
         setConfig({
@@ -246,6 +272,7 @@ export function useBudget(accountId: string | null) {
     config,
     expenses,
     loading,
+    previousBudgetSuggestion,
     saveBudget,
     updateMonthlyBudget,
     addExpense,

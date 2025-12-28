@@ -9,6 +9,7 @@ import { DonaldSticker } from './DonaldSticker';
 import {
   BudgetConfig,
   Expense,
+  Deduction,
   calculateBudgetMetrics,
   getBudgetStatus,
   formatCurrencyCompact,
@@ -34,6 +35,11 @@ interface BudgetDashboardProps {
   onCreateAccount: (name: string, emoji: string) => Promise<Account | null>;
   onUpdateAccount: (id: string, name: string, emoji: string) => Promise<void>;
   onDeleteAccount: (id: string) => Promise<void>;
+  // Budget suggestions
+  previousBudgetSuggestion?: {
+    salary?: number;
+    deductions?: Deduction[];
+  } | null;
 }
 
 export function BudgetDashboard({
@@ -48,6 +54,7 @@ export function BudgetDashboard({
   onCreateAccount,
   onUpdateAccount,
   onDeleteAccount,
+  previousBudgetSuggestion,
 }: BudgetDashboardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -302,6 +309,7 @@ export function BudgetDashboard({
         onOpenChange={setEditBudgetOpen}
         currentConfig={config}
         onSave={onUpdateConfig}
+        previousBudgetSuggestion={previousBudgetSuggestion}
       />
 
       {/* Manage Accounts Sheet */}
