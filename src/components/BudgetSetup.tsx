@@ -1,16 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
-import { ArrowRight, Wallet, Plus, Trash2, Calculator } from 'lucide-react';
+import { ArrowRight, Wallet, Plus, Trash2, Calculator, Sparkles } from 'lucide-react';
 
 interface BudgetSetupProps {
   onComplete: (config: BudgetConfig) => void;
+  previousBudgetSuggestion?: {
+    salary?: number;
+    deductions?: Deduction[];
+  } | null;
 }
 
 
-export function BudgetSetup({ onComplete }: BudgetSetupProps) {
+export function BudgetSetup({ onComplete, previousBudgetSuggestion }: BudgetSetupProps) {
   const currentDate = new Date();
   const [monthlyBudget, setMonthlyBudget] = useState<string>('');
   const [month, setMonth] = useState<number>(currentDate.getMonth());
@@ -22,6 +26,7 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
   const [deductions, setDeductions] = useState<Deduction[]>([
     { id: '1', label: '', amount: '' }
   ]);
+  const [hasSuggestionApplied, setHasSuggestionApplied] = useState(false);
 
   const daysInMonth = getDaysInMonth(month, year);
   
@@ -32,6 +37,25 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
   
   const budgetNumber = useCalculator ? calculatedBudget : (parseFloat(monthlyBudget) || 0);
   const dailyBudget = budgetNumber > 0 ? budgetNumber / daysInMonth : 0;
+
+  // Apply previous budget suggestion
+  const applySuggestion = () => {
+    if (previousBudgetSuggestion) {
+      if (previousBudgetSuggestion.salary) {
+        setSalary(previousBudgetSuggestion.salary.toString());
+      }
+      if (previousBudgetSuggestion.deductions && previousBudgetSuggestion.deductions.length > 0) {
+        setDeductions(previousBudgetSuggestion.deductions.map((d, i) => ({
+          ...d,
+          id: d.id || (i + 1).toString(),
+        })));
+      }
+      setUseCalculator(true);
+      setHasSuggestionApplied(true);
+    }
+  };
+
+  const hasSuggestion = previousBudgetSuggestion && previousBudgetSuggestion.salary && previousBudgetSuggestion.salary > 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +118,18 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Suggestion from previous budget */}
+          {hasSuggestion && !hasSuggestionApplied && (
+            <button
+              type="button"
+              onClick={applySuggestion}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-primary/50 bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary"
+            >
+              <Sparkles className="w-4 h-4" />
+              Reprendre les données du mois précédent
+            </button>
+          )}
+
           {/* Toggle Calculator Mode */}
           <button
             type="button"

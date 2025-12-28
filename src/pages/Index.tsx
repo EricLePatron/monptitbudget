@@ -25,6 +25,7 @@ const Index = () => {
     config,
     expenses,
     loading: budgetLoading,
+    previousBudgetSuggestion,
     saveBudget,
     addExpense,
     deleteExpense,
@@ -68,7 +69,7 @@ const Index = () => {
   return (
     <>
       {!config ? (
-        <BudgetSetup onComplete={saveBudget} />
+        <BudgetSetup onComplete={saveBudget} previousBudgetSuggestion={previousBudgetSuggestion} />
       ) : (
         <BudgetDashboard
           config={config}
@@ -82,6 +83,7 @@ const Index = () => {
           onCreateAccount={createAccount}
           onUpdateAccount={updateAccount}
           onDeleteAccount={deleteAccount}
+          previousBudgetSuggestion={previousBudgetSuggestion}
         />
       )}
     </>
