@@ -222,42 +222,64 @@ export function BudgetDashboard({
           </div>
         )}
 
-        {/* Tomorrow Preview */}
+        {/* Tomorrow Preview / Month Status */}
         <div className="w-full max-w-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="budget-card bg-secondary/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                  Prévu demain
+            {metrics.isFutureMonth ? (
+              <div className="text-center py-2">
+                <p className="text-sm text-muted-foreground">
+                  Ce budget commence en {getMonthName(config.month)} {config.year}
                 </p>
-                <p className="text-2xl font-display font-bold text-foreground mt-1">
-                  {formatCurrencyCompact(metrics.tomorrowBudget)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">
-                  {metrics.daysRemaining} jours restants
-                </p>
-                <p className="text-sm font-medium text-foreground">
-                  {formatCurrencyCompact(metrics.budgetRemaining)} au total
+                <p className="text-xs text-muted-foreground mt-1">
+                  Vous pourrez ajouter des dépenses à partir du 1er {getMonthName(config.month)}
                 </p>
               </div>
-            </div>
+            ) : metrics.isPastMonth ? (
+              <div className="text-center py-2">
+                <p className="text-sm text-muted-foreground">
+                  Ce mois est terminé
+                </p>
+                <p className="text-lg font-display font-bold text-foreground mt-1">
+                  Total dépensé: {formatCurrencyCompact(metrics.totalSpentThisMonth)}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                    Prévu demain
+                  </p>
+                  <p className="text-2xl font-display font-bold text-foreground mt-1">
+                    {formatCurrencyCompact(metrics.tomorrowBudget)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">
+                    {metrics.daysRemaining} jours restants
+                  </p>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatCurrencyCompact(metrics.budgetRemaining)} au total
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
 
-      {/* Add Expense FAB */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-        <Button
-          size="lg"
-          onClick={() => setSheetOpen(true)}
-          className="h-16 px-8 rounded-full shadow-lg text-lg font-medium"
-        >
-          <Plus className="mr-2 w-6 h-6" />
-          Ajouter une dépense
-        </Button>
-      </div>
+      {/* Add Expense FAB - Only for current month */}
+      {metrics.isCurrentMonth && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+          <Button
+            size="lg"
+            onClick={() => setSheetOpen(true)}
+            className="h-16 px-8 rounded-full shadow-lg text-lg font-medium"
+          >
+            <Plus className="mr-2 w-6 h-6" />
+            Ajouter une dépense
+          </Button>
+        </div>
+      )}
 
       {/* Add Expense Sheet */}
       <AddExpenseSheet

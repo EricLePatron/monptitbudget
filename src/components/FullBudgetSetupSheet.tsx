@@ -104,7 +104,9 @@ export function FullBudgetSetupSheet({
     label: getMonthName(i),
   }));
 
-  const years = [2025, 2026];
+  // Dynamic years: current year and next year
+  const currentYearValue = new Date().getFullYear();
+  const years = [currentYearValue, currentYearValue + 1];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

@@ -68,7 +68,9 @@ export function BudgetSetup({ onComplete }: BudgetSetupProps) {
     label: getMonthName(i),
   }));
 
-  const years = [2025, 2026];
+  // Dynamic years: current year and next year
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear, currentYear + 1];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fade-in-up">

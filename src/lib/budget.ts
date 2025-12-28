@@ -82,28 +82,72 @@ export function getTotalExpensesUpToToday(expenses: Expense[], config: BudgetCon
     .reduce((sum, e) => sum + e.amount, 0);
 }
 
+export function isCurrentMonth(config: BudgetConfig): boolean {
+  const { year, month } = getLocalDateComponents();
+  return config.year === year && config.month === month;
+}
+
+export function isFutureMonth(config: BudgetConfig): boolean {
+  const { year, month } = getLocalDateComponents();
+  if (config.year > year) return true;
+  if (config.year === year && config.month > month) return true;
+  return false;
+}
+
+export function isPastMonth(config: BudgetConfig): boolean {
+  const { year, month } = getLocalDateComponents();
+  if (config.year < year) return true;
+  if (config.year === year && config.month < month) return true;
+  return false;
+}
+
 export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]) {
   const totalDays = getDaysInMonth(config.month, config.year);
-  const currentDay = getCurrentDayOfMonth();
-  const daysRemaining = totalDays - currentDay + 1;
+  const { year: currentYear, month: currentMonth, day: currentDay } = getLocalDateComponents();
   
-  const totalSpentThisMonth = getTotalExpensesUpToToday(expenses, config);
+  // Check if this budget is for the current month
+  const isThisMonth = config.year === currentYear && config.month === currentMonth;
+  const isFuture = isFutureMonth(config);
+  const isPast = isPastMonth(config);
+  
+  // For current month: use actual current day
+  // For future month: day 1 (hasn't started)
+  // For past month: last day of that month (month is over)
+  let effectiveDay: number;
+  if (isThisMonth) {
+    effectiveDay = currentDay;
+  } else if (isFuture) {
+    effectiveDay = 0; // Before the month starts
+  } else {
+    effectiveDay = totalDays; // Month is over
+  }
+  
+  const daysRemaining = Math.max(0, totalDays - effectiveDay);
+  
+  const totalSpentThisMonth = expenses
+    .filter(e => {
+      const { year, month } = parseDateKey(e.date);
+      return year === config.year && month === config.month;
+    })
+    .reduce((sum, e) => sum + e.amount, 0);
+  
   const budgetRemaining = config.monthlyBudget - totalSpentThisMonth;
   
-  const dailyBudget = budgetRemaining / daysRemaining;
+  // For future months, divide by all days; for current month by remaining days
+  const dailyBudget = daysRemaining > 0 ? budgetRemaining / daysRemaining : budgetRemaining;
   
   const todayKey = getTodayKey();
-  const spentToday = getTotalExpensesForDay(expenses, todayKey);
+  const spentToday = isThisMonth ? getTotalExpensesForDay(expenses, todayKey) : 0;
   const remainingToday = dailyBudget - spentToday;
   
   // Tomorrow's projected budget
   const budgetAfterToday = budgetRemaining - spentToday;
-  const daysAfterToday = daysRemaining - 1;
+  const daysAfterToday = Math.max(0, daysRemaining - 1);
   const tomorrowBudget = daysAfterToday > 0 ? budgetAfterToday / daysAfterToday : 0;
   
   return {
     totalDays,
-    currentDay,
+    currentDay: effectiveDay,
     daysRemaining,
     budgetRemaining,
     dailyBudget,
@@ -111,6 +155,9 @@ export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]
     remainingToday,
     tomorrowBudget,
     totalSpentThisMonth,
+    isCurrentMonth: isThisMonth,
+    isFutureMonth: isFuture,
+    isPastMonth: isPast,
   };
 }
 
