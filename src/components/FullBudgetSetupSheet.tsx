@@ -68,12 +68,16 @@ export function FullBudgetSetupSheet({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (budgetNumber > 0) {
+      // Always save salary/deductions if they have values, regardless of calculator mode
+      const salaryToSave = useCalculator ? salaryNumber : (currentConfig.salary ?? undefined);
+      const deductionsToSave = useCalculator ? deductions : (currentConfig.deductions ?? undefined);
+      
       onSave({
         monthlyBudget: budgetNumber,
         month,
         year,
-        salary: useCalculator ? salaryNumber : undefined,
-        deductions: useCalculator ? deductions : undefined,
+        salary: salaryToSave,
+        deductions: deductionsToSave,
       });
       onOpenChange(false);
     }
