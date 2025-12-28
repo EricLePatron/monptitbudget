@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
 import { EditBudgetSheet } from './EditBudgetSheet';
+import { DonaldSticker } from './DonaldSticker';
 import {
   BudgetConfig,
   Expense,
@@ -38,6 +39,7 @@ export function BudgetDashboard({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editBudgetOpen, setEditBudgetOpen] = useState(false);
   const [animateAmount, setAnimateAmount] = useState(false);
+  const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
 
   const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
@@ -49,6 +51,9 @@ export function BudgetDashboard({
     // Trigger animation
     setAnimateAmount(true);
     setTimeout(() => setAnimateAmount(false), 300);
+    
+    // Show Donald Duck sticker
+    setStickerData({ amount, name });
   };
 
   const statusConfig = {
@@ -257,6 +262,15 @@ export function BudgetDashboard({
         currentBudget={config.monthlyBudget}
         onSave={onUpdateBudget}
       />
+
+      {/* Donald Duck Sticker */}
+      {stickerData && (
+        <DonaldSticker
+          amount={stickerData.amount}
+          expenseName={stickerData.name}
+          onClose={() => setStickerData(null)}
+        />
+      )}
     </div>
   );
 }
