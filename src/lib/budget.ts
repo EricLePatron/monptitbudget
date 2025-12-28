@@ -19,17 +19,32 @@ export interface BudgetState {
 
 export type BudgetStatus = 'ok' | 'warning' | 'danger';
 
+// Get current local date components for consistent date handling
+export function getLocalDateComponents(): { year: number; month: number; day: number } {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth(), // 0-11
+    day: now.getDate(),
+  };
+}
+
 export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
 
 export function getCurrentDayOfMonth(): number {
-  return new Date().getDate();
+  return getLocalDateComponents().day;
 }
 
 export function getTodayKey(): string {
-  const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const { year, month, day } = getLocalDateComponents();
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+export function parseDateKey(dateKey: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return { year, month: month - 1, day }; // month is 0-11
 }
 
 export function getExpensesForDay(expenses: Expense[], dateKey: string): Expense[] {
@@ -41,13 +56,20 @@ export function getTotalExpensesForDay(expenses: Expense[], dateKey: string): nu
 }
 
 export function getTotalExpensesUpToToday(expenses: Expense[], config: BudgetConfig): number {
-  const today = new Date();
+  const todayKey = getTodayKey();
+  const { year: todayYear, month: todayMonth, day: todayDay } = parseDateKey(todayKey);
+  
   return expenses
     .filter(e => {
-      const expenseDate = new Date(e.date);
-      return expenseDate.getFullYear() === config.year && 
-             expenseDate.getMonth() === config.month &&
-             expenseDate <= today;
+      const { year, month, day } = parseDateKey(e.date);
+      // Only include expenses from the budget's month/year that are on or before today
+      if (year !== config.year || month !== config.month) return false;
+      // Compare if expense date <= today
+      if (year < todayYear) return true;
+      if (year > todayYear) return false;
+      if (month < todayMonth) return true;
+      if (month > todayMonth) return false;
+      return day <= todayDay;
     })
     .reduce((sum, e) => sum + e.amount, 0);
 }
