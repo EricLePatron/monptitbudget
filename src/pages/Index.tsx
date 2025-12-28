@@ -9,7 +9,16 @@ import { Loader2 } from 'lucide-react';
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { config, expenses, loading: budgetLoading, saveBudget, addExpense, resetBudget } = useBudget();
+  const {
+    config,
+    expenses,
+    loading: budgetLoading,
+    saveBudget,
+    updateMonthlyBudget,
+    addExpense,
+    deleteExpense,
+    resetBudget,
+  } = useBudget();
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -40,7 +49,9 @@ const Index = () => {
         <BudgetDashboard
           config={config}
           expenses={expenses}
-          onAddExpense={(expense) => addExpense(expense.amount)}
+          onAddExpense={addExpense}
+          onDeleteExpense={deleteExpense}
+          onUpdateBudget={updateMonthlyBudget}
           onReset={resetBudget}
         />
       )}
