@@ -55,6 +55,7 @@ export function useBudget() {
           (expensesData || []).map((e) => ({
             id: e.id,
             amount: Number(e.amount),
+            name: e.name ?? undefined,
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
           }))
@@ -118,14 +119,35 @@ export function useBudget() {
       }
 
       setConfig(newConfig);
+      toast.success('Budget mis à jour');
     } catch (error) {
       console.error('Error saving budget:', error);
       toast.error('Erreur lors de la sauvegarde du budget');
     }
   };
 
+  // Update monthly budget amount only
+  const updateMonthlyBudget = async (newAmount: number) => {
+    if (!user || !budgetId || !config) return;
+
+    try {
+      const { error } = await supabase
+        .from('budgets')
+        .update({ monthly_budget: newAmount })
+        .eq('id', budgetId);
+
+      if (error) throw error;
+
+      setConfig({ ...config, monthlyBudget: newAmount });
+      toast.success('Budget mis à jour');
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   // Add expense
-  const addExpense = async (amount: number) => {
+  const addExpense = async (amount: number, name?: string) => {
     if (!user || !budgetId) return;
 
     try {
@@ -137,6 +159,7 @@ export function useBudget() {
           user_id: user.id,
           budget_id: budgetId,
           amount,
+          name: name || null,
           date: todayKey,
         })
         .select()
@@ -147,6 +170,7 @@ export function useBudget() {
       const newExpense: Expense = {
         id: data.id,
         amount: Number(data.amount),
+        name: data.name ?? undefined,
         date: data.date,
         createdAt: new Date(data.created_at).getTime(),
       };
@@ -189,6 +213,7 @@ export function useBudget() {
     expenses,
     loading,
     saveBudget,
+    updateMonthlyBudget,
     addExpense,
     deleteExpense,
     resetBudget,

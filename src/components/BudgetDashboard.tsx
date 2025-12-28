@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
+import { ExpenseHistorySheet } from './ExpenseHistorySheet';
+import { EditBudgetSheet } from './EditBudgetSheet';
 import {
   BudgetConfig,
   Expense,
@@ -9,36 +11,40 @@ import {
   formatCurrencyCompact,
   getMonthName,
   getTodayKey,
-  generateExpenseId,
   getExpensesForDay,
 } from '@/lib/budget';
-import { Plus, RotateCcw, TrendingUp, TrendingDown, Minus, LogOut } from 'lucide-react';
+import { Plus, RotateCcw, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
-  onAddExpense: (expense: Expense) => void;
+  onAddExpense: (amount: number, name?: string) => void;
+  onDeleteExpense: (id: string) => void;
+  onUpdateBudget: (newBudget: number) => void;
   onReset: () => void;
 }
 
-export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: BudgetDashboardProps) {
+export function BudgetDashboard({
+  config,
+  expenses,
+  onAddExpense,
+  onDeleteExpense,
+  onUpdateBudget,
+  onReset,
+}: BudgetDashboardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [editBudgetOpen, setEditBudgetOpen] = useState(false);
   const [animateAmount, setAnimateAmount] = useState(false);
 
   const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
   const todayExpenses = getExpensesForDay(expenses, getTodayKey());
 
-  const handleAddExpense = (amount: number) => {
-    const expense: Expense = {
-      id: generateExpenseId(),
-      amount,
-      date: getTodayKey(),
-      createdAt: Date.now(),
-    };
-    onAddExpense(expense);
+  const handleAddExpense = (amount: number, name?: string) => {
+    onAddExpense(amount, name);
     
     // Trigger animation
     setAnimateAmount(true);
@@ -82,8 +88,23 @@ export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: Bud
           <p className="text-sm text-muted-foreground font-medium">
             {getMonthName(config.month)} {config.year}
           </p>
+          <button
+            onClick={() => setEditBudgetOpen(true)}
+            className="text-xs text-primary hover:underline flex items-center gap-1"
+          >
+            <Settings className="w-3 h-3" />
+            {formatCurrencyCompact(config.monthlyBudget)} / mois
+          </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setHistoryOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <History className="w-5 h-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -140,15 +161,30 @@ export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: Bud
                     key={exp.id}
                     className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
                   >
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    <span className="font-display font-semibold text-foreground">
-                      -{formatCurrencyCompact(exp.amount)}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {exp.name || 'Dépense'}
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-display font-semibold text-foreground">
+                        -{formatCurrencyCompact(exp.amount)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-budget-danger"
+                        onClick={() => onDeleteExpense(exp.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -204,6 +240,22 @@ export function BudgetDashboard({ config, expenses, onAddExpense, onReset }: Bud
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onAddExpense={handleAddExpense}
+      />
+
+      {/* Expense History Sheet */}
+      <ExpenseHistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        expenses={expenses}
+        onDeleteExpense={onDeleteExpense}
+      />
+
+      {/* Edit Budget Sheet */}
+      <EditBudgetSheet
+        open={editBudgetOpen}
+        onOpenChange={setEditBudgetOpen}
+        currentBudget={config.monthlyBudget}
+        onSave={onUpdateBudget}
       />
     </div>
   );

@@ -7,6 +7,7 @@ export interface BudgetConfig {
 export interface Expense {
   id: string;
   amount: number;
+  name?: string;
   date: string; // YYYY-MM-DD
   createdAt: number;
 }
