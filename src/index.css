@@ -127,9 +127,16 @@
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    /* PWA safe areas for notch/home indicator */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
 
   h1, h2, h3, h4, h5, h6 {
