@@ -58,8 +58,8 @@ export function EditBudgetSheet({
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 className="text-center text-3xl font-display font-bold h-16 pr-12"
-                min="1"
-                step="1"
+                min="0.01"
+                step="0.01"
                 autoFocus
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium">
