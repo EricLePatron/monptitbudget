@@ -101,6 +101,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             name: e.name ?? undefined,
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
+            userEmail: (e as { user_email?: string }).user_email ?? undefined,
           }))
         );
       } else {
@@ -224,7 +225,8 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           amount,
           name: name || null,
           date: todayKey,
-        })
+          user_email: user.email,
+        } as never)
         .select()
         .single();
 
@@ -236,6 +238,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         name: data.name ?? undefined,
         date: data.date,
         createdAt: new Date(data.created_at).getTime(),
+        userEmail: (data as { user_email?: string }).user_email ?? undefined,
       };
 
       setExpenses((prev) => [newExpense, ...prev]);

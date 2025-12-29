@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Account } from '@/hooks/useAccounts';
-import { Plus, Trash2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Check, X, Users } from 'lucide-react';
 
 interface ManageAccountsSheetProps {
   open: boolean;
@@ -12,6 +12,7 @@ interface ManageAccountsSheetProps {
   onCreate: (name: string, emoji: string) => Promise<Account | null>;
   onUpdate: (id: string, name: string, emoji: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onShare?: (accountId: string) => void;
 }
 
 const EMOJI_OPTIONS = ['💰', '👤', '💑', '🏠', '🚗', '✈️', '🎮', '📱', '💼', '🛒'];
@@ -23,6 +24,7 @@ export function ManageAccountsSheet({
   onCreate,
   onUpdate,
   onDelete,
+  onShare,
 }: ManageAccountsSheetProps) {
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountEmoji, setNewAccountEmoji] = useState('💰');
@@ -119,6 +121,18 @@ export function ManageAccountsSheet({
                     >
                       {account.name}
                     </button>
+                    {onShare && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onShare(account.id)}
+                        className="h-10 w-10 text-muted-foreground hover:text-primary"
+                        title="Partager ce compte"
+                      >
+                        <Users className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"

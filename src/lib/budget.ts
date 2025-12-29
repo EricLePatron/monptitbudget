@@ -19,6 +19,7 @@ export interface Expense {
   name?: string;
   date: string; // YYYY-MM-DD
   createdAt: number;
+  userEmail?: string; // Email of who created the expense
 }
 
 export interface BudgetState {

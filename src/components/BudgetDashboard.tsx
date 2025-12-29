@@ -4,6 +4,7 @@ import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
 import { FullBudgetSetupSheet } from './FullBudgetSetupSheet';
 import { ManageAccountsSheet } from './ManageAccountsSheet';
+import { AccountMembersSheet } from './AccountMembersSheet';
 import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import {
@@ -18,6 +19,7 @@ import {
   getExpensesForDay,
 } from '@/lib/budget';
 import { Account } from '@/hooks/useAccounts';
+import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,8 +72,26 @@ export function BudgetDashboard({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editBudgetOpen, setEditBudgetOpen] = useState(false);
   const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
+  const [membersSheetOpen, setMembersSheetOpen] = useState(false);
+  const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
+
+  // Get account members for the sharing account
+  const { 
+    members, 
+    loading: membersLoading, 
+    isOwner, 
+    inviteMember, 
+    removeMember 
+  } = useAccountMembers(sharingAccountId);
+
+  const sharingAccount = accounts.find(a => a.id === sharingAccountId);
+
+  const handleShareAccount = (accountId: string) => {
+    setSharingAccountId(accountId);
+    setMembersSheetOpen(true);
+  };
 
   const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
@@ -284,12 +304,20 @@ export function BudgetDashboard({
                         <p className="text-sm font-medium text-foreground truncate">
                           {exp.name || 'Dépense'}
                         </p>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <span>
+                            {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          {exp.userEmail && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate max-w-[100px]">{exp.userEmail.split('@')[0]}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -424,6 +452,22 @@ export function BudgetDashboard({
         onCreate={onCreateAccount}
         onUpdate={onUpdateAccount}
         onDelete={onDeleteAccount}
+        onShare={handleShareAccount}
+      />
+
+      {/* Account Members Sheet */}
+      <AccountMembersSheet
+        open={membersSheetOpen}
+        onOpenChange={(open) => {
+          setMembersSheetOpen(open);
+          if (!open) setSharingAccountId(null);
+        }}
+        accountName={sharingAccount?.name || ''}
+        members={members}
+        isOwner={isOwner}
+        loading={membersLoading}
+        onInvite={inviteMember}
+        onRemove={removeMember}
       />
 
       {/* Donald Duck Sticker */}

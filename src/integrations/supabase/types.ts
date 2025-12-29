@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_members: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          invited_email: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           created_at: string
@@ -99,6 +134,7 @@ export type Database = {
           date: string
           id: string
           name: string | null
+          user_email: string | null
           user_id: string
         }
         Insert: {
@@ -108,6 +144,7 @@ export type Database = {
           date: string
           id?: string
           name?: string | null
+          user_email?: string | null
           user_id: string
         }
         Update: {
@@ -117,6 +154,7 @@ export type Database = {
           date?: string
           id?: string
           name?: string | null
+          user_email?: string | null
           user_id?: string
         }
         Relationships: [
@@ -134,7 +172,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_account_access: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_expense_access: {
+        Args: { _budget_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
