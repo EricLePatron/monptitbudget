@@ -18,7 +18,7 @@ import {
   getExpensesForDay,
 } from '@/lib/budget';
 import { Account } from '@/hooks/useAccounts';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -198,61 +198,142 @@ export function BudgetDashboard({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6">
+      <main className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-secondary/20 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/3 right-5 w-24 h-24 bg-accent/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '0.5s' }} />
+        </div>
+
         {/* Status Badge */}
-        <div className={cn('status-badge mb-6 animate-fade-in-up', `status-${status}`)}>
+        <div className={cn('status-badge mb-4 animate-fade-in-up relative z-10', `status-${status}`)}>
           <StatusIcon className="w-4 h-4" />
           {currentStatus.label}
         </div>
 
-        {/* Hero Amount */}
-        <div className="text-center space-y-2 mb-8">
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">
+        {/* Hero Amount with glow effect */}
+        <div className="text-center space-y-2 mb-6 relative z-10">
+          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide flex items-center justify-center gap-2">
+            <Wallet className="w-4 h-4" />
             Reste aujourd'hui
           </p>
           <div
             className={cn(
-              'hero-amount transition-all duration-200',
+              'hero-amount transition-all duration-200 relative',
               currentStatus.textClass,
               animateAmount && 'animate-number-pop'
             )}
           >
-            {formatCurrencyCompact(metrics.remainingToday)}
+            <span className={cn(
+              'absolute inset-0 blur-xl opacity-30',
+              status === 'ok' && 'bg-budget-ok',
+              status === 'warning' && 'bg-budget-warning',
+              status === 'danger' && 'bg-budget-danger'
+            )} />
+            <span className="relative">{formatCurrencyCompact(metrics.remainingToday)}</span>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.05s' }}>
+          <div className="bg-muted/50 rounded-full h-3 overflow-hidden border border-border/50 backdrop-blur-sm">
+            <div 
+              className={cn(
+                'h-full rounded-full transition-all duration-500 ease-out',
+                status === 'ok' && 'bg-gradient-to-r from-budget-ok to-budget-ok/70',
+                status === 'warning' && 'bg-gradient-to-r from-budget-warning to-budget-warning/70',
+                status === 'danger' && 'bg-gradient-to-r from-budget-danger to-budget-danger/70'
+              )}
+              style={{ 
+                width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%` 
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+            <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
+            <span>{formatCurrencyCompact(metrics.budgetRemaining)} restant</span>
+          </div>
+        </div>
+
+        {/* Daily budget indicator */}
+        <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.08s' }}>
+          <div className="budget-card bg-gradient-to-br from-card to-secondary/10 border-secondary/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center">
+                  <PiggyBank className="w-5 h-5 text-secondary-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                    Budget quotidien
+                  </p>
+                  <p className="text-xl font-display font-bold text-foreground">
+                    {formatCurrencyCompact(metrics.dailyBudget)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className={cn(
+                  'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium',
+                  metrics.spentToday <= metrics.dailyBudget 
+                    ? 'bg-budget-ok-soft text-budget-ok' 
+                    : 'bg-budget-danger-soft text-budget-danger'
+                )}>
+                  <Sparkles className="w-3 h-3" />
+                  {metrics.spentToday <= metrics.dailyBudget 
+                    ? `${formatCurrencyCompact(metrics.dailyBudget - metrics.spentToday)} économisé`
+                    : `${formatCurrencyCompact(metrics.spentToday - metrics.dailyBudget)} de trop`
+                  }
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Today's Expenses */}
         {todayExpenses.length > 0 && (
-          <div className="w-full max-w-sm mb-8 animate-fade-in-up">
+          <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.1s' }}>
             <div className="budget-card space-y-3">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                Dépenses du jour
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  Dépenses du jour
+                </p>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  {todayExpenses.length} {todayExpenses.length > 1 ? 'achats' : 'achat'}
+                </span>
+              </div>
               <div className="space-y-2">
-                {todayExpenses.slice(-3).map((exp) => (
+                {todayExpenses.slice(-3).map((exp, index) => (
                   <div
                     key={exp.id}
-                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 animate-fade-in-up"
+                    style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {exp.name || 'Dépense'}
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm">💸</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {exp.name || 'Dépense'}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-display font-semibold text-foreground">
+                      <span className="font-display font-semibold text-budget-danger">
                         -{formatCurrencyCompact(exp.amount)}
                       </span>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-budget-danger"
+                        className="h-7 w-7 text-muted-foreground hover:text-budget-danger hover:bg-budget-danger-soft"
                         onClick={() => onDeleteExpense(exp.id)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -261,9 +342,9 @@ export function BudgetDashboard({
                   </div>
                 ))}
               </div>
-              <div className="pt-2 flex justify-between items-center">
-                <span className="text-sm font-medium text-foreground">Total</span>
-                <span className="font-display font-bold text-foreground">
+              <div className="pt-2 flex justify-between items-center bg-muted/30 -mx-6 -mb-6 px-6 py-3 rounded-b-3xl">
+                <span className="text-sm font-medium text-foreground">Total aujourd'hui</span>
+                <span className="font-display font-bold text-lg text-foreground">
                   {formatCurrencyCompact(metrics.spentToday)}
                 </span>
               </div>
@@ -272,11 +353,14 @@ export function BudgetDashboard({
         )}
 
         {/* Tomorrow Preview / Month Status */}
-        <div className="w-full max-w-sm animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <div className="budget-card bg-secondary/30">
+        <div className="w-full max-w-sm animate-fade-in-up relative z-10" style={{ animationDelay: '0.15s' }}>
+          <div className="budget-card bg-gradient-to-br from-secondary/40 to-secondary/20 border-secondary/40">
             {metrics.isFutureMonth ? (
               <div className="text-center py-2">
-                <p className="text-sm text-muted-foreground">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-secondary/50 flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-secondary-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">
                   Ce budget commence en {getMonthName(config.month)} {config.year}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -285,6 +369,9 @@ export function BudgetDashboard({
               </div>
             ) : metrics.isPastMonth ? (
               <div className="text-center py-2">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                  <History className="w-6 h-6 text-muted-foreground" />
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Ce mois est terminé
                 </p>
@@ -294,26 +381,35 @@ export function BudgetDashboard({
               </div>
             ) : (
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                    Prévu demain
-                  </p>
-                  <p className="text-2xl font-display font-bold text-foreground mt-1">
-                    {formatCurrencyCompact(metrics.tomorrowBudget)}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-secondary-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                      Prévu demain
+                    </p>
+                    <p className="text-2xl font-display font-bold text-foreground">
+                      {formatCurrencyCompact(metrics.tomorrowBudget)}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
-                    {metrics.daysRemaining} jours restants
-                  </p>
-                  <p className="text-sm font-medium text-foreground">
-                    {formatCurrencyCompact(metrics.budgetRemaining)} au total
+                <div className="text-right space-y-1">
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-card/50 text-xs">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{metrics.daysRemaining} jours</span>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {formatCurrencyCompact(metrics.budgetRemaining)}
                   </p>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Spacer for FAB */}
+        <div className="h-24" />
       </main>
 
       {/* Add Expense FAB - Only for current month */}
