@@ -18,6 +18,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
     deductions?: BudgetConfig['deductions'];
+    savings?: number;
   } | null>(null);
 
   // Default to current month if not specified
@@ -54,7 +55,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       // Always fetch the most recent budget with salary/deductions for suggestions
       const { data: latestBudget } = await supabase
         .from('budgets')
-        .select('salary, deductions')
+        .select('salary, deductions, savings')
         .eq('user_id', user.id)
         .eq('account_id', accountId)
         .not('salary', 'is', null)
@@ -67,6 +68,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         setPreviousBudgetSuggestion({
           salary: latestBudget.salary ? Number(latestBudget.salary) : undefined,
           deductions: latestBudget.deductions as unknown as BudgetConfig['deductions'] ?? undefined,
+          savings: latestBudget.savings ? Number(latestBudget.savings) : undefined,
         });
       } else {
         setPreviousBudgetSuggestion(null);
@@ -79,6 +81,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           year: budgetData.year,
           salary: budgetData.salary ? Number(budgetData.salary) : undefined,
           deductions: budgetData.deductions as unknown as BudgetConfig['deductions'] ?? undefined,
+          savings: budgetData.savings ? Number(budgetData.savings) : undefined,
         });
         setBudgetId(budgetData.id);
 
@@ -153,6 +156,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           monthly_budget: newConfig.monthlyBudget,
           salary: newConfig.salary ?? null,
           deductions: newConfig.deductions ?? null,
+          savings: newConfig.savings ?? null,
         };
         
         const { error } = await supabase
@@ -172,6 +176,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           year: newConfig.year,
           salary: newConfig.salary ?? null,
           deductions: newConfig.deductions ?? null,
+          savings: newConfig.savings ?? null,
         };
         
         const { data, error } = await supabase

@@ -50,6 +50,7 @@ export type Database = {
           month: number
           monthly_budget: number
           salary: number | null
+          savings: number | null
           updated_at: string
           user_id: string
           year: number
@@ -62,6 +63,7 @@ export type Database = {
           month: number
           monthly_budget: number
           salary?: number | null
+          savings?: number | null
           updated_at?: string
           user_id: string
           year: number
@@ -74,6 +76,7 @@ export type Database = {
           month?: number
           monthly_budget?: number
           salary?: number | null
+          savings?: number | null
           updated_at?: string
           user_id?: string
           year?: number

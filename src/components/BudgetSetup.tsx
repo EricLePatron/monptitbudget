@@ -9,6 +9,7 @@ interface BudgetSetupProps {
   previousBudgetSuggestion?: {
     salary?: number;
     deductions?: Deduction[];
+    savings?: number;
   } | null;
   targetMonth: number;
   targetYear: number;
@@ -27,14 +28,16 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
   const [deductions, setDeductions] = useState<Deduction[]>([
     { id: '1', label: '', amount: '' }
   ]);
+  const [savings, setSavings] = useState<string>('');
   const [hasSuggestionApplied, setHasSuggestionApplied] = useState(false);
 
   const daysInMonth = getDaysInMonth(month, year);
   
-  // Calculate budget from salary and deductions
+  // Calculate budget from salary, deductions and savings
   const salaryNumber = parseFloat(salary) || 0;
   const totalDeductions = deductions.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
-  const calculatedBudget = salaryNumber - totalDeductions;
+  const savingsNumber = parseFloat(savings) || 0;
+  const calculatedBudget = salaryNumber - totalDeductions - savingsNumber;
   
   const budgetNumber = useCalculator ? calculatedBudget : (parseFloat(monthlyBudget) || 0);
   const dailyBudget = budgetNumber > 0 ? budgetNumber / daysInMonth : 0;
@@ -50,6 +53,9 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
           ...d,
           id: d.id || (i + 1).toString(),
         })));
+      }
+      if (previousBudgetSuggestion.savings) {
+        setSavings(previousBudgetSuggestion.savings.toString());
       }
       setUseCalculator(true);
       setHasSuggestionApplied(true);
@@ -68,6 +74,7 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
         year,
         salary: useCalculator && salaryNumber > 0 ? salaryNumber : undefined,
         deductions: useCalculator && deductions.some(d => d.amount || d.label) ? deductions : undefined,
+        savings: useCalculator && savingsNumber > 0 ? savingsNumber : undefined,
       });
     }
   };
@@ -222,6 +229,31 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                   </Button>
                 </div>
 
+                {/* Savings Input */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    Épargne mensuelle
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={savings}
+                      onChange={(e) => setSavings(e.target.value)}
+                      className="text-lg h-12 pr-10"
+                      min="0"
+                      step="1"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                      €
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ce montant sera déduit de votre budget disponible
+                  </p>
+                </div>
+
                 {/* Calculation Summary */}
                 {salaryNumber > 0 && (
                   <div className="p-4 rounded-xl bg-secondary/50 space-y-2 text-sm animate-fade-in">
@@ -233,6 +265,12 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Prélèvements</span>
                         <span className="font-medium text-budget-danger">-{formatCurrency(totalDeductions)}</span>
+                      </div>
+                    )}
+                    {savingsNumber > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Épargne</span>
+                        <span className="font-medium text-primary">-{formatCurrency(savingsNumber)}</span>
                       </div>
                     )}
                     <div className="border-t border-border pt-2 flex justify-between">
