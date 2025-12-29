@@ -68,12 +68,20 @@ export function ExpenseHistorySheet({
                             <p className="font-medium text-foreground truncate">
                               {expense.name || 'Dépense'}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>
+                                {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                              {expense.userEmail && (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate">{expense.userEmail}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="font-display font-semibold text-foreground">
