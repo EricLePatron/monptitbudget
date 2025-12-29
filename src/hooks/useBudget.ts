@@ -109,8 +109,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         setBudgetId(null);
         setExpenses([]);
       }
-    } catch (error) {
-      console.error('Error loading budget:', error);
+    } catch {
       toast.error('Erreur lors du chargement du budget');
     } finally {
       setLoading(false);
@@ -123,16 +122,12 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
   // Create or update budget
   const saveBudget = async (newConfig: BudgetConfig) => {
-    console.log('saveBudget called', { userId: user?.id, accountId, config: newConfig });
-    
     if (!user) {
-      console.error('saveBudget: No user');
       toast.error('Vous devez être connecté');
       return;
     }
     
     if (!accountId) {
-      console.error('saveBudget: No accountId');
       toast.error('Aucun compte sélectionné');
       return;
     }
@@ -147,8 +142,6 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         .eq('month', newConfig.month)
         .eq('year', newConfig.year)
         .maybeSingle();
-
-      console.log('Existing budget check:', existing);
 
       if (existing) {
         // Update existing budget
@@ -185,7 +178,6 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           .select()
           .single();
 
-        console.log('Budget created:', data, error);
         if (error) throw error;
         setBudgetId(data.id);
         setExpenses([]);
@@ -193,8 +185,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       setConfig(newConfig);
       toast.success('Budget mis à jour');
-    } catch (error) {
-      console.error('Error saving budget:', error);
+    } catch {
       toast.error('Erreur lors de la sauvegarde du budget');
     }
   };
@@ -213,8 +204,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       setConfig({ ...config, monthlyBudget: newAmount });
       toast.success('Budget mis à jour');
-    } catch (error) {
-      console.error('Error updating budget:', error);
+    } catch {
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -250,8 +240,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       setExpenses((prev) => [newExpense, ...prev]);
       toast.success('Dépense ajoutée');
-    } catch (error) {
-      console.error('Error adding expense:', error);
+    } catch {
       toast.error("Erreur lors de l'ajout de la dépense");
     }
   };
@@ -268,8 +257,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
       toast.success('Dépense supprimée');
-    } catch (error) {
-      console.error('Error deleting expense:', error);
+    } catch {
       toast.error('Erreur lors de la suppression');
     }
   };

@@ -45,8 +45,7 @@ export function useAccounts() {
       } else if (accountsList.length > 0) {
         setCurrentAccountId(accountsList[0].id);
       }
-    } catch (error) {
-      console.error('Error loading accounts:', error);
+    } catch {
       toast.error('Erreur lors du chargement des comptes');
     } finally {
       setLoading(false);
@@ -95,8 +94,7 @@ export function useAccounts() {
 
       toast.success('Compte créé');
       return newAccount;
-    } catch (error) {
-      console.error('Error creating account:', error);
+    } catch {
       toast.error('Erreur lors de la création du compte');
       return null;
     }
@@ -115,8 +113,7 @@ export function useAccounts() {
         prev.map((a) => (a.id === accountId ? { ...a, name, emoji } : a))
       );
       toast.success('Compte mis à jour');
-    } catch (error) {
-      console.error('Error updating account:', error);
+    } catch {
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -139,8 +136,7 @@ export function useAccounts() {
       }
 
       toast.success('Compte supprimé');
-    } catch (error) {
-      console.error('Error deleting account:', error);
+    } catch {
       toast.error('Erreur lors de la suppression');
     }
   };
