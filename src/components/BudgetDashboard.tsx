@@ -256,40 +256,6 @@ export function BudgetDashboard({
           </div>
         </div>
 
-        {/* Daily budget indicator */}
-        <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.08s' }}>
-          <div className="budget-card bg-gradient-to-br from-card to-secondary/10 border-secondary/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center">
-                  <PiggyBank className="w-5 h-5 text-secondary-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                    Budget quotidien
-                  </p>
-                  <p className="text-xl font-display font-bold text-foreground">
-                    {formatCurrencyCompact(metrics.dailyBudget)}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className={cn(
-                  'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium',
-                  metrics.spentToday <= metrics.dailyBudget 
-                    ? 'bg-budget-ok-soft text-budget-ok' 
-                    : 'bg-budget-danger-soft text-budget-danger'
-                )}>
-                  <Sparkles className="w-3 h-3" />
-                  {metrics.spentToday <= metrics.dailyBudget 
-                    ? `${formatCurrencyCompact(metrics.dailyBudget - metrics.spentToday)} économisé`
-                    : `${formatCurrencyCompact(metrics.spentToday - metrics.dailyBudget)} de trop`
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Today's Expenses */}
         {todayExpenses.length > 0 && (
