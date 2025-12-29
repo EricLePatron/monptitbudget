@@ -160,14 +160,14 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                     Salaire mensuel
                   </label>
                   <div className="relative">
-                    <Input
+                  <Input
                       type="number"
                       placeholder="2000"
                       value={salary}
                       onChange={(e) => setSalary(e.target.value)}
                       className="text-lg h-14 pr-10"
                       min="0"
-                      step="1"
+                      step="0.01"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                       €
@@ -199,6 +199,7 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                             onChange={(e) => updateDeduction(deduction.id, 'amount', e.target.value)}
                             className="h-12 pr-8"
                             min="0"
+                            step="0.01"
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                             €
@@ -243,7 +244,7 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                       onChange={(e) => setSavings(e.target.value)}
                       className="text-lg h-12 pr-10"
                       min="0"
-                      step="1"
+                      step="0.01"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                       €
@@ -289,14 +290,14 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
                   Budget mensuel
                 </label>
                 <div className="relative">
-                  <Input
+                <Input
                     type="number"
                     placeholder="300"
                     value={monthlyBudget}
                     onChange={(e) => setMonthlyBudget(e.target.value)}
                     className="text-lg h-14 pr-10"
-                    min="1"
-                    step="1"
+                    min="0.01"
+                    step="0.01"
                     required={!useCalculator}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">

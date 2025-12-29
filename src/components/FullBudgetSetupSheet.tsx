@@ -185,14 +185,14 @@ export function FullBudgetSetupSheet({
                   Salaire mensuel
                 </label>
                 <div className="relative">
-                  <Input
+                <Input
                     type="number"
                     placeholder="2000"
                     value={salary}
                     onChange={(e) => setSalary(e.target.value)}
                     className="text-lg h-12 pr-10"
                     min="0"
-                    step="1"
+                    step="0.01"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                     €
@@ -217,13 +217,14 @@ export function FullBudgetSetupSheet({
                         className="flex-1 h-11"
                       />
                       <div className="relative w-24">
-                        <Input
+                      <Input
                           type="number"
                           placeholder="0"
                           value={deduction.amount}
                           onChange={(e) => updateDeduction(deduction.id, 'amount', e.target.value)}
                           className="h-11 pr-7"
                           min="0"
+                          step="0.01"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                           €
@@ -261,14 +262,14 @@ export function FullBudgetSetupSheet({
                   Épargne mensuelle
                 </label>
                 <div className="relative">
-                  <Input
+                <Input
                     type="number"
                     placeholder="0"
                     value={savings}
                     onChange={(e) => setSavings(e.target.value)}
                     className="text-lg h-11 pr-10"
                     min="0"
-                    step="1"
+                    step="0.01"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                     €
@@ -314,14 +315,14 @@ export function FullBudgetSetupSheet({
                 Budget mensuel
               </label>
               <div className="relative">
-                <Input
+              <Input
                   type="number"
                   placeholder="300"
                   value={monthlyBudget}
                   onChange={(e) => setMonthlyBudget(e.target.value)}
                   className="text-lg h-12 pr-10"
-                  min="1"
-                  step="1"
+                  min="0.01"
+                  step="0.01"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                   €
