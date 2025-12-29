@@ -10,6 +10,7 @@ export interface BudgetConfig {
   year: number;
   salary?: number;
   deductions?: Deduction[];
+  savings?: number;
 }
 
 export interface Expense {

@@ -39,6 +39,7 @@ interface BudgetDashboardProps {
   previousBudgetSuggestion?: {
     salary?: number;
     deductions?: Deduction[];
+    savings?: number;
   } | null;
   // Month navigation
   onPreviousMonth: () => void;
@@ -128,47 +129,48 @@ export function BudgetDashboard({
             onSwitch={onSwitchAccount}
             onManage={() => setManageAccountsOpen(true)}
           />
-          {/* Month Navigation */}
-          <div className="flex items-center gap-1">
+          {/* Month Navigation - Redesigned */}
+          <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-2 py-1">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onPreviousMonth}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </Button>
             <button
               type="button"
               onClick={() => setEditBudgetOpen(true)}
-              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer px-1"
+              className="flex items-center gap-1 px-3 py-1 rounded-full hover:bg-secondary transition-colors cursor-pointer min-w-[140px] justify-center"
             >
-              <span className="font-medium">{getMonthName(config.month)} {config.year}</span>
-              <Settings className="w-3 h-3" />
+              <span className="font-medium text-foreground">{getMonthName(config.month)} {config.year}</span>
+              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </Button>
-            {!isCurrentMonth && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onGoToCurrentMonth}
-                className="h-6 text-xs text-muted-foreground hover:text-foreground ml-1"
-              >
-                <Calendar className="w-3 h-3 mr-1" />
-                Aujourd'hui
-              </Button>
-            )}
           </div>
+          {/* Today button */}
+          {!isCurrentMonth && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onGoToCurrentMonth}
+              className="h-8 text-xs rounded-full border-primary/50 text-primary hover:bg-primary/10"
+            >
+              <Calendar className="w-3.5 h-3.5 mr-1" />
+              Aujourd'hui
+            </Button>
+          )}
           <p className="text-xs text-muted-foreground">
             {formatCurrencyCompact(config.monthlyBudget)} / mois
           </p>
