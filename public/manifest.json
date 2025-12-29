@@ -1,0 +1,17 @@
+{
+  "name": "Budget Quotidien",
+  "short_name": "Daily Budget",
+  "description": "Gérez vos dépenses au jour le jour",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1565C0",
+  "theme_color": "#1565C0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
