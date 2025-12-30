@@ -77,6 +77,8 @@ export function BudgetDashboard({
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
 
+  const sharingAccount = accounts.find(a => a.id === sharingAccountId);
+
   // Get account members for the sharing account
   const { 
     members, 
@@ -84,9 +86,7 @@ export function BudgetDashboard({
     isOwner, 
     inviteMember, 
     removeMember 
-  } = useAccountMembers(sharingAccountId);
-
-  const sharingAccount = accounts.find(a => a.id === sharingAccountId);
+  } = useAccountMembers(sharingAccountId, sharingAccount?.name);
 
   const handleShareAccount = (accountId: string) => {
     setSharingAccountId(accountId);

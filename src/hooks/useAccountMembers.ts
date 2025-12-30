@@ -11,7 +11,7 @@ export interface AccountMember {
   createdAt: string;
 }
 
-export function useAccountMembers(accountId: string | null) {
+export function useAccountMembers(accountId: string | null, accountName?: string) {
   const { user } = useAuth();
   const [members, setMembers] = useState<AccountMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,17 +56,40 @@ export function useAccountMembers(accountId: string | null) {
     loadMembers();
   }, [loadMembers]);
 
+  const sendInvitationEmail = async (invitedEmail: string) => {
+    if (!user?.email || !accountName) return;
+
+    try {
+      const appUrl = window.location.origin;
+      
+      const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          invitedEmail,
+          accountName,
+          inviterEmail: user.email,
+          appUrl,
+        },
+      });
+
+      if (error) {
+        console.error('Error sending invitation email:', error);
+        // Don't throw - email is optional, invitation still works
+        return;
+      }
+
+      if (data?.success) {
+        console.log('Invitation email sent successfully');
+      }
+    } catch (err) {
+      console.error('Failed to send invitation email:', err);
+      // Don't throw - email is optional
+    }
+  };
+
   const inviteMember = async (email: string) => {
     if (!user || !accountId) return false;
 
     try {
-      // First, find the user by email using auth admin or a workaround
-      // Since we can't query auth.users directly, we'll store the email and 
-      // the user will be linked when they accept/login
-      
-      // For now, we'll try to find if there's already a profile or use the email directly
-      // This is a simplified approach - in production you might want to use an edge function
-      
       const { data: existingMember } = await supabase
         .from('account_members')
         .select('id')
@@ -80,7 +103,6 @@ export function useAccountMembers(accountId: string | null) {
       }
 
       // Insert with invited_email - the user_id will be set when they accept
-      // For demo purposes, we'll generate a placeholder UUID
       const { error } = await supabase
         .from('account_members')
         .insert({
@@ -91,6 +113,9 @@ export function useAccountMembers(accountId: string | null) {
         });
 
       if (error) throw error;
+
+      // Send invitation email
+      await sendInvitationEmail(email);
 
       toast.success(`Invitation envoyée à ${email}`);
       await loadMembers();
