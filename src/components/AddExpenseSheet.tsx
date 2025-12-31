@@ -4,24 +4,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Check } from 'lucide-react';
+import { CategorySelector } from './CategorySelector';
+import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 
 interface AddExpenseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddExpense: (amount: number, name?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string) => void;
+  categories: ExpenseCategory[];
+  onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
 }
 
-export function AddExpenseSheet({ open, onOpenChange, onAddExpense }: AddExpenseSheetProps) {
+export function AddExpenseSheet({
+  open,
+  onOpenChange,
+  onAddExpense,
+  categories,
+  onAddCategory,
+}: AddExpenseSheetProps) {
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount);
     if (value > 0) {
-      onAddExpense(value, name.trim() || undefined);
+      onAddExpense(value, name.trim() || undefined, selectedCategory);
       setAmount('');
       setName('');
+      setSelectedCategory(undefined);
       onOpenChange(false);
     }
   };
@@ -37,7 +49,18 @@ export function AddExpenseSheet({ open, onOpenChange, onAddExpense }: AddExpense
           </SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Category Selector */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Catégorie</Label>
+            <CategorySelector
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onAddCategory={onAddCategory}
+            />
+          </div>
+
           {/* Name Input */}
           <div className="space-y-2">
             <Label htmlFor="expense-name" className="text-sm font-medium">

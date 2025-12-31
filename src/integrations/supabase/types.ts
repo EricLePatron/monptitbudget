@@ -126,10 +126,43 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          account_id: string
+          created_at: string
+          emoji: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
           budget_id: string
+          category: string | null
           created_at: string
           date: string
           id: string
@@ -140,6 +173,7 @@ export type Database = {
         Insert: {
           amount: number
           budget_id: string
+          category?: string | null
           created_at?: string
           date: string
           id?: string
@@ -150,6 +184,7 @@ export type Database = {
         Update: {
           amount?: number
           budget_id?: string
+          category?: string | null
           created_at?: string
           date?: string
           id?: string

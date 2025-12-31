@@ -20,14 +20,14 @@ import {
 } from '@/lib/budget';
 import { Account } from '@/hooks/useAccounts';
 import { useAccountMembers } from '@/hooks/useAccountMembers';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
-  onAddExpense: (amount: number, name?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateConfig: (config: BudgetConfig) => void;
   // Account management
@@ -88,6 +88,12 @@ export function BudgetDashboard({
     removeMember 
   } = useAccountMembers(sharingAccountId, sharingAccount?.name);
 
+  // Get expense categories for the current account
+  const { 
+    categories, 
+    addCategory 
+  } = useExpenseCategories(currentAccount?.id ?? null);
+
   const handleShareAccount = (accountId: string) => {
     setSharingAccountId(accountId);
     setMembersSheetOpen(true);
@@ -97,8 +103,8 @@ export function BudgetDashboard({
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
   const todayExpenses = getExpensesForDay(expenses, getTodayKey());
 
-  const handleAddExpense = (amount: number, name?: string) => {
-    onAddExpense(amount, name);
+  const handleAddExpense = (amount: number, name?: string, category?: string) => {
+    onAddExpense(amount, name, category);
     
     // Trigger animation
     setAnimateAmount(true);
@@ -425,6 +431,8 @@ export function BudgetDashboard({
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onAddExpense={handleAddExpense}
+        categories={categories}
+        onAddCategory={addCategory}
       />
 
       {/* Expense History Sheet */}

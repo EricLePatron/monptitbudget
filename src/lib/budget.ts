@@ -17,6 +17,7 @@ export interface Expense {
   id: string;
   amount: number;
   name?: string;
+  category?: string;
   date: string; // YYYY-MM-DD
   createdAt: number;
   userEmail?: string; // Email of who created the expense

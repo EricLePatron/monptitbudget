@@ -99,6 +99,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             id: e.id,
             amount: Number(e.amount),
             name: e.name ?? undefined,
+            category: (e as { category?: string }).category ?? undefined,
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
             userEmail: (e as { user_email?: string }).user_email ?? undefined,
@@ -211,7 +212,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   };
 
   // Add expense
-  const addExpense = async (amount: number, name?: string) => {
+  const addExpense = async (amount: number, name?: string, category?: string) => {
     if (!user || !budgetId) return;
 
     try {
@@ -224,6 +225,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           budget_id: budgetId,
           amount,
           name: name || null,
+          category: category || null,
           date: todayKey,
           user_email: user.email,
         } as never)
@@ -236,6 +238,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         id: data.id,
         amount: Number(data.amount),
         name: data.name ?? undefined,
+        category: (data as { category?: string }).category ?? undefined,
         date: data.date,
         createdAt: new Date(data.created_at).getTime(),
         userEmail: (data as { user_email?: string }).user_email ?? undefined,
