@@ -125,7 +125,8 @@ export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]
     effectiveDay = totalDays; // Month is over
   }
   
-  const daysRemaining = Math.max(0, totalDays - effectiveDay);
+  // Days remaining INCLUDING today
+  const daysRemaining = Math.max(0, totalDays - effectiveDay + (isThisMonth ? 1 : 0));
   
   const totalSpentThisMonth = expenses
     .filter(e => {
@@ -134,16 +135,29 @@ export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]
     })
     .reduce((sum, e) => sum + e.amount, 0);
   
+  // Budget remaining for today and future days
   const budgetRemaining = config.monthlyBudget - totalSpentThisMonth;
   
-  // For future months, divide by all days; for current month by remaining days
-  const dailyBudget = daysRemaining > 0 ? budgetRemaining / daysRemaining : budgetRemaining;
-  
+  // Calculate what was spent BEFORE today (not including today)
   const todayKey = getTodayKey();
   const spentToday = isThisMonth ? getTotalExpensesForDay(expenses, todayKey) : 0;
+  const spentBeforeToday = totalSpentThisMonth - spentToday;
+  
+  // Calculate what SHOULD have been spent before today (theoretical budget for past days)
+  const daysPassed = isThisMonth ? currentDay - 1 : (isFuture ? 0 : totalDays);
+  const theoreticalDailyBudget = config.monthlyBudget / totalDays;
+  const theoreticalSpentBeforeToday = daysPassed * theoreticalDailyBudget;
+  
+  // Rollover: if we spent less than theoretical, the difference rolls over
+  // Budget for today = theoretical daily budget + savings from previous days
+  const savingsFromPreviousDays = theoreticalSpentBeforeToday - spentBeforeToday;
+  
+  // Daily budget for today includes any rollover (positive or negative)
+  const dailyBudget = theoreticalDailyBudget + savingsFromPreviousDays;
+  
   const remainingToday = dailyBudget - spentToday;
   
-  // Tomorrow's projected budget
+  // Tomorrow's projected budget (recalculated based on remaining budget)
   const budgetAfterToday = budgetRemaining - spentToday;
   const daysAfterToday = Math.max(0, daysRemaining - 1);
   const tomorrowBudget = daysAfterToday > 0 ? budgetAfterToday / daysAfterToday : 0;
