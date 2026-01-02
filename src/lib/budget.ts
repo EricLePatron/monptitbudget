@@ -175,7 +175,78 @@ export function calculateBudgetMetrics(config: BudgetConfig, expenses: Expense[]
     isCurrentMonth: isThisMonth,
     isFutureMonth: isFuture,
     isPastMonth: isPast,
+    theoreticalDailyBudget,
   };
+}
+
+export interface DailyForecast {
+  day: number;
+  date: string;
+  estimatedBudget: number;
+  isPast: boolean;
+  isToday: boolean;
+}
+
+export function calculateDailyForecasts(config: BudgetConfig, expenses: Expense[]): DailyForecast[] {
+  const totalDays = getDaysInMonth(config.month, config.year);
+  const { year: currentYear, month: currentMonth, day: currentDay } = getLocalDateComponents();
+  const isThisMonth = config.year === currentYear && config.month === currentMonth;
+  const isFuture = isFutureMonth(config);
+  
+  const forecasts: DailyForecast[] = [];
+  
+  // Calculate total spent in the month
+  const totalSpentThisMonth = expenses
+    .filter(e => {
+      const { year, month } = parseDateKey(e.date);
+      return year === config.year && month === config.month;
+    })
+    .reduce((sum, e) => sum + e.amount, 0);
+  
+  // Calculate spent up to and including each day
+  const getSpentUpToDay = (targetDay: number): number => {
+    return expenses
+      .filter(e => {
+        const { year, month, day } = parseDateKey(e.date);
+        return year === config.year && month === config.month && day <= targetDay;
+      })
+      .reduce((sum, e) => sum + e.amount, 0);
+  };
+  
+  const theoreticalDailyBudget = config.monthlyBudget / totalDays;
+  
+  for (let day = 1; day <= totalDays; day++) {
+    const dateKey = `${config.year}-${String(config.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isPast = isThisMonth ? day < currentDay : !isFuture;
+    const isToday = isThisMonth && day === currentDay;
+    
+    let estimatedBudget: number;
+    
+    if (isPast || isToday) {
+      // For past days and today, calculate based on rollover logic
+      const daysPassed = day - 1;
+      const theoreticalSpentBefore = daysPassed * theoreticalDailyBudget;
+      const actualSpentBefore = getSpentUpToDay(day - 1);
+      const savingsFromPreviousDays = theoreticalSpentBefore - actualSpentBefore;
+      estimatedBudget = theoreticalDailyBudget + savingsFromPreviousDays;
+    } else {
+      // For future days, distribute remaining budget evenly
+      const effectiveCurrentDay = isThisMonth ? currentDay : (isFuture ? 0 : totalDays);
+      const budgetRemaining = config.monthlyBudget - (isThisMonth ? getSpentUpToDay(currentDay) : totalSpentThisMonth);
+      const daysRemaining = totalDays - effectiveCurrentDay;
+      estimatedBudget = daysRemaining > 0 ? budgetRemaining / daysRemaining : 0;
+    }
+    
+    forecasts.push({
+      day,
+      date: dateKey,
+      estimatedBudget,
+      isPast,
+      isToday,
+    });
+  }
+  
+  return forecasts;
 }
 
 export function getBudgetStatus(remainingToday: number, dailyBudget: number): BudgetStatus {
