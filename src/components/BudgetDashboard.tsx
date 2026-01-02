@@ -7,6 +7,7 @@ import { ManageAccountsSheet } from './ManageAccountsSheet';
 import { AccountMembersSheet } from './AccountMembersSheet';
 import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
+import { DailyForecastSheet } from './DailyForecastSheet';
 import {
   BudgetConfig,
   Expense,
@@ -27,7 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
-  onAddExpense: (amount: number, name?: string, category?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateConfig: (config: BudgetConfig) => void;
   // Account management
@@ -73,6 +74,7 @@ export function BudgetDashboard({
   const [editBudgetOpen, setEditBudgetOpen] = useState(false);
   const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   const [membersSheetOpen, setMembersSheetOpen] = useState(false);
+  const [forecastOpen, setForecastOpen] = useState(false);
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
@@ -103,8 +105,8 @@ export function BudgetDashboard({
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
   const todayExpenses = getExpensesForDay(expenses, getTodayKey());
 
-  const handleAddExpense = (amount: number, name?: string, category?: string) => {
-    onAddExpense(amount, name, category);
+  const handleAddExpense = (amount: number, name?: string, category?: string, date?: string) => {
+    onAddExpense(amount, name, category, date);
     
     // Trigger animation
     setAnimateAmount(true);
@@ -354,7 +356,14 @@ export function BudgetDashboard({
 
         {/* Tomorrow Preview / Month Status */}
         <div className="w-full max-w-sm animate-fade-in-up relative z-10" style={{ animationDelay: '0.15s' }}>
-          <div className="budget-card bg-gradient-to-br from-secondary/40 to-secondary/20 border-secondary/40">
+          <button
+            type="button"
+            onClick={() => !metrics.isFutureMonth && setForecastOpen(true)}
+            className={cn(
+              "w-full text-left budget-card bg-gradient-to-br from-secondary/40 to-secondary/20 border-secondary/40 transition-all",
+              !metrics.isFutureMonth && "hover:border-primary/30 hover:from-secondary/50 cursor-pointer"
+            )}
+          >
             {metrics.isFutureMonth ? (
               <div className="text-center py-2">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-secondary/50 flex items-center justify-center">
@@ -377,6 +386,9 @@ export function BudgetDashboard({
                 </p>
                 <p className="text-lg font-display font-bold text-foreground mt-1">
                   Total dépensé: {formatCurrencyCompact(metrics.totalSpentThisMonth)}
+                </p>
+                <p className="text-xs text-primary mt-2">
+                  Voir les prévisions →
                 </p>
               </div>
             ) : (
@@ -402,10 +414,13 @@ export function BudgetDashboard({
                   <p className="text-sm font-semibold text-foreground">
                     {formatCurrencyCompact(metrics.budgetRemaining)}
                   </p>
+                  <p className="text-xs text-primary">
+                    Voir tout →
+                  </p>
                 </div>
               </div>
             )}
-          </div>
+          </button>
         </div>
 
         {/* Spacer for FAB */}
@@ -433,6 +448,15 @@ export function BudgetDashboard({
         onAddExpense={handleAddExpense}
         categories={categories}
         onAddCategory={addCategory}
+        budgetConfig={config}
+      />
+
+      {/* Daily Forecast Sheet */}
+      <DailyForecastSheet
+        open={forecastOpen}
+        onOpenChange={setForecastOpen}
+        config={config}
+        expenses={expenses}
       />
 
       {/* Expense History Sheet */}

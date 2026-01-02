@@ -211,12 +211,12 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     }
   };
 
-  // Add expense
-  const addExpense = async (amount: number, name?: string, category?: string) => {
+  // Add expense with optional date
+  const addExpense = async (amount: number, name?: string, category?: string, date?: string) => {
     if (!user || !budgetId) return;
 
     try {
-      const todayKey = getTodayKey();
+      const expenseDate = date || getTodayKey();
       
       const { data, error } = await supabase
         .from('expenses')
@@ -226,7 +226,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           amount,
           name: name || null,
           category: category || null,
-          date: todayKey,
+          date: expenseDate,
           user_email: user.email,
         } as never)
         .select()

@@ -3,16 +3,23 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Check, CalendarIcon } from 'lucide-react';
 import { CategorySelector } from './CategorySelector';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { BudgetConfig } from '@/lib/budget';
 
 interface AddExpenseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddExpense: (amount: number, name?: string, category?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string) => void;
   categories: ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
+  budgetConfig?: BudgetConfig | null;
 }
 
 export function AddExpenseSheet({
@@ -21,22 +28,38 @@ export function AddExpenseSheet({
   onAddExpense,
   categories,
   onAddCategory,
+  budgetConfig,
 }: AddExpenseSheetProps) {
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount);
     if (value > 0) {
-      onAddExpense(value, name.trim() || undefined, selectedCategory);
+      const dateStr = selectedDate 
+        ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+        : undefined;
+      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr);
       setAmount('');
       setName('');
       setSelectedCategory(undefined);
+      setSelectedDate(undefined);
       onOpenChange(false);
     }
   };
+
+  // Calculate date range for the budget month
+  const getDateRange = () => {
+    if (!budgetConfig) return { from: undefined, to: undefined };
+    const firstDay = new Date(budgetConfig.year, budgetConfig.month, 1);
+    const lastDay = new Date(budgetConfig.year, budgetConfig.month + 1, 0);
+    return { from: firstDay, to: lastDay };
+  };
+
+  const dateRange = getDateRange();
 
   const quickAmounts = [5, 10, 15, 20, 25, 50];
 
@@ -59,6 +82,54 @@ export function AddExpenseSheet({
               onSelectCategory={setSelectedCategory}
               onAddCategory={onAddCategory}
             />
+          </div>
+
+          {/* Date Picker */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full h-12 justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? (
+                    format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })
+                  ) : (
+                    <span>Aujourd'hui</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => {
+                    if (!dateRange.from || !dateRange.to) return false;
+                    return date < dateRange.from || date > dateRange.to;
+                  }}
+                  defaultMonth={budgetConfig ? new Date(budgetConfig.year, budgetConfig.month) : undefined}
+                  locale={fr}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            {selectedDate && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedDate(undefined)}
+                className="text-xs text-muted-foreground"
+              >
+                Réinitialiser à aujourd'hui
+              </Button>
+            )}
           </div>
 
           {/* Name Input */}
