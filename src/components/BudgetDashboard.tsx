@@ -93,7 +93,8 @@ export function BudgetDashboard({
   // Get expense categories for the current account
   const { 
     categories, 
-    addCategory 
+    addCategory,
+    deleteCategory
   } = useExpenseCategories(currentAccount?.id ?? null);
 
   const handleShareAccount = (accountId: string) => {
@@ -448,6 +449,7 @@ export function BudgetDashboard({
         onAddExpense={handleAddExpense}
         categories={categories}
         onAddCategory={addCategory}
+        onDeleteCategory={deleteCategory}
         budgetConfig={config}
       />
 

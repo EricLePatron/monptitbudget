@@ -19,6 +19,7 @@ interface AddExpenseSheetProps {
   onAddExpense: (amount: number, name?: string, category?: string, date?: string) => void;
   categories: ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
+  onDeleteCategory?: (categoryId: string) => Promise<void>;
   budgetConfig?: BudgetConfig | null;
 }
 
@@ -28,6 +29,7 @@ export function AddExpenseSheet({
   onAddExpense,
   categories,
   onAddCategory,
+  onDeleteCategory,
   budgetConfig,
 }: AddExpenseSheetProps) {
   const [amount, setAmount] = useState<string>('');
@@ -81,6 +83,7 @@ export function AddExpenseSheet({
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
               onAddCategory={onAddCategory}
+              onDeleteCategory={onDeleteCategory}
             />
           </div>
 

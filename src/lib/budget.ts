@@ -195,47 +195,28 @@ export function calculateDailyForecasts(config: BudgetConfig, expenses: Expense[
   
   const forecasts: DailyForecast[] = [];
   
-  // Calculate total spent in the month
-  const totalSpentThisMonth = expenses
-    .filter(e => {
-      const { year, month } = parseDateKey(e.date);
-      return year === config.year && month === config.month;
-    })
-    .reduce((sum, e) => sum + e.amount, 0);
-  
-  // Calculate spent up to and including each day
-  const getSpentUpToDay = (targetDay: number): number => {
+  // Get spending per day
+  const getSpentOnDay = (targetDay: number): number => {
     return expenses
       .filter(e => {
         const { year, month, day } = parseDateKey(e.date);
-        return year === config.year && month === config.month && day <= targetDay;
+        return year === config.year && month === config.month && day === targetDay;
       })
       .reduce((sum, e) => sum + e.amount, 0);
   };
   
   const theoreticalDailyBudget = config.monthlyBudget / totalDays;
   
+  // Calculate cumulative rollover for each day
+  let cumulativeRollover = 0;
+  
   for (let day = 1; day <= totalDays; day++) {
     const dateKey = `${config.year}-${String(config.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isPast = isThisMonth ? day < currentDay : !isFuture;
     const isToday = isThisMonth && day === currentDay;
     
-    let estimatedBudget: number;
-    
-    if (isPast || isToday) {
-      // For past days and today, calculate based on rollover logic
-      const daysPassed = day - 1;
-      const theoreticalSpentBefore = daysPassed * theoreticalDailyBudget;
-      const actualSpentBefore = getSpentUpToDay(day - 1);
-      const savingsFromPreviousDays = theoreticalSpentBefore - actualSpentBefore;
-      estimatedBudget = theoreticalDailyBudget + savingsFromPreviousDays;
-    } else {
-      // For future days, distribute remaining budget evenly
-      const effectiveCurrentDay = isThisMonth ? currentDay : (isFuture ? 0 : totalDays);
-      const budgetRemaining = config.monthlyBudget - (isThisMonth ? getSpentUpToDay(currentDay) : totalSpentThisMonth);
-      const daysRemaining = totalDays - effectiveCurrentDay;
-      estimatedBudget = daysRemaining > 0 ? budgetRemaining / daysRemaining : 0;
-    }
+    // Budget for this day = theoretical daily + accumulated rollover
+    const estimatedBudget = theoreticalDailyBudget + cumulativeRollover;
     
     forecasts.push({
       day,
@@ -244,6 +225,17 @@ export function calculateDailyForecasts(config: BudgetConfig, expenses: Expense[
       isPast,
       isToday,
     });
+    
+    // Calculate rollover for next day
+    if (isPast || isToday) {
+      // For past and today: actual spending determines rollover
+      const spentToday = getSpentOnDay(day);
+      const todayRollover = theoreticalDailyBudget - spentToday;
+      cumulativeRollover += todayRollover;
+    } else {
+      // For future days: assume spending exactly the budget (no rollover added)
+      // This means future days maintain current cumulative rollover level
+    }
   }
   
   return forecasts;
