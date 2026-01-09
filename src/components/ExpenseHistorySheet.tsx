@@ -28,6 +28,15 @@ export function ExpenseHistorySheet({
 
   const sortedDates = Object.keys(groupedExpenses).sort((a, b) => b.localeCompare(a));
 
+  // Calculate totals by category
+  const categoryTotals = expenses.reduce((acc, expense) => {
+    const category = expense.category || 'Sans catégorie';
+    acc[category] = (acc[category] || 0) + expense.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
@@ -46,11 +55,28 @@ export function ExpenseHistorySheet({
 
         <ScrollArea className="h-[calc(100vh-100px)]">
           <div className="p-6 space-y-6">
-            {sortedDates.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Aucune dépense enregistrée
-              </p>
-            ) : (
+          {/* Category summary */}
+          {sortedCategories.length > 0 && (
+            <div className="space-y-2 pb-4 border-b border-border">
+              <h3 className="text-sm font-medium text-muted-foreground">Par catégorie</h3>
+              <div className="space-y-1.5">
+                {sortedCategories.map(([category, total]) => (
+                  <div key={category} className="flex items-center justify-between py-1.5">
+                    <span className="text-sm text-foreground">{category}</span>
+                    <span className="font-display font-semibold text-foreground">
+                      {formatCurrencyCompact(total)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sortedDates.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Aucune dépense enregistrée
+            </p>
+          ) : (
               sortedDates.map((date) => (
                 <div key={date} className="space-y-3">
                   <h3 className="text-sm font-medium text-muted-foreground capitalize">
