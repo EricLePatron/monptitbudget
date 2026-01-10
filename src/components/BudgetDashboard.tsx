@@ -30,6 +30,10 @@ interface BudgetDashboardProps {
   expenses: Expense[];
   onAddExpense: (amount: number, name?: string, category?: string, date?: string) => void;
   onDeleteExpense: (id: string) => void;
+  onUpdateExpense: (
+    expenseId: string,
+    updates: { amount?: number; name?: string; category?: string; date?: string }
+  ) => Promise<void>;
   onUpdateConfig: (config: BudgetConfig) => void;
   // Account management
   accounts: Account[];
@@ -56,6 +60,7 @@ export function BudgetDashboard({
   expenses,
   onAddExpense,
   onDeleteExpense,
+  onUpdateExpense,
   onUpdateConfig,
   accounts,
   currentAccount,
@@ -467,6 +472,11 @@ export function BudgetDashboard({
         onOpenChange={setHistoryOpen}
         expenses={expenses}
         onDeleteExpense={onDeleteExpense}
+        onUpdateExpense={onUpdateExpense}
+        categories={categories}
+        onAddCategory={addCategory}
+        onDeleteCategory={deleteCategory}
+        budgetConfig={config}
       />
 
       {/* Full Budget Setup Sheet */}
