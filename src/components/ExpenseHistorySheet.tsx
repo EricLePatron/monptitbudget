@@ -1,14 +1,25 @@
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Expense, formatCurrencyCompact } from '@/lib/budget';
-import { Trash2 } from 'lucide-react';
+import { Expense, formatCurrencyCompact, BudgetConfig } from '@/lib/budget';
+import { Trash2, Pencil } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EditExpenseSheet } from './EditExpenseSheet';
+import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 
 interface ExpenseHistorySheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expenses: Expense[];
   onDeleteExpense: (id: string) => void;
+  onUpdateExpense: (
+    expenseId: string,
+    updates: { amount?: number; name?: string; category?: string; date?: string }
+  ) => Promise<void>;
+  categories: ExpenseCategory[];
+  onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
+  onDeleteCategory?: (categoryId: string) => Promise<void>;
+  budgetConfig?: BudgetConfig | null;
 }
 
 export function ExpenseHistorySheet({
@@ -16,7 +27,13 @@ export function ExpenseHistorySheet({
   onOpenChange,
   expenses,
   onDeleteExpense,
+  onUpdateExpense,
+  categories,
+  onAddCategory,
+  onDeleteCategory,
+  budgetConfig,
 }: ExpenseHistorySheetProps) {
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   // Group expenses by date
   const groupedExpenses = expenses.reduce((acc, expense) => {
     if (!acc[expense.date]) {
@@ -123,6 +140,14 @@ export function ExpenseHistorySheet({
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => setEditingExpense(expense)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-budget-danger"
                               onClick={() => onDeleteExpense(expense.id)}
                             >
@@ -137,6 +162,18 @@ export function ExpenseHistorySheet({
             )}
           </div>
         </ScrollArea>
+
+        {/* Edit Expense Sheet */}
+        <EditExpenseSheet
+          open={editingExpense !== null}
+          onOpenChange={(open) => !open && setEditingExpense(null)}
+          expense={editingExpense}
+          onUpdateExpense={onUpdateExpense}
+          categories={categories}
+          onAddCategory={onAddCategory}
+          onDeleteCategory={onDeleteCategory}
+          budgetConfig={budgetConfig}
+        />
       </SheetContent>
     </Sheet>
   );

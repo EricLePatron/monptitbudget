@@ -36,6 +36,7 @@ const Index = () => {
     targetYear,
     saveBudget,
     addExpense,
+    updateExpense,
     deleteExpense,
   } = useBudget(currentAccountId, selectedMonth);
 
@@ -123,6 +124,7 @@ const Index = () => {
           expenses={expenses}
           onAddExpense={addExpense}
           onDeleteExpense={deleteExpense}
+          onUpdateExpense={updateExpense}
           onUpdateConfig={saveBudget}
           accounts={accounts}
           currentAccount={currentAccount}

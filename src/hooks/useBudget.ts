@@ -251,6 +251,44 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     }
   };
 
+  // Update expense
+  const updateExpense = async (
+    expenseId: string,
+    updates: { amount?: number; name?: string; category?: string; date?: string }
+  ) => {
+    try {
+      const updatePayload: Record<string, unknown> = {};
+      if (updates.amount !== undefined) updatePayload.amount = updates.amount;
+      if (updates.name !== undefined) updatePayload.name = updates.name || null;
+      if (updates.category !== undefined) updatePayload.category = updates.category || null;
+      if (updates.date !== undefined) updatePayload.date = updates.date;
+
+      const { error } = await supabase
+        .from('expenses')
+        .update(updatePayload)
+        .eq('id', expenseId);
+
+      if (error) throw error;
+
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expenseId
+            ? {
+                ...e,
+                amount: updates.amount ?? e.amount,
+                name: updates.name !== undefined ? (updates.name || undefined) : e.name,
+                category: updates.category !== undefined ? (updates.category || undefined) : e.category,
+                date: updates.date ?? e.date,
+              }
+            : e
+        )
+      );
+      toast.success('Dépense modifiée');
+    } catch {
+      toast.error('Erreur lors de la modification');
+    }
+  };
+
   // Delete expense
   const deleteExpense = async (expenseId: string) => {
     try {
@@ -285,6 +323,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     saveBudget,
     updateMonthlyBudget,
     addExpense,
+    updateExpense,
     deleteExpense,
     resetBudget,
   };
