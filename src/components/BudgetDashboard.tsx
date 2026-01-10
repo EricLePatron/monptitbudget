@@ -8,6 +8,7 @@ import { AccountMembersSheet } from './AccountMembersSheet';
 import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import { DailyForecastSheet } from './DailyForecastSheet';
+import { SavingsSheet } from './SavingsSheet';
 import {
   BudgetConfig,
   Expense,
@@ -80,6 +81,7 @@ export function BudgetDashboard({
   const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   const [membersSheetOpen, setMembersSheetOpen] = useState(false);
   const [forecastOpen, setForecastOpen] = useState(false);
+  const [savingsOpen, setSavingsOpen] = useState(false);
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
@@ -210,6 +212,15 @@ export function BudgetDashboard({
           </p>
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setSavingsOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <PiggyBank className="w-5 h-5" />
+          </Button>
           <Button
             type="button"
             variant="ghost"
@@ -512,6 +523,13 @@ export function BudgetDashboard({
         loading={membersLoading}
         onInvite={inviteMember}
         onRemove={removeMember}
+      />
+
+      {/* Savings Sheet */}
+      <SavingsSheet
+        open={savingsOpen}
+        onOpenChange={setSavingsOpen}
+        accountId={currentAccount?.id ?? null}
       />
 
       {/* Donald Duck Sticker */}
