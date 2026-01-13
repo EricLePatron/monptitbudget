@@ -53,6 +53,14 @@ export function ExpenseHistorySheet({
   }, {} as Record<string, number>);
 
   const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const maxCategoryTotal = Math.max(...Object.values(categoryTotals), 1);
+
+  // Helper to find emoji for a category
+  const getCategoryEmoji = (categoryName: string) => {
+    const cat = categories.find(c => c.name === categoryName);
+    return cat?.emoji || '📦';
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -74,17 +82,41 @@ export function ExpenseHistorySheet({
           <div className="p-6 space-y-6">
           {/* Category summary */}
           {sortedCategories.length > 0 && (
-            <div className="space-y-2 pb-4 border-b border-border">
-              <h3 className="text-sm font-medium text-muted-foreground">Par catégorie</h3>
-              <div className="space-y-1.5">
-                {sortedCategories.map(([category, total]) => (
-                  <div key={category} className="flex items-center justify-between py-1.5">
-                    <span className="text-sm text-foreground">{category}</span>
-                    <span className="font-display font-semibold text-foreground">
-                      {formatCurrencyCompact(total)}
-                    </span>
-                  </div>
-                ))}
+            <div className="space-y-3 pb-4 border-b border-border">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-muted-foreground">Par catégorie</h3>
+                <span className="text-xs text-muted-foreground">
+                  Total: {formatCurrencyCompact(totalExpenses)}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {sortedCategories.map(([category, total]) => {
+                  const percentage = totalExpenses > 0 ? Math.round((total / totalExpenses) * 100) : 0;
+                  const barWidth = (total / maxCategoryTotal) * 100;
+                  
+                  return (
+                    <div key={category} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{getCategoryEmoji(category)}</span>
+                          <span className="text-sm font-medium text-foreground">{category}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{percentage}%</span>
+                          <span className="font-display font-semibold text-foreground tabular-nums">
+                            {formatCurrencyCompact(total)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary/80 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${barWidth}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
