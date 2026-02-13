@@ -1,17 +1,19 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Check, CalendarIcon } from 'lucide-react';
+import { Check, CalendarIcon, Camera, Loader2 } from 'lucide-react';
 import { CategorySelector } from './CategorySelector';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BudgetConfig } from '@/lib/budget';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AddExpenseSheetProps {
   open: boolean;
@@ -36,6 +38,44 @@ export function AddExpenseSheet({
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScanReceipt = async (file: File) => {
+    setIsScanning(true);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('scan-receipt', {
+        body: { imageBase64: base64 },
+      });
+
+      if (error) throw error;
+
+      if (data.total) setAmount(String(data.total));
+      if (data.name) setName(data.name);
+      if (data.date) {
+        const [y, m, d] = data.date.split('-').map(Number);
+        setSelectedDate(new Date(y, m - 1, d));
+      }
+
+      toast.success('Ticket scanné avec succès !');
+    } catch (err) {
+      console.error('Scan error:', err);
+      toast.error('Impossible de lire le ticket. Réessayez avec une photo plus nette.');
+    } finally {
+      setIsScanning(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +115,38 @@ export function AddExpenseSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Scan Receipt Button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleScanReceipt(file);
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-14 text-base font-medium border-dashed border-2 gap-3"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Analyse du ticket en cours...
+              </>
+            ) : (
+              <>
+                <Camera className="w-5 h-5" />
+                📸 Scanner un ticket de caisse
+              </>
+            )}
+          </Button>
+
           {/* Category Selector */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Catégorie</Label>
