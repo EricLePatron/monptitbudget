@@ -133,7 +133,6 @@ export function AddExpenseSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Scan Receipt Button */}
           <input
             ref={fileInputRef}
             type="file"
@@ -145,25 +144,6 @@ export function AddExpenseSheet({
               if (file) handleScanReceipt(file);
             }}
           />
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-14 text-base font-medium border-dashed border-2 gap-3"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isScanning}
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Analyse du ticket en cours...
-              </>
-            ) : (
-              <>
-                <Camera className="w-5 h-5" />
-                📸 Scanner un ticket de caisse
-              </>
-            )}
-          </Button>
 
           {/* Category Selector */}
           <div className="space-y-2">
@@ -280,6 +260,27 @@ export function AddExpenseSheet({
               </Button>
             ))}
           </div>
+
+          {/* Scan Receipt Button */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-14 text-base font-medium border-dashed border-2 gap-3"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Analyse du ticket en cours...
+              </>
+            ) : (
+              <>
+                <Camera className="w-5 h-5" />
+                📸 Scanner un ticket de caisse
+              </>
+            )}
+          </Button>
 
           {/* Submit */}
           <Button
