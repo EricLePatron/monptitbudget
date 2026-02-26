@@ -77,13 +77,31 @@ export function AddExpenseSheet({
     }
   };
 
+  // Check if today falls within the budget month range
+  const isTodayInBudgetRange = () => {
+    if (!budgetConfig) return true;
+    const today = new Date();
+    const firstDay = new Date(budgetConfig.year, budgetConfig.month, 1);
+    const lastDay = new Date(budgetConfig.year, budgetConfig.month + 1, 0);
+    return today >= firstDay && today <= lastDay;
+  };
+
+  const getDefaultDateStr = () => {
+    if (selectedDate) {
+      return `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+    }
+    // If today is outside the budget month, default to 1st of budget month
+    if (budgetConfig && !isTodayInBudgetRange()) {
+      return `${budgetConfig.year}-${String(budgetConfig.month + 1).padStart(2, '0')}-01`;
+    }
+    return undefined;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount);
     if (value > 0) {
-      const dateStr = selectedDate 
-        ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
-        : undefined;
+      const dateStr = getDefaultDateStr();
       onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr);
       setAmount('');
       setName('');
@@ -174,6 +192,8 @@ export function AddExpenseSheet({
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
                     format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })
+                  ) : budgetConfig && !isTodayInBudgetRange() ? (
+                    <span>1er {format(new Date(budgetConfig.year, budgetConfig.month, 1), "MMMM yyyy", { locale: fr })}</span>
                   ) : (
                     <span>Aujourd'hui</span>
                   )}
