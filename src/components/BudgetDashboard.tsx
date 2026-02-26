@@ -390,7 +390,7 @@ export function BudgetDashboard({
                   Ce budget commence en {getMonthName(config.month)} {config.year}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Vous pourrez ajouter des dépenses à partir du 1er {getMonthName(config.month)}
+                  Vous pouvez déjà planifier vos dépenses
                 </p>
               </div>
             ) : metrics.isPastMonth ? (
@@ -444,8 +444,8 @@ export function BudgetDashboard({
         <div className="h-24" />
       </main>
 
-      {/* Add Expense FAB - Only for current month */}
-      {metrics.isCurrentMonth && (
+      {/* Add Expense FAB - For current and future months */}
+      {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
           <Button
             size="lg"
