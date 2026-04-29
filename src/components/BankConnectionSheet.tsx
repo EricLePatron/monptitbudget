@@ -116,7 +116,7 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
                 placeholder="Caisse d'Épargne"
               />
             </div>
-            <Button onClick={handleConnect} disabled={loading} className="w-full" size="lg">
+            <Button onClick={() => handleConnect()} disabled={loading} className="w-full" size="lg">
               {loading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Connexion...</>
               ) : (
