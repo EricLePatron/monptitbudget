@@ -93,23 +93,35 @@ Deno.serve(async (req) => {
 
     const appId = Deno.env.get('ENABLE_BANKING_APP_ID');
     const privateKey = Deno.env.get('ENABLE_BANKING_PRIVATE_KEY');
+    console.log('Has appId:', !!appId, 'Has privateKey:', !!privateKey, 'PrivateKey starts with:', privateKey?.slice(0, 30));
     if (!appId || !privateKey) {
       return new Response(JSON.stringify({ error: 'Enable Banking credentials not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const jwt = await generateJWT(appId, privateKey);
+    let jwt: string;
+    try {
+      jwt = await generateJWT(appId, privateKey);
+      console.log('JWT generated, length:', jwt.length);
+    } catch (jwtErr) {
+      console.error('JWT generation failed:', jwtErr);
+      const m = jwtErr instanceof Error ? jwtErr.message : String(jwtErr);
+      return new Response(JSON.stringify({ error: 'JWT signing failed. Check that ENABLE_BANKING_PRIVATE_KEY is a valid PKCS8 PEM.', details: m }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Récupère la liste des ASPSPs (banques) pour trouver Caisse d'Épargne
     const aspspsRes = await fetch(`${ENABLE_BANKING_BASE}/aspsps?country=${country}`, {
       headers: { Authorization: `Bearer ${jwt}` },
     });
 
+    console.log('ASPSPs response status:', aspspsRes.status);
     if (!aspspsRes.ok) {
       const errText = await aspspsRes.text();
-      console.error('ASPSPs fetch failed:', errText);
-      return new Response(JSON.stringify({ error: 'Failed to fetch banks', details: errText }), {
+      console.error('ASPSPs fetch failed:', aspspsRes.status, errText);
+      return new Response(JSON.stringify({ error: `Enable Banking refused (${aspspsRes.status}). Vérifie l'App ID et la clé privée dans le Control Panel.`, details: errText }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
