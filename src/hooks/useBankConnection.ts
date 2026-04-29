@@ -72,8 +72,7 @@ export function useBankConnection(accountId: string | null) {
       if (error) throw error;
 
       if (data.needs_bank_selection) {
-        // Pour cette première version: on cherche par défaut "caisse" → si non trouvé, on retourne la liste
-        toast.info('Veuillez préciser le nom de votre banque');
+        toast.info('Plusieurs banques trouvées, choisis le nom exact dans la liste');
         return data;
       }
 

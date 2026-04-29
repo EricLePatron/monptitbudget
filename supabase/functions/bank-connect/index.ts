@@ -9,6 +9,15 @@ const corsHeaders = {
 
 const ENABLE_BANKING_BASE = 'https://api.enablebanking.com';
 
+function normalizeBankName(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
 // Génère un JWT RS256 signé pour Enable Banking
 async function generateJWT(appId: string, privateKeyPem: string): Promise<string> {
   const header = { typ: 'JWT', alg: 'RS256', kid: appId };
@@ -93,7 +102,7 @@ Deno.serve(async (req) => {
 
     const appId = Deno.env.get('ENABLE_BANKING_APP_ID');
     const privateKey = Deno.env.get('ENABLE_BANKING_PRIVATE_KEY');
-    console.log('Has appId:', !!appId, 'Has privateKey:', !!privateKey, 'PrivateKey starts with:', privateKey?.slice(0, 30));
+    console.log('Has appId:', !!appId, 'Has privateKey:', !!privateKey, 'PrivateKey looks base64:', !!privateKey && !privateKey.includes('BEGIN'));
     if (!appId || !privateKey) {
       return new Response(JSON.stringify({ error: 'Enable Banking credentials not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -131,24 +140,22 @@ Deno.serve(async (req) => {
 
     // Si une banque spécifique est demandée
     const { bank_name } = body;
-    let selectedBank = banks.find((b: { name: string }) =>
-      bank_name ? b.name.toLowerCase().includes(bank_name.toLowerCase()) : b.name.toLowerCase().includes('caisse')
-    );
+    const wantedBank = normalizeBankName(bank_name || 'caisse');
+    const matchingBanks = banks.filter((b: { name: string }) => {
+      const normalized = normalizeBankName(b.name);
+      return normalized.includes(wantedBank) || wantedBank.includes(normalized);
+    });
+    let selectedBank = matchingBanks.length === 1 ? matchingBanks[0] : undefined;
+    console.log('Banks count:', banks.length, 'Wanted:', bank_name || 'caisse', 'Matches:', matchingBanks.length, 'Selected:', selectedBank?.name);
 
-    if (!selectedBank && !bank_name) {
+    if (!selectedBank) {
       // Retourne la liste pour que l'user choisisse
       return new Response(JSON.stringify({
         needs_bank_selection: true,
-        banks: banks.map((b: { name: string; country: string; logo: string }) => ({
+        banks: (matchingBanks.length > 0 ? matchingBanks : banks).slice(0, 80).map((b: { name: string; country: string; logo: string }) => ({
           name: b.name, country: b.country, logo: b.logo,
         })),
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    if (!selectedBank) {
-      return new Response(JSON.stringify({ error: 'Bank not found' }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     // Crée une session d'authentification
