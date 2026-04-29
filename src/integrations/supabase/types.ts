@@ -76,6 +76,111 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_connections: {
+        Row: {
+          account_id: string
+          bank_account_iban: string | null
+          bank_account_id: string | null
+          bank_account_name: string | null
+          bank_country: string | null
+          bank_logo: string | null
+          bank_name: string
+          created_at: string
+          id: string
+          last_synced_at: string | null
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          valid_until: string
+        }
+        Insert: {
+          account_id: string
+          bank_account_iban?: string | null
+          bank_account_id?: string | null
+          bank_account_name?: string | null
+          bank_country?: string | null
+          bank_logo?: string | null
+          bank_name: string
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          valid_until: string
+        }
+        Update: {
+          account_id?: string
+          bank_account_iban?: string | null
+          bank_account_id?: string | null
+          bank_account_name?: string | null
+          bank_country?: string | null
+          bank_logo?: string | null
+          bank_name?: string
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      bank_synced_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          bank_connection_id: string
+          created_at: string
+          description: string | null
+          expense_id: string | null
+          id: string
+          transaction_date: string
+          transaction_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          bank_connection_id: string
+          created_at?: string
+          description?: string | null
+          expense_id?: string | null
+          id?: string
+          transaction_date: string
+          transaction_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          bank_connection_id?: string
+          created_at?: string
+          description?: string | null
+          expense_id?: string | null
+          id?: string
+          transaction_date?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_synced_transactions_bank_connection_id_fkey"
+            columns: ["bank_connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_synced_transactions_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
           account_id: string | null
