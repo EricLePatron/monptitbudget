@@ -137,22 +137,25 @@ Deno.serve(async (req) => {
 
     const aspspsData = await aspspsRes.json();
     const banks = aspspsData.aspsps || [];
+    console.log('Banks count:', banks.length, 'Names:', banks.map((b: { name: string }) => b.name).join(', '));
 
-    // Si une banque spécifique est demandée
     const { bank_name } = body;
-    const wantedBank = normalizeBankName(bank_name || 'caisse');
-    const matchingBanks = banks.filter((b: { name: string }) => {
-      const normalized = normalizeBankName(b.name);
-      return normalized.includes(wantedBank) || wantedBank.includes(normalized);
-    });
-    let selectedBank = matchingBanks.length === 1 ? matchingBanks[0] : undefined;
-    console.log('Banks count:', banks.length, 'Wanted:', bank_name || 'caisse', 'Matches:', matchingBanks.length, 'Selected:', selectedBank?.name);
+    let selectedBank: { name: string; country: string; logo?: string } | undefined;
+
+    if (bank_name) {
+      const wanted = normalizeBankName(bank_name);
+      const matches = banks.filter((b: { name: string }) => {
+        const n = normalizeBankName(b.name);
+        return n === wanted || n.includes(wanted) || wanted.includes(n);
+      });
+      if (matches.length === 1) selectedBank = matches[0];
+    }
 
     if (!selectedBank) {
-      // Retourne la liste pour que l'user choisisse
+      // Retourne TOUTES les banques disponibles pour que l'user choisisse
       return new Response(JSON.stringify({
         needs_bank_selection: true,
-        banks: (matchingBanks.length > 0 ? matchingBanks : banks).slice(0, 80).map((b: { name: string; country: string; logo: string }) => ({
+        banks: banks.map((b: { name: string; country: string; logo: string }) => ({
           name: b.name, country: b.country, logo: b.logo,
         })),
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
