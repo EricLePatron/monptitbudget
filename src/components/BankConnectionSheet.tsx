@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Landmark, Loader2, RefreshCw, Trash2, AlertCircle } from 'lucide-react';
+import { Landmark, Loader2, RefreshCw, Trash2, AlertCircle, Search } from 'lucide-react';
 import { useBankConnection } from '@/hooks/useBankConnection';
 
 interface BankOption {
@@ -19,15 +19,27 @@ interface BankConnectionSheetProps {
 
 export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConnectionSheetProps) {
   const { connections, loading, syncing, connectBank, syncTransactions, disconnectBank } = useBankConnection(accountId);
-  const [bankName, setBankName] = useState('Caisse');
+  const [search, setSearch] = useState('');
   const [bankOptions, setBankOptions] = useState<BankOption[]>([]);
 
-  const handleConnect = async (name = bankName) => {
-    const result = await connectBank(name.trim() || undefined);
+  const loadBanks = async (name?: string) => {
+    const result = await connectBank(name);
     if (result?.needs_bank_selection && Array.isArray(result.banks)) {
       setBankOptions(result.banks);
     }
   };
+
+  // Charge automatiquement la liste à l'ouverture
+  useEffect(() => {
+    if (open && accountId && bankOptions.length === 0) {
+      loadBanks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, accountId]);
+
+  const filteredBanks = bankOptions.filter(b =>
+    b.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
