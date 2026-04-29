@@ -156,7 +156,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         
         const { error } = await supabase
           .from('budgets')
-          .update(updatePayload)
+          .update(updatePayload as never)
           .eq('id', existing.id);
 
         if (error) throw error;
@@ -265,7 +265,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       const { error } = await supabase
         .from('expenses')
-        .update(updatePayload)
+        .update(updatePayload as never)
         .eq('id', expenseId);
 
       if (error) throw error;

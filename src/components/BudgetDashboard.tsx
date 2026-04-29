@@ -23,7 +23,8 @@ import {
 import { Account } from '@/hooks/useAccounts';
 import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank, Landmark } from 'lucide-react';
+import { BankConnectionSheet } from './BankConnectionSheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
@@ -82,6 +83,7 @@ export function BudgetDashboard({
   const [membersSheetOpen, setMembersSheetOpen] = useState(false);
   const [forecastOpen, setForecastOpen] = useState(false);
   const [savingsOpen, setSavingsOpen] = useState(false);
+  const [bankSheetOpen, setBankSheetOpen] = useState(false);
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
@@ -220,6 +222,16 @@ export function BudgetDashboard({
             className="text-muted-foreground hover:text-foreground"
           >
             <PiggyBank className="w-5 h-5" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setBankSheetOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+            title="Connecter ma banque"
+          >
+            <Landmark className="w-5 h-5" />
           </Button>
           <Button
             type="button"
@@ -529,6 +541,13 @@ export function BudgetDashboard({
       <SavingsSheet
         open={savingsOpen}
         onOpenChange={setSavingsOpen}
+        accountId={currentAccount?.id ?? null}
+      />
+
+      {/* Bank Connection Sheet */}
+      <BankConnectionSheet
+        open={bankSheetOpen}
+        onOpenChange={setBankSheetOpen}
         accountId={currentAccount?.id ?? null}
       />
 
