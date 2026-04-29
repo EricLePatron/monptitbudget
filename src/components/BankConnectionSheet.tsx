@@ -115,31 +115,37 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
             </div>
           )}
 
-          {/* Connexion nouvelle */}
+          {/* Liste des banques */}
           <div className="space-y-3 pt-2">
             <h3 className="text-sm font-semibold">
-              {connections.length > 0 ? 'Ajouter une banque' : 'Connecter ma banque'}
+              {connections.length > 0 ? 'Ajouter une banque' : 'Choisis ta banque'}
             </h3>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Nom de la banque (ex: Caisse, BNP, Crédit Agricole)</label>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                placeholder="Caisse d'Épargne"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher (Caisse, BNP, Banxo...)"
+                className="pl-9"
               />
             </div>
-            <Button onClick={() => handleConnect()} disabled={loading} className="w-full" size="lg">
-              {loading ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Connexion...</>
-              ) : (
-                <><Landmark className="w-4 h-4 mr-2" /> Se connecter à ma banque</>
-              )}
-            </Button>
-            {bankOptions.length > 0 && (
-              <div className="space-y-2 rounded-2xl border bg-card p-3">
-                <p className="text-xs font-semibold text-muted-foreground">Choisis ta banque exacte</p>
-                <div className="max-h-56 space-y-2 overflow-y-auto">
-                  {bankOptions.map((bank) => (
+
+            {loading && bankOptions.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : bankOptions.length === 0 ? (
+              <Button onClick={() => loadBanks()} variant="secondary" className="w-full">
+                <RefreshCw className="w-4 h-4 mr-2" /> Charger la liste des banques
+              </Button>
+            ) : (
+              <div className="rounded-2xl border bg-card p-2">
+                <p className="px-2 pt-1 pb-2 text-xs text-muted-foreground">
+                  {filteredBanks.length} banque{filteredBanks.length > 1 ? 's' : ''} disponible{filteredBanks.length > 1 ? 's' : ''}
+                </p>
+                <div className="max-h-80 space-y-2 overflow-y-auto">
+                  {filteredBanks.map((bank) => (
                     <Button
                       key={`${bank.country}-${bank.name}`}
                       type="button"
@@ -147,18 +153,24 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
                       className="h-auto w-full justify-start whitespace-normal py-3 text-left"
                       disabled={loading}
                       onClick={() => {
-                        setBankName(bank.name);
                         setBankOptions([]);
-                        handleConnect(bank.name);
+                        loadBanks(bank.name);
                       }}
                     >
-                      {bank.logo && <img src={bank.logo} alt="" className="mr-2 h-5 w-5 shrink-0" />}
-                      <span>{bank.name}</span>
+                      {bank.logo && <img src={bank.logo} alt="" className="mr-2 h-5 w-5 shrink-0 object-contain" />}
+                      <span className="flex-1">{bank.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{bank.country}</span>
                     </Button>
                   ))}
+                  {filteredBanks.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-4">
+                      Aucune banque trouvée pour "{search}"
+                    </p>
+                  )}
                 </div>
               </div>
             )}
+
             <p className="text-xs text-muted-foreground text-center">
               🔒 Connexion sécurisée DSP2. Aucun mot de passe stocké. Reconnexion tous les 180 jours.
             </p>
