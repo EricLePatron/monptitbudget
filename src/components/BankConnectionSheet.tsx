@@ -5,6 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Landmark, Loader2, RefreshCw, Trash2, AlertCircle } from 'lucide-react';
 import { useBankConnection } from '@/hooks/useBankConnection';
 
+interface BankOption {
+  name: string;
+  country: string;
+  logo?: string;
+}
+
 interface BankConnectionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -14,9 +20,13 @@ interface BankConnectionSheetProps {
 export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConnectionSheetProps) {
   const { connections, loading, syncing, connectBank, syncTransactions, disconnectBank } = useBankConnection(accountId);
   const [bankName, setBankName] = useState('Caisse');
+  const [bankOptions, setBankOptions] = useState<BankOption[]>([]);
 
-  const handleConnect = () => {
-    connectBank(bankName.trim() || undefined);
+  const handleConnect = async (name = bankName) => {
+    const result = await connectBank(name.trim() || undefined);
+    if (result?.needs_bank_selection && Array.isArray(result.banks)) {
+      setBankOptions(result.banks);
+    }
   };
 
   return (
@@ -113,6 +123,30 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
                 <><Landmark className="w-4 h-4 mr-2" /> Se connecter à ma banque</>
               )}
             </Button>
+            {bankOptions.length > 0 && (
+              <div className="space-y-2 rounded-2xl border bg-card p-3">
+                <p className="text-xs font-semibold text-muted-foreground">Choisis ta banque exacte</p>
+                <div className="max-h-56 space-y-2 overflow-y-auto">
+                  {bankOptions.map((bank) => (
+                    <Button
+                      key={`${bank.country}-${bank.name}`}
+                      type="button"
+                      variant="secondary"
+                      className="h-auto w-full justify-start whitespace-normal py-3 text-left"
+                      disabled={loading}
+                      onClick={() => {
+                        setBankName(bank.name);
+                        setBankOptions([]);
+                        handleConnect(bank.name);
+                      }}
+                    >
+                      {bank.logo && <img src={bank.logo} alt="" className="mr-2 h-5 w-5 shrink-0" />}
+                      <span>{bank.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground text-center">
               🔒 Connexion sécurisée DSP2. Aucun mot de passe stocké. Reconnexion tous les 180 jours.
             </p>
