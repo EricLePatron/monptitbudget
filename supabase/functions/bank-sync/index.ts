@@ -163,10 +163,10 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // Date depuis le dernier sync (ou 30 jours en arrière)
-        const sinceDate = conn.last_synced_at
-          ? new Date(conn.last_synced_at).toISOString().split('T')[0]
-          : new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+        // On ne récupère que le mois budget courant (encours carte inclus)
+        const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
+        const lastSync = conn.last_synced_at ? new Date(conn.last_synced_at).toISOString().split('T')[0] : null;
+        const sinceDate = lastSync && lastSync > startOfMonth ? lastSync : startOfMonth;
 
         // Récupère booked + pending + info (encours carte / débit différé non encore comptabilisé)
         const fetchTx = async (status: 'BOOK' | 'PDNG' | 'INFO') => {
