@@ -90,7 +90,7 @@ export function ExpenseHistorySheet({
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-100px)]">
-          <div className="p-6 space-y-6">
+          <div className="px-4 py-5 space-y-5">
           {/* Category summary */}
           {sortedCategories.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-border">
@@ -167,67 +167,76 @@ export function ExpenseHistorySheet({
             </p>
           ) : (
               sortedDates.map((date) => (
-                <div key={date} className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground capitalize">
+                <div key={date} className="space-y-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize">
                     {formatDate(date)}
                   </h3>
                   <div className="space-y-2">
                     {groupedExpenses[date]
                       .sort((a, b) => b.createdAt - a.createdAt)
-                      .map((expense) => (
-                        <div
-                          key={expense.id}
-                          className="flex items-center justify-between p-3 rounded-xl bg-secondary/50"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-foreground truncate">
-                                {expense.name || 'Dépense'}
-                              </p>
-                              {expense.category && (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
-                                  {expense.category}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>
-                                {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                              {expense.userEmail && (
-                                <>
-                                  <span>•</span>
-                                  <span className="truncate">{expense.userEmail}</span>
-                                </>
-                              )}
+                      .map((expense) => {
+                        const emoji = getCategoryEmoji(expense.category || '');
+                        return (
+                          <div
+                            key={expense.id}
+                            className="group relative p-3 rounded-2xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="shrink-0 w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center text-xl shadow-sm">
+                                {emoji}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="font-semibold text-foreground text-sm leading-snug break-words pr-1">
+                                    {expense.name || 'Dépense'}
+                                  </p>
+                                  <span className="font-display font-bold text-base text-foreground tabular-nums shrink-0">
+                                    -{formatCurrencyCompact(expense.amount)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 mt-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                    {expense.category && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                        {expense.category}
+                                      </span>
+                                    )}
+                                    <span className="text-[11px] text-muted-foreground">
+                                      {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                    {expense.userEmail && (
+                                      <span className="text-[11px] text-muted-foreground truncate">
+                                        · {expense.userEmail.split('@')[0]}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-0.5 shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                      onClick={() => setEditingExpense(expense)}
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-muted-foreground hover:text-budget-danger"
+                                      onClick={() => onDeleteExpense(expense.id)}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="font-display font-semibold text-foreground">
-                              -{formatCurrencyCompact(expense.amount)}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => setEditingExpense(expense)}
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-budget-danger"
-                              onClick={() => onDeleteExpense(expense.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
               ))
