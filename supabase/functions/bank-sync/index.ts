@@ -279,11 +279,25 @@ Deno.serve(async (req) => {
           const amount = Math.abs(parseFloat(t.transaction_amount?.amount || '0'));
           const desc = txForAI[i].description;
 
-          // Date d'achat réelle (jour de la dépense), PAS la date de comptabilisation
-          // value_date / transaction_date = jour de l'achat carte
-          // booking_date = jour où la banque comptabilise (souvent le débit différé regroupé)
-          const purchaseDate = t.value_date || t.transaction_date;
-          if (!purchaseDate) continue; // pas de date d'achat -> probablement un débit différé groupé, on ignore
+          // Date d'achat réelle : on prend la PLUS ANCIENNE entre transaction_date et value_date
+          // (pour cartes à débit différé, value_date = date de débit groupé future, on veut la vraie date d'achat)
+          const candidates = [t.transaction_date, t.value_date, t.booking_date].filter(Boolean) as string[];
+          if (candidates.length === 0) continue;
+          const sorted = candidates.sort();
+          const purchaseDate = sorted[0];
+
+          // Tenter aussi d'extraire une date depuis le libellé "FACT JJMMAA" ou "FACT JJ/MM/AA"
+          const factMatch = desc.match(/FACT\s*(\d{2})[\/\.\-]?(\d{2})[\/\.\-]?(\d{2,4})/i);
+          let dateFromLabel: string | null = null;
+          if (factMatch) {
+            const dd = factMatch[1];
+            const mm = factMatch[2];
+            let yy = factMatch[3];
+            if (yy.length === 2) yy = '20' + yy;
+            dateFromLabel = `${yy}-${mm}-${dd}`;
+          }
+
+          const date = dateFromLabel && dateFromLabel < purchaseDate ? dateFromLabel : purchaseDate;
 
           // Ignorer le débit mensuel groupé carte (libellé typique)
           const lower = desc.toLowerCase();
@@ -291,9 +305,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const date = purchaseDate;
-          const txDate = new Date(date);
-          if (txDate.getMonth() !== month || txDate.getFullYear() !== year) continue;
+          // Vérif stricte du mois (parsing UTC pour éviter les décalages)
+          const [yStr, mStr] = date.split('-');
+          const txYear = parseInt(yStr);
+          const txMonth = parseInt(mStr) - 1;
+          if (txMonth !== month || txYear !== year) continue;
 
           const { data: expense, error: expErr } = await supabase
             .from('expenses')
