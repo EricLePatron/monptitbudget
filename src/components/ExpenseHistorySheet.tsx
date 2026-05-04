@@ -90,7 +90,7 @@ export function ExpenseHistorySheet({
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-100px)]">
-          <div className="p-6 space-y-6">
+          <div className="px-4 py-5 space-y-5">
           {/* Category summary */}
           {sortedCategories.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-border">
