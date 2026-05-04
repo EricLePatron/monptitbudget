@@ -83,6 +83,7 @@ export function ExpenseHistorySheet({
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md p-0">
         <SheetHeader className="p-6 pb-4 pt-[env(safe-area-inset-top,24px)] border-b border-border">
@@ -243,19 +244,21 @@ export function ExpenseHistorySheet({
             )}
           </div>
         </ScrollArea>
-
-        {/* Edit Expense Sheet */}
-        <EditExpenseSheet
-          open={editingExpense !== null}
-          onOpenChange={(open) => !open && setEditingExpense(null)}
-          expense={editingExpense}
-          onUpdateExpense={onUpdateExpense}
-          categories={categories}
-          onAddCategory={onAddCategory}
-          onDeleteCategory={onDeleteCategory}
-          budgetConfig={budgetConfig}
-        />
       </SheetContent>
     </Sheet>
+
+    {/* Edit Expense Sheet — rendered outside parent Sheet to avoid nested-overlay focus issues */}
+    <EditExpenseSheet
+      open={editingExpense !== null}
+      onOpenChange={(open) => !open && setEditingExpense(null)}
+      expense={editingExpense}
+      onUpdateExpense={onUpdateExpense}
+      categories={categories}
+      onAddCategory={onAddCategory}
+      onDeleteCategory={onDeleteCategory}
+      budgetConfig={budgetConfig}
+    />
+    </>
   );
 }
+
