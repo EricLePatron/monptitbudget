@@ -155,11 +155,47 @@ Deno.serve(async (req) => {
     let totalImported = 0;
     const errors: string[] = [];
 
+    let totalDeleted = 0;
+
+    const isExcludedDesc = (desc: string) => {
+      const lower = (desc || '').toLowerCase();
+      return lower.includes('debit mensuel') || lower.includes('débit mensuel')
+        || lower.includes('releve carte') || lower.includes('relevé carte')
+        || lower.includes('debit differe') || lower.includes('débit différé');
+    };
+
     for (const conn of connections) {
       // Vérifier expiration
       if (new Date(conn.valid_until) < new Date()) {
         await supabase.from('bank_connections').update({ status: 'expired' }).eq('id', conn.id);
         continue;
+      }
+
+      // Nettoyage : supprimer les dépenses déjà importées qui ne devraient plus l'être
+      // (libellé exclu OU hors mois budget courant)
+      try {
+        const { data: alreadySynced } = await supabase
+          .from('bank_synced_transactions')
+          .select('id, expense_id, description, transaction_date')
+          .eq('bank_connection_id', conn.id);
+
+        const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
+          if (isExcludedDesc(s.description || '')) return true;
+          const d = new Date(s.transaction_date);
+          return d.getMonth() !== month || d.getFullYear() !== year;
+        });
+
+        if (toDelete.length > 0) {
+          const expenseIds = toDelete.map(s => s.expense_id).filter(Boolean) as string[];
+          const syncedIds = toDelete.map(s => s.id);
+          if (expenseIds.length > 0) {
+            await supabase.from('expenses').delete().in('id', expenseIds);
+          }
+          await supabase.from('bank_synced_transactions').delete().in('id', syncedIds);
+          totalDeleted += toDelete.length;
+        }
+      } catch (e) {
+        console.error('Cleanup error:', e);
       }
 
       try {
@@ -300,6 +336,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       imported: totalImported,
+      deleted: totalDeleted,
       errors: errors.length ? errors : undefined,
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
