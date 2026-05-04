@@ -206,6 +206,8 @@ Deno.serve(async (req) => {
           .in('transaction_id', txIds);
 
         const existingIds = new Set((existing || []).map((e: { transaction_id: string }) => e.transaction_id));
+        // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
+        const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
           return id && !existingIds.has(id);
