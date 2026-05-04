@@ -270,8 +270,8 @@ Deno.serve(async (req) => {
         const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
         const sinceDate = startOfMonth;
 
-        // Récupère booked + pending (encours carte / débit différé non encore comptabilisé)
-        const fetchTx = async (status: 'BOOK' | 'PDNG') => {
+        // Récupère les statuts valides pouvant contenir l'encours carte
+        const fetchTx = async (status: 'BOOK' | 'PDNG' | 'HOLD' | 'OTHR') => {
           const res = await fetch(
             `${ENABLE_BANKING_BASE}/accounts/${conn.bank_account_id}/transactions?date_from=${sinceDate}&transaction_status=${status}`,
             { headers: { Authorization: `Bearer ${jwt}`, 'psu-ip-address': '127.0.0.1' } }
@@ -285,17 +285,19 @@ Deno.serve(async (req) => {
           return { ok: true, transactions: (data.transactions || []) as any[] };
         };
 
-        const [booked, pending] = await Promise.all([
+        const [booked, pending, hold, other] = await Promise.all([
           fetchTx('BOOK'),
           fetchTx('PDNG'),
+          fetchTx('HOLD'),
+          fetchTx('OTHR'),
         ]);
 
-        if (!booked.ok && !pending.ok) {
-          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || '').slice(0, 100)}`);
+        if (!booked.ok && !pending.ok && !hold.ok && !other.ok) {
+          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || hold.error || other.error || '').slice(0, 100)}`);
           continue;
         }
 
-        const transactions = [...booked.transactions, ...pending.transactions];
+        const transactions = [...booked.transactions, ...pending.transactions, ...hold.transactions, ...other.transactions];
 
         // Filtrer: que les débits (montants négatifs ou type DBIT)
         const debits = transactions.filter((t: { credit_debit_indicator?: string; transaction_amount?: { amount: string } }) => {
