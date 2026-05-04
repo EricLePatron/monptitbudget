@@ -158,7 +158,9 @@ Deno.serve(async (req) => {
     let totalDeleted = 0;
 
     const isExcludedDesc = (desc: string) => {
-      const lower = (desc || '').toLowerCase();
+      const raw = (desc || '').trim();
+      const lower = raw.toLowerCase();
+      if (/^prlv\b/i.test(raw)) return true;
       return lower.includes('debit mensuel') || lower.includes('débit mensuel')
         || lower.includes('releve carte') || lower.includes('relevé carte')
         || lower.includes('debit differe') || lower.includes('débit différé');
