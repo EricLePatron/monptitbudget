@@ -242,7 +242,7 @@ Deno.serve(async (req) => {
           const txId = t.entry_reference || t.transaction_id;
           const amount = Math.abs(parseFloat(t.transaction_amount?.amount || '0'));
           const desc = txForAI[i].description;
-          const date = t.booking_date || t.value_date || new Date().toISOString().split('T')[0];
+          const date = t.transaction_date || t.value_date || t.booking_date || new Date().toISOString().split('T')[0];
 
           // Vérifier que la transaction est dans le mois budget courant
           const txDate = new Date(date);
