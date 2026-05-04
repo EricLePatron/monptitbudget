@@ -242,9 +242,20 @@ Deno.serve(async (req) => {
           const txId = t.entry_reference || t.transaction_id;
           const amount = Math.abs(parseFloat(t.transaction_amount?.amount || '0'));
           const desc = txForAI[i].description;
-          const date = t.transaction_date || t.value_date || t.booking_date || new Date().toISOString().split('T')[0];
 
-          // Vérifier que la transaction est dans le mois budget courant
+          // Date d'achat réelle (jour de la dépense), PAS la date de comptabilisation
+          // value_date / transaction_date = jour de l'achat carte
+          // booking_date = jour où la banque comptabilise (souvent le débit différé regroupé)
+          const purchaseDate = t.value_date || t.transaction_date;
+          if (!purchaseDate) continue; // pas de date d'achat -> probablement un débit différé groupé, on ignore
+
+          // Ignorer le débit mensuel groupé carte (libellé typique)
+          const lower = desc.toLowerCase();
+          if (lower.includes('debit mensuel') || lower.includes('débit mensuel') || lower.includes('releve carte') || lower.includes('relevé carte') || lower.includes('debit differe') || lower.includes('débit différé')) {
+            continue;
+          }
+
+          const date = purchaseDate;
           const txDate = new Date(date);
           if (txDate.getMonth() !== month || txDate.getFullYear() !== year) continue;
 
