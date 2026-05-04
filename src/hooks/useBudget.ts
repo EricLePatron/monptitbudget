@@ -122,6 +122,16 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     loadBudget();
   }, [loadBudget]);
 
+  useEffect(() => {
+    const refreshAfterBankSync = (event: Event) => {
+      const detail = (event as CustomEvent<{ accountId?: string }>).detail;
+      if (detail?.accountId === accountId) loadBudget();
+    };
+
+    window.addEventListener('bank-sync-completed', refreshAfterBankSync);
+    return () => window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+  }, [accountId, loadBudget]);
+
   // Create or update budget
   const saveBudget = async (newConfig: BudgetConfig) => {
     if (!user) {

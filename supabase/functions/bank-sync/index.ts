@@ -164,6 +164,46 @@ Deno.serve(async (req) => {
         || lower.includes('debit differe') || lower.includes('débit différé');
     };
 
+    const extractFactDate = (desc: string): string | null => {
+      const match = (desc || '').match(/\bFACT\s*(\d{2})[\/\.\-\s]?(\d{2})[\/\.\-\s]?(\d{2,4})\b/i);
+      if (!match) return null;
+      const day = parseInt(match[1], 10);
+      const factMonth = parseInt(match[2], 10);
+      let factYear = match[3];
+      if (factYear.length === 2) factYear = `20${factYear}`;
+      if (day < 1 || day > 31 || factMonth < 1 || factMonth > 12) return null;
+      return `${factYear}-${String(factMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    };
+
+    const dateMatchesCurrentBudget = (date?: string | null) => {
+      const match = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!match) return false;
+      return parseInt(match[1], 10) === year && parseInt(match[2], 10) - 1 === month;
+    };
+
+    const hasCardMarker = (desc: string) => /\b(CB|CARTE|CARD)\b/i.test(desc || '');
+
+    const isAllowedCardExpense = (desc: string, fallbackDate?: string | null) => {
+      if (isExcludedDesc(desc) || !hasCardMarker(desc)) return false;
+      const dateFromLabel = extractFactDate(desc);
+      return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
+    };
+
+    const getTxDescription = (t: any) => (
+      t.remittance_information?.join(' ') || t.creditor?.name || t.debtor?.name || 'Transaction'
+    ).slice(0, 180);
+
+    const getPurchaseDate = (t: any, desc: string) => {
+      const dateFromLabel = extractFactDate(desc);
+      if (dateFromLabel) return dateFromLabel;
+      const candidates = [t.transaction_date, t.value_date, t.booking_date]
+        .filter(Boolean)
+        .map((d: string) => String(d).slice(0, 10))
+        .filter((d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+        .sort();
+      return candidates[0] || null;
+    };
+
     for (const conn of connections) {
       // Vérifier expiration
       if (new Date(conn.valid_until) < new Date()) {
@@ -174,15 +214,42 @@ Deno.serve(async (req) => {
       // Nettoyage : supprimer les dépenses déjà importées qui ne devraient plus l'être
       // (libellé exclu OU hors mois budget courant)
       try {
+        const { data: accountBudgets } = await supabase
+          .from('budgets')
+          .select('id, month, year')
+          .eq('account_id', account_id);
+
+        const budgetById = new Map((accountBudgets || []).map((b: { id: string; month: number; year: number }) => [b.id, b]));
+        const budgetIds = Array.from(budgetById.keys());
+
+        if (budgetIds.length > 0) {
+          const { data: importedExpenses } = await supabase
+            .from('expenses')
+            .select('id, budget_id, name, date')
+            .in('budget_id', budgetIds)
+            .like('name', '🏦%');
+
+          const staleExpenseIds = (importedExpenses || [])
+            .filter((e: { id: string; budget_id: string; name: string | null; date: string }) => {
+              const expenseBudget = budgetById.get(e.budget_id);
+              if (!expenseBudget || expenseBudget.month !== month || expenseBudget.year !== year) return true;
+              return !isAllowedCardExpense(e.name || '', e.date);
+            })
+            .map((e: { id: string }) => e.id);
+
+          if (staleExpenseIds.length > 0) {
+            await supabase.from('expenses').delete().in('id', staleExpenseIds);
+            totalDeleted += staleExpenseIds.length;
+          }
+        }
+
         const { data: alreadySynced } = await supabase
           .from('bank_synced_transactions')
           .select('id, expense_id, description, transaction_date')
           .eq('bank_connection_id', conn.id);
 
         const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
-          if (isExcludedDesc(s.description || '')) return true;
-          const [yStr, mStr] = (s.transaction_date || '').split('-');
-          return parseInt(mStr) - 1 !== month || parseInt(yStr) !== year;
+          return !isAllowedCardExpense(s.description || '', s.transaction_date);
         });
 
         if (toDelete.length > 0) {
@@ -201,11 +268,10 @@ Deno.serve(async (req) => {
       try {
         // On ne récupère que le mois budget courant (encours carte inclus)
         const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
-        const lastSync = conn.last_synced_at ? new Date(conn.last_synced_at).toISOString().split('T')[0] : null;
-        const sinceDate = lastSync && lastSync > startOfMonth ? lastSync : startOfMonth;
+        const sinceDate = startOfMonth;
 
-        // Récupère booked + pending + info (encours carte / débit différé non encore comptabilisé)
-        const fetchTx = async (status: 'BOOK' | 'PDNG' | 'INFO') => {
+        // Récupère les statuts valides pouvant contenir l'encours carte
+        const fetchTx = async (status: 'BOOK' | 'PDNG' | 'HOLD' | 'OTHR') => {
           const res = await fetch(
             `${ENABLE_BANKING_BASE}/accounts/${conn.bank_account_id}/transactions?date_from=${sinceDate}&transaction_status=${status}`,
             { headers: { Authorization: `Bearer ${jwt}`, 'psu-ip-address': '127.0.0.1' } }
@@ -219,18 +285,19 @@ Deno.serve(async (req) => {
           return { ok: true, transactions: (data.transactions || []) as any[] };
         };
 
-        const [booked, pending, info] = await Promise.all([
+        const [booked, pending, hold, other] = await Promise.all([
           fetchTx('BOOK'),
           fetchTx('PDNG'),
-          fetchTx('INFO'),
+          fetchTx('HOLD'),
+          fetchTx('OTHR'),
         ]);
 
-        if (!booked.ok && !pending.ok && !info.ok) {
-          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || info.error || '').slice(0, 100)}`);
+        if (!booked.ok && !pending.ok && !hold.ok && !other.ok) {
+          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || hold.error || other.error || '').slice(0, 100)}`);
           continue;
         }
 
-        const transactions = [...booked.transactions, ...pending.transactions, ...info.transactions];
+        const transactions = [...booked.transactions, ...pending.transactions, ...hold.transactions, ...other.transactions];
 
         // Filtrer: que les débits (montants négatifs ou type DBIT)
         const debits = transactions.filter((t: { credit_debit_indicator?: string; transaction_amount?: { amount: string } }) => {
@@ -251,6 +318,9 @@ Deno.serve(async (req) => {
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
           if (!id || existingIds.has(id) || seenIds.has(id)) return false;
+          const desc = getTxDescription(t);
+          const date = getPurchaseDate(t, desc);
+          if (!isAllowedCardExpense(desc, date)) return false;
           seenIds.add(id);
           return true;
         });
@@ -262,11 +332,9 @@ Deno.serve(async (req) => {
 
         // Préparer pour catégorisation
         const txForAI = newTx.map((t: {
-          remittance_information?: string[];
-          creditor?: { name?: string };
           transaction_amount?: { amount: string };
         }) => ({
-          description: (t.remittance_information?.join(' ') || t.creditor?.name || 'Transaction').slice(0, 100),
+          description: getTxDescription(t).slice(0, 100),
           amount: Math.abs(parseFloat(t.transaction_amount?.amount || '0')),
         }));
 
@@ -279,37 +347,8 @@ Deno.serve(async (req) => {
           const amount = Math.abs(parseFloat(t.transaction_amount?.amount || '0'));
           const desc = txForAI[i].description;
 
-          // Date d'achat réelle : on prend la PLUS ANCIENNE entre transaction_date et value_date
-          // (pour cartes à débit différé, value_date = date de débit groupé future, on veut la vraie date d'achat)
-          const candidates = [t.transaction_date, t.value_date, t.booking_date].filter(Boolean) as string[];
-          if (candidates.length === 0) continue;
-          const sorted = candidates.sort();
-          const purchaseDate = sorted[0];
-
-          // Tenter aussi d'extraire une date depuis le libellé "FACT JJMMAA" ou "FACT JJ/MM/AA"
-          const factMatch = desc.match(/FACT\s*(\d{2})[\/\.\-]?(\d{2})[\/\.\-]?(\d{2,4})/i);
-          let dateFromLabel: string | null = null;
-          if (factMatch) {
-            const dd = factMatch[1];
-            const mm = factMatch[2];
-            let yy = factMatch[3];
-            if (yy.length === 2) yy = '20' + yy;
-            dateFromLabel = `${yy}-${mm}-${dd}`;
-          }
-
-          const date = dateFromLabel && dateFromLabel < purchaseDate ? dateFromLabel : purchaseDate;
-
-          // Ignorer le débit mensuel groupé carte (libellé typique)
-          const lower = desc.toLowerCase();
-          if (lower.includes('debit mensuel') || lower.includes('débit mensuel') || lower.includes('releve carte') || lower.includes('relevé carte') || lower.includes('debit differe') || lower.includes('débit différé')) {
-            continue;
-          }
-
-          // Vérif stricte du mois (parsing UTC pour éviter les décalages)
-          const [yStr, mStr] = date.split('-');
-          const txYear = parseInt(yStr);
-          const txMonth = parseInt(mStr) - 1;
-          if (txMonth !== month || txYear !== year) continue;
+          const date = getPurchaseDate(t, desc);
+          if (!date || !isAllowedCardExpense(desc, date)) continue;
 
           const { data: expense, error: expErr } = await supabase
             .from('expenses')

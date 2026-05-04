@@ -104,6 +104,7 @@ export function useBankConnection(accountId: string | null) {
       } else if (silent && data?.imported > 0) {
         toast.success(`🏦 ${data.imported} nouvelle${data.imported > 1 ? 's' : ''} dépense${data.imported > 1 ? 's' : ''} synchronisée${data.imported > 1 ? 's' : ''}`);
       }
+      window.dispatchEvent(new CustomEvent('bank-sync-completed', { detail: { accountId, imported: data?.imported ?? 0, deleted: data?.deleted ?? 0 } }));
       await loadConnections();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur inconnue';
