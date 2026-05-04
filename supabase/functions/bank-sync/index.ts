@@ -181,10 +181,8 @@ Deno.serve(async (req) => {
       return parseInt(match[1], 10) === year && parseInt(match[2], 10) - 1 === month;
     };
 
-    const hasCardMarker = (desc: string) => /\b(CB|CARTE|CARD)\b/i.test(desc || '');
-
     const isAllowedCardExpense = (desc: string, fallbackDate?: string | null) => {
-      if (isExcludedDesc(desc) || !hasCardMarker(desc)) return false;
+      if (isExcludedDesc(desc)) return false;
       const dateFromLabel = extractFactDate(desc);
       return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
     };
