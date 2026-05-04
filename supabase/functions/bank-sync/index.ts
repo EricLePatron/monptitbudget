@@ -210,7 +210,9 @@ Deno.serve(async (req) => {
         const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
-          return id && !existingIds.has(id);
+          if (!id || existingIds.has(id) || seenIds.has(id)) return false;
+          seenIds.add(id);
+          return true;
         });
 
         if (newTx.length === 0) {
