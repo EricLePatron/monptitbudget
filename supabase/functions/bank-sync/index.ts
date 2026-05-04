@@ -164,6 +164,46 @@ Deno.serve(async (req) => {
         || lower.includes('debit differe') || lower.includes('débit différé');
     };
 
+    const extractFactDate = (desc: string): string | null => {
+      const match = (desc || '').match(/\bFACT\s*(\d{2})[\/\.\-\s]?(\d{2})[\/\.\-\s]?(\d{2,4})\b/i);
+      if (!match) return null;
+      const day = parseInt(match[1], 10);
+      const factMonth = parseInt(match[2], 10);
+      let factYear = match[3];
+      if (factYear.length === 2) factYear = `20${factYear}`;
+      if (day < 1 || day > 31 || factMonth < 1 || factMonth > 12) return null;
+      return `${factYear}-${String(factMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    };
+
+    const dateMatchesCurrentBudget = (date?: string | null) => {
+      const match = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!match) return false;
+      return parseInt(match[1], 10) === year && parseInt(match[2], 10) - 1 === month;
+    };
+
+    const hasCardMarker = (desc: string) => /\b(CB|CARTE|CARD)\b/i.test(desc || '');
+
+    const isAllowedCardExpense = (desc: string, fallbackDate?: string | null) => {
+      if (isExcludedDesc(desc) || !hasCardMarker(desc)) return false;
+      const dateFromLabel = extractFactDate(desc);
+      return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
+    };
+
+    const getTxDescription = (t: any) => (
+      t.remittance_information?.join(' ') || t.creditor?.name || t.debtor?.name || 'Transaction'
+    ).slice(0, 180);
+
+    const getPurchaseDate = (t: any, desc: string) => {
+      const dateFromLabel = extractFactDate(desc);
+      if (dateFromLabel) return dateFromLabel;
+      const candidates = [t.transaction_date, t.value_date, t.booking_date]
+        .filter(Boolean)
+        .map((d: string) => String(d).slice(0, 10))
+        .filter((d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+        .sort();
+      return candidates[0] || null;
+    };
+
     for (const conn of connections) {
       // Vérifier expiration
       if (new Date(conn.valid_until) < new Date()) {
@@ -174,15 +214,42 @@ Deno.serve(async (req) => {
       // Nettoyage : supprimer les dépenses déjà importées qui ne devraient plus l'être
       // (libellé exclu OU hors mois budget courant)
       try {
+        const { data: accountBudgets } = await supabase
+          .from('budgets')
+          .select('id, month, year')
+          .eq('account_id', account_id);
+
+        const budgetById = new Map((accountBudgets || []).map((b: { id: string; month: number; year: number }) => [b.id, b]));
+        const budgetIds = Array.from(budgetById.keys());
+
+        if (budgetIds.length > 0) {
+          const { data: importedExpenses } = await supabase
+            .from('expenses')
+            .select('id, budget_id, name, date')
+            .in('budget_id', budgetIds)
+            .like('name', '🏦%');
+
+          const staleExpenseIds = (importedExpenses || [])
+            .filter((e: { id: string; budget_id: string; name: string | null; date: string }) => {
+              const expenseBudget = budgetById.get(e.budget_id);
+              if (!expenseBudget || expenseBudget.month !== month || expenseBudget.year !== year) return true;
+              return !isAllowedCardExpense(e.name || '', e.date);
+            })
+            .map((e: { id: string }) => e.id);
+
+          if (staleExpenseIds.length > 0) {
+            await supabase.from('expenses').delete().in('id', staleExpenseIds);
+            totalDeleted += staleExpenseIds.length;
+          }
+        }
+
         const { data: alreadySynced } = await supabase
           .from('bank_synced_transactions')
           .select('id, expense_id, description, transaction_date')
           .eq('bank_connection_id', conn.id);
 
         const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
-          if (isExcludedDesc(s.description || '')) return true;
-          const [yStr, mStr] = (s.transaction_date || '').split('-');
-          return parseInt(mStr) - 1 !== month || parseInt(yStr) !== year;
+          return !isAllowedCardExpense(s.description || '', s.transaction_date);
         });
 
         if (toDelete.length > 0) {
