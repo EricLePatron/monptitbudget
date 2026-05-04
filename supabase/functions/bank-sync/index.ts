@@ -253,7 +253,6 @@ Deno.serve(async (req) => {
               name: `🏦 ${desc}`,
               category: categories[i],
               date,
-              user_email: userEmail,
             })
             .select()
             .single();
