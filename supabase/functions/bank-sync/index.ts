@@ -168,20 +168,29 @@ Deno.serve(async (req) => {
           ? new Date(conn.last_synced_at).toISOString().split('T')[0]
           : new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-        const txRes = await fetch(
-          `${ENABLE_BANKING_BASE}/accounts/${conn.bank_account_id}/transactions?date_from=${sinceDate}`,
-          { headers: { Authorization: `Bearer ${jwt}`, 'psu-ip-address': '127.0.0.1' } }
-        );
+        // Récupère booked + pending (débits différés / cartes à débit différé)
+        const fetchTx = async (status: 'BOOK' | 'PDNG') => {
+          const res = await fetch(
+            `${ENABLE_BANKING_BASE}/accounts/${conn.bank_account_id}/transactions?date_from=${sinceDate}&transaction_status=${status}`,
+            { headers: { Authorization: `Bearer ${jwt}`, 'psu-ip-address': '127.0.0.1' } }
+          );
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error(`Tx fetch (${status}) failed for ${conn.id}:`, errText);
+            return { ok: false, error: errText, transactions: [] as any[] };
+          }
+          const data = await res.json();
+          return { ok: true, transactions: (data.transactions || []) as any[] };
+        };
 
-        if (!txRes.ok) {
-          const errText = await txRes.text();
-          console.error(`Tx fetch failed for ${conn.id}:`, errText);
-          errors.push(`${conn.bank_name}: ${errText.slice(0, 100)}`);
+        const [booked, pending] = await Promise.all([fetchTx('BOOK'), fetchTx('PDNG')]);
+
+        if (!booked.ok && !pending.ok) {
+          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || '').slice(0, 100)}`);
           continue;
         }
 
-        const txData = await txRes.json();
-        const transactions = txData.transactions || [];
+        const transactions = [...booked.transactions, ...pending.transactions];
 
         // Filtrer: que les débits (montants négatifs ou type DBIT)
         const debits = transactions.filter((t: { credit_debit_indicator?: string; transaction_amount?: { amount: string } }) => {
@@ -197,9 +206,13 @@ Deno.serve(async (req) => {
           .in('transaction_id', txIds);
 
         const existingIds = new Set((existing || []).map((e: { transaction_id: string }) => e.transaction_id));
+        // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
+        const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
-          return id && !existingIds.has(id);
+          if (!id || existingIds.has(id) || seenIds.has(id)) return false;
+          seenIds.add(id);
+          return true;
         });
 
         if (newTx.length === 0) {
