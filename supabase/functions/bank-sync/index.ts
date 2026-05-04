@@ -181,8 +181,8 @@ Deno.serve(async (req) => {
 
         const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
           if (isExcludedDesc(s.description || '')) return true;
-          const d = new Date(s.transaction_date);
-          return d.getMonth() !== month || d.getFullYear() !== year;
+          const [yStr, mStr] = (s.transaction_date || '').split('-');
+          return parseInt(mStr) - 1 !== month || parseInt(yStr) !== year;
         });
 
         if (toDelete.length > 0) {
