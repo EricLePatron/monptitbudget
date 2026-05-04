@@ -168,8 +168,8 @@ Deno.serve(async (req) => {
           ? new Date(conn.last_synced_at).toISOString().split('T')[0]
           : new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-        // Récupère booked + pending (débits différés / cartes à débit différé)
-        const fetchTx = async (status: 'BOOK' | 'PDNG') => {
+        // Récupère booked + pending + info (encours carte / débit différé non encore comptabilisé)
+        const fetchTx = async (status: 'BOOK' | 'PDNG' | 'INFO') => {
           const res = await fetch(
             `${ENABLE_BANKING_BASE}/accounts/${conn.bank_account_id}/transactions?date_from=${sinceDate}&transaction_status=${status}`,
             { headers: { Authorization: `Bearer ${jwt}`, 'psu-ip-address': '127.0.0.1' } }
@@ -183,14 +183,18 @@ Deno.serve(async (req) => {
           return { ok: true, transactions: (data.transactions || []) as any[] };
         };
 
-        const [booked, pending] = await Promise.all([fetchTx('BOOK'), fetchTx('PDNG')]);
+        const [booked, pending, info] = await Promise.all([
+          fetchTx('BOOK'),
+          fetchTx('PDNG'),
+          fetchTx('INFO'),
+        ]);
 
-        if (!booked.ok && !pending.ok) {
-          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || '').slice(0, 100)}`);
+        if (!booked.ok && !pending.ok && !info.ok) {
+          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || info.error || '').slice(0, 100)}`);
           continue;
         }
 
-        const transactions = [...booked.transactions, ...pending.transactions];
+        const transactions = [...booked.transactions, ...pending.transactions, ...info.transactions];
 
         // Filtrer: que les débits (montants négatifs ou type DBIT)
         const debits = transactions.filter((t: { credit_debit_indicator?: string; transaction_amount?: { amount: string } }) => {
@@ -238,7 +242,7 @@ Deno.serve(async (req) => {
           const txId = t.entry_reference || t.transaction_id;
           const amount = Math.abs(parseFloat(t.transaction_amount?.amount || '0'));
           const desc = txForAI[i].description;
-          const date = t.booking_date || t.value_date || new Date().toISOString().split('T')[0];
+          const date = t.transaction_date || t.value_date || t.booking_date || new Date().toISOString().split('T')[0];
 
           // Vérifier que la transaction est dans le mois budget courant
           const txDate = new Date(date);
