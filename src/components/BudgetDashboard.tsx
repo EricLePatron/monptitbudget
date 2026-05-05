@@ -214,13 +214,14 @@ export function BudgetDashboard({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-0 shrink-0 -mr-1">
+        <div className="flex items-center gap-1 shrink-0 bg-card/70 border border-border/60 rounded-full p-1 shadow-sm">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setSavingsOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+            title="Épargne"
           >
             <PiggyBank className="w-[18px] h-[18px]" />
           </Button>
@@ -229,7 +230,7 @@ export function BudgetDashboard({
             variant="ghost"
             size="icon"
             onClick={() => setBankSheetOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
             title="Connecter ma banque"
           >
             <Landmark className="w-[18px] h-[18px]" />
@@ -238,17 +239,9 @@ export function BudgetDashboard({
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => setHistoryOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
-          >
-            <History className="w-[18px] h-[18px]" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
             onClick={signOut}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            title="Déconnexion"
           >
             <LogOut className="w-[18px] h-[18px]" />
           </Button>
@@ -457,12 +450,23 @@ export function BudgetDashboard({
         </div>
 
         {/* Spacer for FAB */}
-        <div className="h-20" />
+        <div className="h-24" />
       </main>
 
-      {/* Add Expense FAB - For current and future months */}
-      {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
-        <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20">
+      {/* Bottom action bar — Add expense + History */}
+      <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setHistoryOpen(true)}
+          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all"
+          title="Historique des dépenses"
+          aria-label="Historique des dépenses"
+        >
+          <History className="w-5 h-5" />
+        </Button>
+        {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
           <Button
             size="lg"
             onClick={() => setSheetOpen(true)}
@@ -471,8 +475,10 @@ export function BudgetDashboard({
             <Plus className="mr-1.5 w-5 h-5" />
             Ajouter une dépense
           </Button>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* placeholder removed: bottom bar replaces FAB */}
 
       {/* Add Expense Sheet */}
       <AddExpenseSheet

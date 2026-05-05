@@ -28,11 +28,11 @@ export function AccountSelector({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex items-center gap-2 text-foreground font-medium px-3 py-2 h-auto"
+          className="flex items-center gap-2 text-foreground font-semibold px-3 py-2 h-auto rounded-full bg-card/80 border border-border/60 shadow-sm hover:bg-card hover:shadow-md active:scale-[0.98] transition-all"
         >
-          <span className="text-lg">{currentAccount?.emoji || '💰'}</span>
-          <span className="text-sm">{currentAccount?.name || 'Compte'}</span>
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xl leading-none">{currentAccount?.emoji || '💰'}</span>
+          <span className="text-sm max-w-[140px] truncate">{currentAccount?.name || 'Compte'}</span>
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
