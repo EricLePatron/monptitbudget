@@ -479,18 +479,6 @@ export function BudgetDashboard({
       </div>
 
       {/* placeholder removed: bottom bar replaces FAB */}
-      {false && (
-        <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20">
-          <Button
-            size="lg"
-            onClick={() => setSheetOpen(true)}
-            className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
-          >
-            <Plus className="mr-1.5 w-5 h-5" />
-            Ajouter une dépense
-          </Button>
-        </div>
-      )}
 
       {/* Add Expense Sheet */}
       <AddExpenseSheet
