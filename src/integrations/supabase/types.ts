@@ -309,6 +309,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_pending_invitations: { Args: never; Returns: number }
       has_account_access: {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
