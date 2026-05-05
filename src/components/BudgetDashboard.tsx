@@ -88,6 +88,7 @@ export function BudgetDashboard({
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
