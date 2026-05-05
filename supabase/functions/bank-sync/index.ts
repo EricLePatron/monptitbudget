@@ -189,9 +189,15 @@ Deno.serve(async (req) => {
       return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
     };
 
-    const getTxDescription = (t: any) => (
+    const normalizeDescription = (desc: string) => (desc || '').replace(/\s+/g, ' ').trim();
+
+    const getTxDescription = (t: any) => normalizeDescription(
       t.remittance_information?.join(' ') || t.creditor?.name || t.debtor?.name || 'Transaction'
     ).slice(0, 180);
+
+    const getTxSignature = (description: string, amount: number, date?: string | null) => (
+      `${normalizeDescription(description).toLowerCase()}|${amount.toFixed(2)}|${String(date || '').slice(0, 10)}`
+    );
 
     const getPurchaseDate = (t: any, desc: string) => {
       const dateFromLabel = extractFactDate(desc);
@@ -308,11 +314,16 @@ Deno.serve(async (req) => {
         const txIds = debits.map((t: { entry_reference?: string; transaction_id?: string }) => t.entry_reference || t.transaction_id).filter(Boolean);
         const { data: existing } = await supabase
           .from('bank_synced_transactions')
-          .select('transaction_id')
+          .select('transaction_id, description, transaction_date, amount')
           .eq('bank_connection_id', conn.id)
           .in('transaction_id', txIds);
 
         const existingIds = new Set((existing || []).map((e: { transaction_id: string }) => e.transaction_id));
+        const existingSignatures = new Set((existing || []).map((e: {
+          description: string | null;
+          amount: number | string | null;
+          transaction_date: string | null;
+        }) => getTxSignature(e.description || '', Math.abs(Number(e.amount || 0)), e.transaction_date)));
         // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
         const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
@@ -320,6 +331,8 @@ Deno.serve(async (req) => {
           if (!id || existingIds.has(id) || seenIds.has(id)) return false;
           const desc = getTxDescription(t);
           const date = getPurchaseDate(t, desc);
+          const amount = Math.abs(parseFloat((t as { transaction_amount?: { amount: string } }).transaction_amount?.amount || '0'));
+          if (existingSignatures.has(getTxSignature(desc, amount, date))) return false;
           if (!isAllowedCardExpense(desc, date)) return false;
           seenIds.add(id);
           return true;
