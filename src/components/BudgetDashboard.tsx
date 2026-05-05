@@ -391,61 +391,61 @@ export function BudgetDashboard({
             type="button"
             onClick={() => !metrics.isFutureMonth && setForecastOpen(true)}
             className={cn(
-              "w-full text-left budget-card bg-gradient-to-br from-secondary/40 to-secondary/20 border-secondary/40 transition-all",
-              !metrics.isFutureMonth && "hover:border-primary/30 hover:from-secondary/50 cursor-pointer"
+              "w-full text-left rounded-3xl p-4 bg-gradient-to-br from-secondary/50 to-secondary/25 border border-secondary/50 shadow-md transition-all",
+              !metrics.isFutureMonth && "hover:border-primary/30 hover:from-secondary/60 cursor-pointer active:scale-[0.99]"
             )}
           >
             {metrics.isFutureMonth ? (
-              <div className="text-center py-2">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-secondary/50 flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-secondary-foreground" />
+              <div className="text-center py-1">
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-secondary/60 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-secondary-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-semibold text-foreground">
                   Ce budget commence en {getMonthName(config.month)} {config.year}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Vous pouvez déjà planifier vos dépenses
                 </p>
               </div>
             ) : metrics.isPastMonth ? (
-              <div className="text-center py-2">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
-                  <History className="w-6 h-6 text-muted-foreground" />
+              <div className="text-center py-1">
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-muted/60 flex items-center justify-center">
+                  <History className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Ce mois est terminé
                 </p>
-                <p className="text-lg font-display font-bold text-foreground mt-1">
+                <p className="text-base font-display font-bold text-foreground mt-0.5">
                   Total dépensé: {formatCurrencyCompact(metrics.totalSpentThisMonth)}
                 </p>
-                <p className="text-xs text-primary mt-2">
+                <p className="text-xs text-primary mt-1.5 font-semibold">
                   Voir les prévisions →
                 </p>
               </div>
             ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-secondary/60 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-secondary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
                       Prévu demain
                     </p>
-                    <p className="text-2xl font-display font-bold text-foreground">
+                    <p className="text-xl font-display font-bold text-foreground tabular-nums leading-tight">
                       {formatCurrencyCompact(metrics.tomorrowBudget)}
                     </p>
                   </div>
                 </div>
-                <div className="text-right space-y-1">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-card/50 text-xs">
+                <div className="text-right space-y-0.5 shrink-0">
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-card/60 text-[10px]">
                     <Calendar className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{metrics.daysRemaining} jours</span>
+                    <span className="text-muted-foreground font-medium">{metrics.daysRemaining} jours</span>
                   </div>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-xs font-semibold text-foreground tabular-nums">
                     {formatCurrencyCompact(metrics.budgetRemaining)}
                   </p>
-                  <p className="text-xs text-primary">
+                  <p className="text-[11px] text-primary font-semibold">
                     Voir tout →
                   </p>
                 </div>
@@ -455,7 +455,7 @@ export function BudgetDashboard({
         </div>
 
         {/* Spacer for FAB */}
-        <div className="h-24" />
+        <div className="h-20" />
       </main>
 
       {/* Add Expense FAB - For current and future months */}
