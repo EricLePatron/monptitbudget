@@ -157,9 +157,9 @@ export function BudgetDashboard({
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="p-4 flex items-center justify-between relative z-10">
-        <div className="space-y-1">
+      {/* Header — compact mobile-first */}
+      <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-start justify-between gap-2 relative z-10">
+        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
           {/* Account Selector */}
           <AccountSelector
             accounts={accounts}
@@ -167,89 +167,88 @@ export function BudgetDashboard({
             onSwitch={onSwitchAccount}
             onManage={() => setManageAccountsOpen(true)}
           />
-          {/* Month Navigation - Redesigned */}
-          <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-2 py-1">
+          {/* Month Navigation - Compact */}
+          <div className="flex items-center gap-0.5 bg-secondary/60 rounded-full px-1 py-0.5 w-fit shadow-sm">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onPreviousMonth}
-              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <button
               type="button"
               onClick={() => setEditBudgetOpen(true)}
-              className="flex items-center gap-1 px-3 py-1 rounded-full hover:bg-secondary transition-colors cursor-pointer min-w-[140px] justify-center"
+              className="flex items-center gap-1 px-2.5 py-0.5 rounded-full hover:bg-secondary/80 transition-colors cursor-pointer"
             >
-              <span className="font-medium text-foreground">{getMonthName(config.month)} {config.year}</span>
-              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="font-semibold text-sm text-foreground whitespace-nowrap">{getMonthName(config.month)} {config.year}</span>
+              <Settings className="w-3 h-3 text-muted-foreground" />
             </button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-          {/* Today button */}
-          {!isCurrentMonth && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onGoToCurrentMonth}
-              className="h-8 text-xs rounded-full border-primary/50 text-primary hover:bg-primary/10"
-            >
-              <Calendar className="w-3.5 h-3.5 mr-1" />
-              Aujourd'hui
-            </Button>
-          )}
-          <p className="text-xs text-muted-foreground">
-            {formatCurrencyCompact(config.monthlyBudget)} / mois
-          </p>
+          <div className="flex items-center gap-2 pl-1">
+            <p className="text-[11px] text-muted-foreground font-medium">
+              {formatCurrencyCompact(config.monthlyBudget)} / mois
+            </p>
+            {!isCurrentMonth && (
+              <button
+                type="button"
+                onClick={onGoToCurrentMonth}
+                className="inline-flex items-center gap-1 h-5 px-2 text-[10px] rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Calendar className="w-3 h-3" />
+                Aujourd'hui
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0 shrink-0 -mr-1">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setSavingsOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <PiggyBank className="w-5 h-5" />
+            <PiggyBank className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setBankSheetOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
             title="Connecter ma banque"
           >
-            <Landmark className="w-5 h-5" />
+            <Landmark className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setHistoryOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <History className="w-5 h-5" />
+            <History className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={signOut}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-[18px] h-[18px]" />
           </Button>
         </div>
       </header>
