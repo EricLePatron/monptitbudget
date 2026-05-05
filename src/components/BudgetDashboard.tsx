@@ -460,13 +460,13 @@ export function BudgetDashboard({
 
       {/* Add Expense FAB - For current and future months */}
       {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+        <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20">
           <Button
             size="lg"
             onClick={() => setSheetOpen(true)}
-            className="h-16 px-8 rounded-full shadow-lg text-lg font-medium"
+            className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
           >
-            <Plus className="mr-2 w-6 h-6" />
+            <Plus className="mr-1.5 w-5 h-5" />
             Ajouter une dépense
           </Button>
         </div>
