@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,18 +41,27 @@ export function EditExpenseSheet({
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const initializedExpenseIdRef = useRef<string | null>(null);
+
+  const cleanExpenseName = (value: string) => value.replace(/\s+/g, ' ').trim();
 
   // Initialize form when expense changes
   useEffect(() => {
-    if (expense) {
+    if (!open) {
+      initializedExpenseIdRef.current = null;
+      return;
+    }
+
+    if (expense && initializedExpenseIdRef.current !== expense.id) {
       setAmount(expense.amount.toString());
-      setName(expense.name || '');
+      setName(cleanExpenseName(expense.name || ''));
       setSelectedCategory(expense.category);
       // Parse the date string to Date object
       const [year, month, day] = expense.date.split('-').map(Number);
       setSelectedDate(new Date(year, month - 1, day));
+      initializedExpenseIdRef.current = expense.id;
     }
-  }, [expense]);
+  }, [open, expense]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +75,7 @@ export function EditExpenseSheet({
       
       await onUpdateExpense(expense.id, {
         amount: value,
-        name: name.trim() || undefined,
+        name: cleanExpenseName(name),
         category: selectedCategory,
         date: dateStr,
       });
@@ -157,7 +166,8 @@ export function EditExpenseSheet({
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-12"
-              maxLength={50}
+              maxLength={220}
+              autoComplete="off"
             />
           </div>
 
