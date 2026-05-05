@@ -161,6 +161,14 @@ Deno.serve(async (req) => {
       const raw = (desc || '').trim();
       const lower = raw.toLowerCase();
       if (/^prlv\b/i.test(raw)) return true;
+      // Échéances de prêt / crédit
+      if (/\b(ech(eance)?|écheance|échéance)\b.*\b(pret|prêt|credit|crédit|loan)\b/i.test(lower)) return true;
+      if (/\b(pret|prêt|credit|crédit)\b.*\b(ech|éch|mensualit)/i.test(lower)) return true;
+      if (/\bmensualit[eé]\b/i.test(lower)) return true;
+      if (/\bremb(oursement)?\s+(pret|prêt|credit|crédit)\b/i.test(lower)) return true;
+      // Crédit fractionné / BNPL
+      const bnplKeywords = ['klarna', 'alma', 'oney', 'floa', 'cofidis', 'cetelem', 'younited', 'sofinco', 'franfinance', 'pledg', 'scalapay', 'paypal 4x', 'cb 4x', '4xcb', 'paiement en 4', 'paiement 3x', 'paiement 4x', 'n fois', '3x sans frais', '4x sans frais'];
+      if (bnplKeywords.some(k => lower.includes(k))) return true;
       return lower.includes('debit mensuel') || lower.includes('débit mensuel')
         || lower.includes('releve carte') || lower.includes('relevé carte')
         || lower.includes('debit differe') || lower.includes('débit différé');
