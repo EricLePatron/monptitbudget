@@ -450,11 +450,36 @@ export function BudgetDashboard({
         </div>
 
         {/* Spacer for FAB */}
-        <div className="h-20" />
+        <div className="h-24" />
       </main>
 
-      {/* Add Expense FAB - For current and future months */}
-      {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
+      {/* Bottom action bar — Add expense + History */}
+      <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setHistoryOpen(true)}
+          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all"
+          title="Historique des dépenses"
+          aria-label="Historique des dépenses"
+        >
+          <History className="w-5 h-5" />
+        </Button>
+        {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
+          <Button
+            size="lg"
+            onClick={() => setSheetOpen(true)}
+            className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
+          >
+            <Plus className="mr-1.5 w-5 h-5" />
+            Ajouter une dépense
+          </Button>
+        )}
+      </div>
+
+      {/* placeholder removed: bottom bar replaces FAB */}
+      {false && (
         <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20">
           <Button
             size="lg"
