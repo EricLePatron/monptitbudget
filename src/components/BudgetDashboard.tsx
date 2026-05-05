@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
+import { EditExpenseSheet } from './EditExpenseSheet';
 import { FullBudgetSetupSheet } from './FullBudgetSetupSheet';
 import { ManageAccountsSheet } from './ManageAccountsSheet';
 import { AccountMembersSheet } from './AccountMembersSheet';
@@ -87,6 +88,7 @@ export function BudgetDashboard({
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
@@ -497,6 +499,19 @@ export function BudgetDashboard({
         onOpenChange={setHistoryOpen}
         expenses={expenses}
         onDeleteExpense={onDeleteExpense}
+        onEditExpense={(exp) => {
+          setHistoryOpen(false);
+          setEditingExpense(exp);
+        }}
+        categories={categories}
+        budgetConfig={config}
+      />
+
+      {/* Edit Expense Sheet — top-level to avoid nested overlay focus issues */}
+      <EditExpenseSheet
+        open={editingExpense !== null}
+        onOpenChange={(open) => !open && setEditingExpense(null)}
+        expense={editingExpense}
         onUpdateExpense={onUpdateExpense}
         categories={categories}
         onAddCategory={addCategory}

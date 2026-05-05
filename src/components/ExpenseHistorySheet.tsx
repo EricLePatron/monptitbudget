@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Expense, formatCurrencyCompact, BudgetConfig } from '@/lib/budget';
 import { Trash2, Pencil, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { EditExpenseSheet } from './EditExpenseSheet';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 
 interface ExpenseHistorySheetProps {
@@ -12,13 +11,8 @@ interface ExpenseHistorySheetProps {
   onOpenChange: (open: boolean) => void;
   expenses: Expense[];
   onDeleteExpense: (id: string) => void;
-  onUpdateExpense: (
-    expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; date?: string }
-  ) => Promise<void>;
+  onEditExpense: (expense: Expense) => void;
   categories: ExpenseCategory[];
-  onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
-  onDeleteCategory?: (categoryId: string) => Promise<void>;
   budgetConfig?: BudgetConfig | null;
 }
 
@@ -27,32 +21,23 @@ export function ExpenseHistorySheet({
   onOpenChange,
   expenses,
   onDeleteExpense,
-  onUpdateExpense,
+  onEditExpense,
   categories,
-  onAddCategory,
-  onDeleteCategory,
-  budgetConfig,
 }: ExpenseHistorySheetProps) {
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Filter expenses by selected category
   const filteredExpenses = selectedCategory
     ? expenses.filter(e => (e.category || 'Sans catégorie') === selectedCategory)
     : expenses;
 
-  // Group expenses by date
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
-    if (!acc[expense.date]) {
-      acc[expense.date] = [];
-    }
+    if (!acc[expense.date]) acc[expense.date] = [];
     acc[expense.date].push(expense);
     return acc;
   }, {} as Record<string, Expense[]>);
 
   const sortedDates = Object.keys(groupedExpenses).sort((a, b) => b.localeCompare(a));
 
-  // Calculate totals by category (always from all expenses for summary)
   const categoryTotals = expenses.reduce((acc, expense) => {
     const category = expense.category || 'Sans catégorie';
     acc[category] = (acc[category] || 0) + expense.amount;
@@ -63,7 +48,6 @@ export function ExpenseHistorySheet({
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const maxCategoryTotal = Math.max(...Object.values(categoryTotals), 1);
 
-  // Helper to find emoji for a category
   const getCategoryEmoji = (categoryName: string) => {
     const cat = categories.find(c => c.name === categoryName);
     return cat?.emoji || '📦';
@@ -83,8 +67,7 @@ export function ExpenseHistorySheet({
   };
 
   return (
-    <>
-    <Sheet open={open && !editingExpense} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md p-0">
         <SheetHeader className="p-6 pb-4 pt-[env(safe-area-inset-top,24px)] border-b border-border">
           <SheetTitle className="font-display text-xl">Historique des dépenses</SheetTitle>
@@ -92,7 +75,6 @@ export function ExpenseHistorySheet({
 
         <ScrollArea className="h-[calc(100vh-100px)]">
           <div className="px-4 py-5 space-y-5">
-          {/* Category summary */}
           {sortedCategories.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-border">
               <div className="flex items-center justify-between">
@@ -101,8 +83,7 @@ export function ExpenseHistorySheet({
                   Total: {formatCurrencyCompact(totalExpenses)}
                 </span>
               </div>
-              
-              {/* Active filter indicator */}
+
               {selectedCategory && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
                   <span className="text-sm text-primary flex-1">
@@ -124,14 +105,14 @@ export function ExpenseHistorySheet({
                   const percentage = totalExpenses > 0 ? Math.round((total / totalExpenses) * 100) : 0;
                   const barWidth = (total / maxCategoryTotal) * 100;
                   const isSelected = selectedCategory === category;
-                  
+
                   return (
                     <button
                       key={category}
                       onClick={() => handleCategoryClick(category)}
                       className={`w-full text-left space-y-1.5 p-2 -mx-2 rounded-lg transition-all duration-200
-                        ${isSelected 
-                          ? 'bg-primary/15 ring-1 ring-primary/30' 
+                        ${isSelected
+                          ? 'bg-primary/15 ring-1 ring-primary/30'
                           : 'hover:bg-secondary/80 cursor-pointer'
                         }`}
                     >
@@ -150,7 +131,7 @@ export function ExpenseHistorySheet({
                         </div>
                       </div>
                       <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/80'}`}
                           style={{ width: `${barWidth}%` }}
                         />
@@ -167,98 +148,84 @@ export function ExpenseHistorySheet({
               Aucune dépense enregistrée
             </p>
           ) : (
-              sortedDates.map((date) => (
-                <div key={date} className="space-y-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize">
-                    {formatDate(date)}
-                  </h3>
-                  <div className="space-y-2">
-                    {groupedExpenses[date]
-                      .sort((a, b) => b.createdAt - a.createdAt)
-                      .map((expense) => {
-                        const emoji = getCategoryEmoji(expense.category || '');
-                        return (
-                          <div
-                            key={expense.id}
-                            className="group relative p-3 rounded-2xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="shrink-0 w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center text-xl shadow-sm">
-                                {emoji}
+            sortedDates.map((date) => (
+              <div key={date} className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize">
+                  {formatDate(date)}
+                </h3>
+                <div className="space-y-2">
+                  {groupedExpenses[date]
+                    .sort((a, b) => b.createdAt - a.createdAt)
+                    .map((expense) => {
+                      const emoji = getCategoryEmoji(expense.category || '');
+                      return (
+                        <div
+                          key={expense.id}
+                          className="group relative p-3 rounded-2xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="shrink-0 w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center text-xl shadow-sm">
+                              {emoji}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="font-semibold text-foreground text-sm leading-snug break-words pr-1">
+                                  {expense.name || 'Dépense'}
+                                </p>
+                                <span className="font-display font-bold text-base text-foreground tabular-nums shrink-0">
+                                  -{formatCurrencyCompact(expense.amount)}
+                                </span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <p className="font-semibold text-foreground text-sm leading-snug break-words pr-1">
-                                    {expense.name || 'Dépense'}
-                                  </p>
-                                  <span className="font-display font-bold text-base text-foreground tabular-nums shrink-0">
-                                    -{formatCurrencyCompact(expense.amount)}
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between gap-2 mt-1.5">
-                                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                    {expense.category && (
-                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                                        {expense.category}
-                                      </span>
-                                    )}
-                                    <span className="text-[11px] text-muted-foreground">
-                                      {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })}
+                              <div className="flex items-center justify-between gap-2 mt-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                  {expense.category && (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                      {expense.category}
                                     </span>
-                                    {expense.userEmail && (
-                                      <span className="text-[11px] text-muted-foreground truncate">
-                                        · {expense.userEmail.split('@')[0]}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-0.5 shrink-0">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                      onClick={() => setEditingExpense(expense)}
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 text-muted-foreground hover:text-budget-danger"
-                                      onClick={() => onDeleteExpense(expense.id)}
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                  </div>
+                                  )}
+                                  <span className="text-[11px] text-muted-foreground">
+                                    {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </span>
+                                  {expense.userEmail && (
+                                    <span className="text-[11px] text-muted-foreground truncate">
+                                      · {expense.userEmail.split('@')[0]}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-0.5 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                    onClick={() => onEditExpense(expense)}
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-budget-danger"
+                                    onClick={() => onDeleteExpense(expense.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                  </div>
+                        </div>
+                      );
+                    })}
                 </div>
-              ))
-            )}
+              </div>
+            ))
+          )}
           </div>
         </ScrollArea>
       </SheetContent>
     </Sheet>
-
-    {/* Edit Expense Sheet — rendered outside parent Sheet to avoid nested-overlay focus issues */}
-    <EditExpenseSheet
-      open={editingExpense !== null}
-      onOpenChange={(open) => !open && setEditingExpense(null)}
-      expense={editingExpense}
-      onUpdateExpense={onUpdateExpense}
-      categories={categories}
-      onAddCategory={onAddCategory}
-      onDeleteCategory={onDeleteCategory}
-      budgetConfig={budgetConfig}
-    />
-    </>
   );
 }
-
