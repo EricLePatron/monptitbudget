@@ -499,6 +499,19 @@ export function BudgetDashboard({
         onOpenChange={setHistoryOpen}
         expenses={expenses}
         onDeleteExpense={onDeleteExpense}
+        onEditExpense={(exp) => {
+          setHistoryOpen(false);
+          setEditingExpense(exp);
+        }}
+        categories={categories}
+        budgetConfig={config}
+      />
+
+      {/* Edit Expense Sheet — top-level to avoid nested overlay focus issues */}
+      <EditExpenseSheet
+        open={editingExpense !== null}
+        onOpenChange={(open) => !open && setEditingExpense(null)}
+        expense={editingExpense}
         onUpdateExpense={onUpdateExpense}
         categories={categories}
         onAddCategory={addCategory}
