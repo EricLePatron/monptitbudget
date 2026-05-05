@@ -14,6 +14,14 @@ export function useAuth() {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+          // Defer to avoid deadlocks
+          setTimeout(() => {
+            supabase.rpc('claim_pending_invitations').then(({ error }) => {
+              if (error) console.warn('claim_pending_invitations failed', error);
+            });
+          }, 0);
+        }
       }
     );
 
