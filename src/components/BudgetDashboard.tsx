@@ -254,7 +254,7 @@ export function BudgetDashboard({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center px-4 pt-2 pb-2 relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-10 left-10 w-32 h-32 bg-secondary/20 rounded-full blur-3xl animate-float" />
@@ -262,53 +262,56 @@ export function BudgetDashboard({
           <div className="absolute top-1/3 right-5 w-24 h-24 bg-accent/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '0.5s' }} />
         </div>
 
-        {/* Status Badge */}
-        <div className={cn('status-badge mb-4 animate-fade-in-up relative z-10', `status-${status}`)}>
-          <StatusIcon className="w-4 h-4" />
-          {currentStatus.label}
-        </div>
+        {/* Hero card — status + amount + progress combined */}
+        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4">
+          <div className="relative rounded-3xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border/60 shadow-xl px-5 pt-4 pb-5 backdrop-blur-sm">
+            <div className="flex justify-center mb-2">
+              <div className={cn('status-badge', `status-${status}`)}>
+                <StatusIcon className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold">{currentStatus.label}</span>
+              </div>
+            </div>
 
-        {/* Hero Amount with glow effect */}
-        <div className="text-center space-y-2 mb-6 relative z-10">
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide flex items-center justify-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Reste aujourd'hui
-          </p>
-          <div
-            className={cn(
-              'hero-amount transition-all duration-200 relative',
-              currentStatus.textClass,
-              animateAmount && 'animate-number-pop'
-            )}
-          >
-            <span className={cn(
-              'absolute inset-0 blur-xl opacity-30',
-              status === 'ok' && 'bg-budget-ok',
-              status === 'warning' && 'bg-budget-warning',
-              status === 'danger' && 'bg-budget-danger'
-            )} />
-            <span className="relative">{formatCurrencyCompact(metrics.remainingToday)}</span>
-          </div>
-        </div>
+            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 mb-1">
+              <Wallet className="w-3.5 h-3.5" />
+              Reste aujourd'hui
+            </p>
 
-        {/* Progress bar */}
-        <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.05s' }}>
-          <div className="bg-muted/50 rounded-full h-3 overflow-hidden border border-border/50 backdrop-blur-sm">
-            <div 
+            <div
               className={cn(
-                'h-full rounded-full transition-all duration-500 ease-out',
-                status === 'ok' && 'bg-gradient-to-r from-budget-ok to-budget-ok/70',
-                status === 'warning' && 'bg-gradient-to-r from-budget-warning to-budget-warning/70',
-                status === 'danger' && 'bg-gradient-to-r from-budget-danger to-budget-danger/70'
+                'text-center font-display font-bold leading-none transition-all duration-200 relative text-[44px]',
+                currentStatus.textClass,
+                animateAmount && 'animate-number-pop'
               )}
-              style={{ 
-                width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%` 
-              }}
-            />
-          </div>
-          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-            <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
-            <span>{formatCurrencyCompact(metrics.budgetRemaining)} restant</span>
+            >
+              <span className={cn(
+                'absolute inset-0 blur-2xl opacity-30 -z-10',
+                status === 'ok' && 'bg-budget-ok',
+                status === 'warning' && 'bg-budget-warning',
+                status === 'danger' && 'bg-budget-danger'
+              )} />
+              <span className="relative">{formatCurrencyCompact(metrics.remainingToday)}</span>
+            </div>
+
+            <div className="mt-4">
+              <div className="bg-muted/60 rounded-full h-2.5 overflow-hidden border border-border/50">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-500 ease-out',
+                    status === 'ok' && 'bg-gradient-to-r from-budget-ok to-budget-ok/70',
+                    status === 'warning' && 'bg-gradient-to-r from-budget-warning to-budget-warning/70',
+                    status === 'danger' && 'bg-gradient-to-r from-budget-danger to-budget-danger/70'
+                  )}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5 text-[11px] text-muted-foreground font-medium">
+                <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
+                <span>{formatCurrencyCompact(metrics.budgetRemaining)} restant</span>
+              </div>
+            </div>
           </div>
         </div>
 
