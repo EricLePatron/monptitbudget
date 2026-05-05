@@ -157,9 +157,9 @@ export function BudgetDashboard({
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="p-4 flex items-center justify-between relative z-10">
-        <div className="space-y-1">
+      {/* Header — compact mobile-first */}
+      <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-start justify-between gap-2 relative z-10">
+        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
           {/* Account Selector */}
           <AccountSelector
             accounts={accounts}
@@ -167,95 +167,94 @@ export function BudgetDashboard({
             onSwitch={onSwitchAccount}
             onManage={() => setManageAccountsOpen(true)}
           />
-          {/* Month Navigation - Redesigned */}
-          <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-2 py-1">
+          {/* Month Navigation - Compact */}
+          <div className="flex items-center gap-0.5 bg-secondary/60 rounded-full px-1 py-0.5 w-fit shadow-sm">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onPreviousMonth}
-              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <button
               type="button"
               onClick={() => setEditBudgetOpen(true)}
-              className="flex items-center gap-1 px-3 py-1 rounded-full hover:bg-secondary transition-colors cursor-pointer min-w-[140px] justify-center"
+              className="flex items-center gap-1 px-2.5 py-0.5 rounded-full hover:bg-secondary/80 transition-colors cursor-pointer"
             >
-              <span className="font-medium text-foreground">{getMonthName(config.month)} {config.year}</span>
-              <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="font-semibold text-sm text-foreground whitespace-nowrap">{getMonthName(config.month)} {config.year}</span>
+              <Settings className="w-3 h-3 text-muted-foreground" />
             </button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-8 w-8 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-          {/* Today button */}
-          {!isCurrentMonth && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onGoToCurrentMonth}
-              className="h-8 text-xs rounded-full border-primary/50 text-primary hover:bg-primary/10"
-            >
-              <Calendar className="w-3.5 h-3.5 mr-1" />
-              Aujourd'hui
-            </Button>
-          )}
-          <p className="text-xs text-muted-foreground">
-            {formatCurrencyCompact(config.monthlyBudget)} / mois
-          </p>
+          <div className="flex items-center gap-2 pl-1">
+            <p className="text-[11px] text-muted-foreground font-medium">
+              {formatCurrencyCompact(config.monthlyBudget)} / mois
+            </p>
+            {!isCurrentMonth && (
+              <button
+                type="button"
+                onClick={onGoToCurrentMonth}
+                className="inline-flex items-center gap-1 h-5 px-2 text-[10px] rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Calendar className="w-3 h-3" />
+                Aujourd'hui
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0 shrink-0 -mr-1">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setSavingsOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <PiggyBank className="w-5 h-5" />
+            <PiggyBank className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setBankSheetOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
             title="Connecter ma banque"
           >
-            <Landmark className="w-5 h-5" />
+            <Landmark className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setHistoryOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <History className="w-5 h-5" />
+            <History className="w-[18px] h-[18px]" />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={signOut}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-[18px] h-[18px]" />
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center px-4 pt-2 pb-2 relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-10 left-10 w-32 h-32 bg-secondary/20 rounded-full blur-3xl animate-float" />
@@ -263,85 +262,88 @@ export function BudgetDashboard({
           <div className="absolute top-1/3 right-5 w-24 h-24 bg-accent/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '0.5s' }} />
         </div>
 
-        {/* Status Badge */}
-        <div className={cn('status-badge mb-4 animate-fade-in-up relative z-10', `status-${status}`)}>
-          <StatusIcon className="w-4 h-4" />
-          {currentStatus.label}
-        </div>
+        {/* Hero card — status + amount + progress combined */}
+        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4">
+          <div className="relative rounded-3xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border/60 shadow-xl px-5 pt-4 pb-5 backdrop-blur-sm">
+            <div className="flex justify-center mb-2">
+              <div className={cn('status-badge', `status-${status}`)}>
+                <StatusIcon className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold">{currentStatus.label}</span>
+              </div>
+            </div>
 
-        {/* Hero Amount with glow effect */}
-        <div className="text-center space-y-2 mb-6 relative z-10">
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide flex items-center justify-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Reste aujourd'hui
-          </p>
-          <div
-            className={cn(
-              'hero-amount transition-all duration-200 relative',
-              currentStatus.textClass,
-              animateAmount && 'animate-number-pop'
-            )}
-          >
-            <span className={cn(
-              'absolute inset-0 blur-xl opacity-30',
-              status === 'ok' && 'bg-budget-ok',
-              status === 'warning' && 'bg-budget-warning',
-              status === 'danger' && 'bg-budget-danger'
-            )} />
-            <span className="relative">{formatCurrencyCompact(metrics.remainingToday)}</span>
-          </div>
-        </div>
+            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 mb-1">
+              <Wallet className="w-3.5 h-3.5" />
+              Reste aujourd'hui
+            </p>
 
-        {/* Progress bar */}
-        <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.05s' }}>
-          <div className="bg-muted/50 rounded-full h-3 overflow-hidden border border-border/50 backdrop-blur-sm">
-            <div 
+            <div
               className={cn(
-                'h-full rounded-full transition-all duration-500 ease-out',
-                status === 'ok' && 'bg-gradient-to-r from-budget-ok to-budget-ok/70',
-                status === 'warning' && 'bg-gradient-to-r from-budget-warning to-budget-warning/70',
-                status === 'danger' && 'bg-gradient-to-r from-budget-danger to-budget-danger/70'
+                'text-center font-display font-bold leading-none transition-all duration-200 relative text-[44px]',
+                currentStatus.textClass,
+                animateAmount && 'animate-number-pop'
               )}
-              style={{ 
-                width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%` 
-              }}
-            />
-          </div>
-          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-            <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
-            <span>{formatCurrencyCompact(metrics.budgetRemaining)} restant</span>
+            >
+              <span className={cn(
+                'absolute inset-0 blur-2xl opacity-30 -z-10',
+                status === 'ok' && 'bg-budget-ok',
+                status === 'warning' && 'bg-budget-warning',
+                status === 'danger' && 'bg-budget-danger'
+              )} />
+              <span className="relative">{formatCurrencyCompact(metrics.remainingToday)}</span>
+            </div>
+
+            <div className="mt-4">
+              <div className="bg-muted/60 rounded-full h-2.5 overflow-hidden border border-border/50">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-500 ease-out',
+                    status === 'ok' && 'bg-gradient-to-r from-budget-ok to-budget-ok/70',
+                    status === 'warning' && 'bg-gradient-to-r from-budget-warning to-budget-warning/70',
+                    status === 'danger' && 'bg-gradient-to-r from-budget-danger to-budget-danger/70'
+                  )}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5 text-[11px] text-muted-foreground font-medium">
+                <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
+                <span>{formatCurrencyCompact(metrics.budgetRemaining)} restant</span>
+              </div>
+            </div>
           </div>
         </div>
 
 
         {/* Today's Expenses */}
         {todayExpenses.length > 0 && (
-          <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.1s' }}>
-            <div className="budget-card space-y-3">
+          <div className="w-full max-w-sm mb-3 animate-fade-in-up relative z-10" style={{ animationDelay: '0.1s' }}>
+            <div className="rounded-3xl bg-card border border-border/60 shadow-md p-4 space-y-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
                   Dépenses du jour
                 </p>
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-medium">
                   {todayExpenses.length} {todayExpenses.length > 1 ? 'achats' : 'achat'}
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {todayExpenses.slice(-3).map((exp, index) => (
                   <div
                     key={exp.id}
-                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 animate-fade-in-up"
+                    className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0 animate-fade-in-up gap-2"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm">💸</span>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-7 h-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs">💸</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">
                           {exp.name || 'Dépense'}
                         </p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                           <span>
                             {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
                               hour: '2-digit',
@@ -351,14 +353,14 @@ export function BudgetDashboard({
                           {exp.userEmail && (
                             <>
                               <span>•</span>
-                              <span className="truncate max-w-[100px]">{exp.userEmail.split('@')[0]}</span>
+                              <span className="truncate max-w-[80px]">{exp.userEmail.split('@')[0]}</span>
                             </>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-display font-semibold text-budget-danger">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="font-display font-semibold text-sm text-budget-danger tabular-nums">
                         -{formatCurrencyCompact(exp.amount)}
                       </span>
                       <Button
@@ -373,9 +375,9 @@ export function BudgetDashboard({
                   </div>
                 ))}
               </div>
-              <div className="pt-2 flex justify-between items-center bg-muted/30 -mx-6 -mb-6 px-6 py-3 rounded-b-3xl">
-                <span className="text-sm font-medium text-foreground">Total aujourd'hui</span>
-                <span className="font-display font-bold text-lg text-foreground">
+              <div className="flex justify-between items-center bg-muted/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-3xl">
+                <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Total aujourd'hui</span>
+                <span className="font-display font-bold text-base text-foreground tabular-nums">
                   {formatCurrencyCompact(metrics.spentToday)}
                 </span>
               </div>
@@ -389,61 +391,61 @@ export function BudgetDashboard({
             type="button"
             onClick={() => !metrics.isFutureMonth && setForecastOpen(true)}
             className={cn(
-              "w-full text-left budget-card bg-gradient-to-br from-secondary/40 to-secondary/20 border-secondary/40 transition-all",
-              !metrics.isFutureMonth && "hover:border-primary/30 hover:from-secondary/50 cursor-pointer"
+              "w-full text-left rounded-3xl p-4 bg-gradient-to-br from-secondary/50 to-secondary/25 border border-secondary/50 shadow-md transition-all",
+              !metrics.isFutureMonth && "hover:border-primary/30 hover:from-secondary/60 cursor-pointer active:scale-[0.99]"
             )}
           >
             {metrics.isFutureMonth ? (
-              <div className="text-center py-2">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-secondary/50 flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-secondary-foreground" />
+              <div className="text-center py-1">
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-secondary/60 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-secondary-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-semibold text-foreground">
                   Ce budget commence en {getMonthName(config.month)} {config.year}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Vous pouvez déjà planifier vos dépenses
                 </p>
               </div>
             ) : metrics.isPastMonth ? (
-              <div className="text-center py-2">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
-                  <History className="w-6 h-6 text-muted-foreground" />
+              <div className="text-center py-1">
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-muted/60 flex items-center justify-center">
+                  <History className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Ce mois est terminé
                 </p>
-                <p className="text-lg font-display font-bold text-foreground mt-1">
+                <p className="text-base font-display font-bold text-foreground mt-0.5">
                   Total dépensé: {formatCurrencyCompact(metrics.totalSpentThisMonth)}
                 </p>
-                <p className="text-xs text-primary mt-2">
+                <p className="text-xs text-primary mt-1.5 font-semibold">
                   Voir les prévisions →
                 </p>
               </div>
             ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-secondary/60 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-secondary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
                       Prévu demain
                     </p>
-                    <p className="text-2xl font-display font-bold text-foreground">
+                    <p className="text-xl font-display font-bold text-foreground tabular-nums leading-tight">
                       {formatCurrencyCompact(metrics.tomorrowBudget)}
                     </p>
                   </div>
                 </div>
-                <div className="text-right space-y-1">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-card/50 text-xs">
+                <div className="text-right space-y-0.5 shrink-0">
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-card/60 text-[10px]">
                     <Calendar className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{metrics.daysRemaining} jours</span>
+                    <span className="text-muted-foreground font-medium">{metrics.daysRemaining} jours</span>
                   </div>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-xs font-semibold text-foreground tabular-nums">
                     {formatCurrencyCompact(metrics.budgetRemaining)}
                   </p>
-                  <p className="text-xs text-primary">
+                  <p className="text-[11px] text-primary font-semibold">
                     Voir tout →
                   </p>
                 </div>
@@ -453,18 +455,18 @@ export function BudgetDashboard({
         </div>
 
         {/* Spacer for FAB */}
-        <div className="h-24" />
+        <div className="h-20" />
       </main>
 
       {/* Add Expense FAB - For current and future months */}
       {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+        <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20">
           <Button
             size="lg"
             onClick={() => setSheetOpen(true)}
-            className="h-16 px-8 rounded-full shadow-lg text-lg font-medium"
+            className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
           >
-            <Plus className="mr-2 w-6 h-6" />
+            <Plus className="mr-1.5 w-5 h-5" />
             Ajouter une dépense
           </Button>
         </div>
