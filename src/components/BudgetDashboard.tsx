@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
+import { EditExpenseSheet } from './EditExpenseSheet';
 import { FullBudgetSetupSheet } from './FullBudgetSetupSheet';
 import { ManageAccountsSheet } from './ManageAccountsSheet';
 import { AccountMembersSheet } from './AccountMembersSheet';
