@@ -318,32 +318,32 @@ export function BudgetDashboard({
 
         {/* Today's Expenses */}
         {todayExpenses.length > 0 && (
-          <div className="w-full max-w-sm mb-6 animate-fade-in-up relative z-10" style={{ animationDelay: '0.1s' }}>
-            <div className="budget-card space-y-3">
+          <div className="w-full max-w-sm mb-3 animate-fade-in-up relative z-10" style={{ animationDelay: '0.1s' }}>
+            <div className="rounded-3xl bg-card border border-border/60 shadow-md p-4 space-y-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
                   Dépenses du jour
                 </p>
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-medium">
                   {todayExpenses.length} {todayExpenses.length > 1 ? 'achats' : 'achat'}
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {todayExpenses.slice(-3).map((exp, index) => (
                   <div
                     key={exp.id}
-                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 animate-fade-in-up"
+                    className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0 animate-fade-in-up gap-2"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm">💸</span>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-7 h-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs">💸</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">
                           {exp.name || 'Dépense'}
                         </p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                           <span>
                             {new Date(exp.createdAt).toLocaleTimeString('fr-FR', {
                               hour: '2-digit',
@@ -353,14 +353,14 @@ export function BudgetDashboard({
                           {exp.userEmail && (
                             <>
                               <span>•</span>
-                              <span className="truncate max-w-[100px]">{exp.userEmail.split('@')[0]}</span>
+                              <span className="truncate max-w-[80px]">{exp.userEmail.split('@')[0]}</span>
                             </>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-display font-semibold text-budget-danger">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="font-display font-semibold text-sm text-budget-danger tabular-nums">
                         -{formatCurrencyCompact(exp.amount)}
                       </span>
                       <Button
@@ -375,9 +375,9 @@ export function BudgetDashboard({
                   </div>
                 ))}
               </div>
-              <div className="pt-2 flex justify-between items-center bg-muted/30 -mx-6 -mb-6 px-6 py-3 rounded-b-3xl">
-                <span className="text-sm font-medium text-foreground">Total aujourd'hui</span>
-                <span className="font-display font-bold text-lg text-foreground">
+              <div className="flex justify-between items-center bg-muted/40 -mx-4 -mb-4 px-4 py-2.5 rounded-b-3xl">
+                <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Total aujourd'hui</span>
+                <span className="font-display font-bold text-base text-foreground tabular-nums">
                   {formatCurrencyCompact(metrics.spentToday)}
                 </span>
               </div>
