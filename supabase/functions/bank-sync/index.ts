@@ -345,7 +345,9 @@ Deno.serve(async (req) => {
           transaction_date: string | null;
         }) => getTxSignature(e.description || '', Math.abs(Number(e.amount || 0)), e.transaction_date)));
 
-        // Aussi: signatures des dépenses 🏦 déjà présentes dans les budgets du compte (au cas où la trace synced a été perdue)
+        // Aussi: signatures des dépenses déjà présentes dans les budgets du compte
+        // (inclut les dépenses renommées manuellement : dédup tolérante sur montant+date)
+        const existingAmountDateKeys = new Set<string>();
         const { data: accountBudgetsForDedup } = await supabase
           .from('budgets')
           .select('id')
@@ -355,11 +357,13 @@ Deno.serve(async (req) => {
           const { data: existingExpenses } = await supabase
             .from('expenses')
             .select('name, amount, date')
-            .in('budget_id', budgetIdsForDedup)
-            .like('name', '🏦%');
+            .in('budget_id', budgetIdsForDedup);
           for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null }[]) {
+            const amt = Math.abs(Number(e.amount || 0));
             const cleanName = (e.name || '').replace(/^🏦\s*/, '');
-            existingSignatures.add(getTxSignature(cleanName, Math.abs(Number(e.amount || 0)), e.date));
+            existingSignatures.add(getTxSignature(cleanName, amt, e.date));
+            // Clé renommage-tolérante : même montant + même date = doublon
+            existingAmountDateKeys.add(`${amt.toFixed(2)}|${String(e.date || '').slice(0, 10)}`);
           }
         }
         // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
@@ -371,6 +375,8 @@ Deno.serve(async (req) => {
           const date = getPurchaseDate(t, desc);
           const amount = Math.abs(parseFloat((t as { transaction_amount?: { amount: string } }).transaction_amount?.amount || '0'));
           if (existingSignatures.has(getTxSignature(desc, amount, date))) return false;
+          // Renommage manuel : si une dépense au même montant ET même date existe déjà → doublon
+          if (existingAmountDateKeys.has(`${amount.toFixed(2)}|${String(date || '').slice(0, 10)}`)) return false;
           if (!isAllowedCardExpense(desc, date)) return false;
           seenIds.add(id);
           return true;
