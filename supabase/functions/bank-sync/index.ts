@@ -293,10 +293,10 @@ Deno.serve(async (req) => {
           if (!res.ok) {
             const errText = await res.text();
             console.error(`Tx fetch (${status}) failed for ${conn.id}:`, errText);
-            return { ok: false, error: errText, transactions: [] as any[] };
+            return { ok: false, status: res.status, error: errText, transactions: [] as any[] };
           }
           const data = await res.json();
-          return { ok: true, transactions: (data.transactions || []) as any[] };
+          return { ok: true, status: res.status, transactions: (data.transactions || []) as any[] };
         };
 
         const [booked, pending, hold, other] = await Promise.all([
@@ -307,7 +307,21 @@ Deno.serve(async (req) => {
         ]);
 
         if (!booked.ok && !pending.ok && !hold.ok && !other.ok) {
-          errors.push(`${conn.bank_name}: ${(booked.error || pending.error || hold.error || other.error || '').slice(0, 100)}`);
+          const combinedErr = `${booked.error || ''} ${pending.error || ''} ${hold.error || ''} ${other.error || ''}`;
+          const statuses = [booked.status, pending.status, hold.status, other.status];
+          const sessionInvalid =
+            /ACCOUNT_DOES_NOT_EXIST|SESSION_NOT_FOUND|SESSION_EXPIRED|UNAUTHORIZED|access.*revoked|consent.*expired/i.test(combinedErr) ||
+            statuses.every(s => s === 401 || s === 403 || s === 404);
+
+          if (sessionInvalid) {
+            await supabase
+              .from('bank_connections')
+              .update({ status: 'expired', valid_until: new Date().toISOString() })
+              .eq('id', conn.id);
+            errors.push(`${conn.bank_name}: reconnexion nécessaire (autorisation bancaire expirée)`);
+          } else {
+            errors.push(`${conn.bank_name}: ${combinedErr.slice(0, 100)}`);
+          }
           continue;
         }
 
