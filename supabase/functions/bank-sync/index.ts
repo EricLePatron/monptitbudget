@@ -332,13 +332,11 @@ Deno.serve(async (req) => {
           return t.credit_debit_indicator === 'DBIT' || (t.transaction_amount && parseFloat(t.transaction_amount.amount) < 0);
         });
 
-        // Filtrer celles déjà importées
-        const txIds = debits.map((t: { entry_reference?: string; transaction_id?: string }) => t.entry_reference || t.transaction_id).filter(Boolean);
+        // Filtrer celles déjà importées (toutes connexions du compte, pour éviter doublons après reconnexion)
         const { data: existing } = await supabase
           .from('bank_synced_transactions')
           .select('transaction_id, description, transaction_date, amount')
-          .eq('bank_connection_id', conn.id)
-          .in('transaction_id', txIds);
+          .eq('account_id', account_id);
 
         const existingIds = new Set((existing || []).map((e: { transaction_id: string }) => e.transaction_id));
         const existingSignatures = new Set((existing || []).map((e: {
@@ -346,6 +344,24 @@ Deno.serve(async (req) => {
           amount: number | string | null;
           transaction_date: string | null;
         }) => getTxSignature(e.description || '', Math.abs(Number(e.amount || 0)), e.transaction_date)));
+
+        // Aussi: signatures des dépenses 🏦 déjà présentes dans les budgets du compte (au cas où la trace synced a été perdue)
+        const { data: accountBudgetsForDedup } = await supabase
+          .from('budgets')
+          .select('id')
+          .eq('account_id', account_id);
+        const budgetIdsForDedup = (accountBudgetsForDedup || []).map((b: { id: string }) => b.id);
+        if (budgetIdsForDedup.length > 0) {
+          const { data: existingExpenses } = await supabase
+            .from('expenses')
+            .select('name, amount, date')
+            .in('budget_id', budgetIdsForDedup)
+            .like('name', '🏦%');
+          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null }[]) {
+            const cleanName = (e.name || '').replace(/^🏦\s*/, '');
+            existingSignatures.add(getTxSignature(cleanName, Math.abs(Number(e.amount || 0)), e.date));
+          }
+        }
         // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
         const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
