@@ -407,6 +407,26 @@ Deno.serve(async (req) => {
           const date = getPurchaseDate(t, desc);
           if (!date || !isAllowedCardExpense(desc, date)) continue;
 
+          const amountDateKey = `${amount.toFixed(2)}|${date}`;
+          const signature = getTxSignature(desc, amount, date);
+          if (existingIds.has(txId) || existingSignatures.has(signature) || existingAmountDateKeys.has(amountDateKey)) {
+            continue;
+          }
+
+          // Dernier garde-fou juste avant insertion : évite les courses entre 2 synchros/reconnexions.
+          const { data: conflictingExpense } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('budget_id', budget.id)
+            .eq('date', date)
+            .eq('amount', amount)
+            .maybeSingle();
+
+          if (conflictingExpense) {
+            existingAmountDateKeys.add(amountDateKey);
+            continue;
+          }
+
           const { data: expense, error: expErr } = await supabase
             .from('expenses')
             .insert({
@@ -425,7 +445,7 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          await supabase.from('bank_synced_transactions').insert({
+          const { error: syncErr } = await supabase.from('bank_synced_transactions').insert({
             bank_connection_id: conn.id,
             account_id,
             transaction_id: txId,
@@ -434,6 +454,17 @@ Deno.serve(async (req) => {
             transaction_date: date,
             description: desc,
           });
+
+          if (syncErr) {
+            console.error('Synced transaction insert error:', syncErr);
+            await supabase.from('expenses').delete().eq('id', expense.id);
+            existingAmountDateKeys.add(amountDateKey);
+            continue;
+          }
+
+          existingIds.add(txId);
+          existingSignatures.add(signature);
+          existingAmountDateKeys.add(amountDateKey);
 
           totalImported++;
         }
