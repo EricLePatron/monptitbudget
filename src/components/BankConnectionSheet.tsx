@@ -60,9 +60,9 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
             <div className="space-y-2">
               <h3 className="text-sm font-semibold">Comptes connectés</h3>
               {connections.map((conn) => {
-                const expired = new Date(conn.valid_until) < new Date();
+                const expired = conn.status === 'expired' || new Date(conn.valid_until) < new Date();
                 return (
-                  <div key={conn.id} className="border rounded-2xl p-4 space-y-2 bg-card">
+                  <div key={conn.id} className={`border rounded-2xl p-4 space-y-2 ${expired ? 'bg-destructive/5 border-destructive/40' : 'bg-card'}`}>
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold">{conn.bank_name}</p>
@@ -85,9 +85,22 @@ export function BankConnectionSheet({ open, onOpenChange, accountId }: BankConne
                       </Button>
                     </div>
                     {expired ? (
-                      <div className="flex items-center gap-2 text-xs text-amber-600">
-                        <AlertCircle className="w-4 h-4" />
-                        Reconnexion nécessaire (DSP2 expirée)
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-destructive">
+                          <AlertCircle className="w-4 h-4" />
+                          Reconnexion nécessaire — ta banque a révoqué l'accès
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="w-full"
+                          onClick={async () => {
+                            await disconnectBank(conn.id);
+                            loadBanks(conn.bank_name);
+                          }}
+                        >
+                          🔄 Reconnecter {conn.bank_name}
+                        </Button>
                       </div>
                     ) : (
                       <p className="text-xs text-muted-foreground">
