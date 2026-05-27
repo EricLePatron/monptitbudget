@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
@@ -10,6 +10,8 @@ import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import { DailyForecastSheet } from './DailyForecastSheet';
 import { SavingsSheet } from './SavingsSheet';
+import { AlertsBanner } from './AlertsBanner';
+import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
 import {
   BudgetConfig,
   Expense,
@@ -24,7 +26,8 @@ import {
 import { Account } from '@/hooks/useAccounts';
 import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Sparkles, Wallet, PiggyBank, Landmark } from 'lucide-react';
+import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet, PiggyBank, Landmark, BarChart2 } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -89,24 +92,49 @@ export function BudgetDashboard({
   const [animateAmount, setAnimateAmount] = useState(false);
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [overviewOpen, setOverviewOpen] = useState(false);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
   // Get account members for the sharing account
-  const { 
-    members, 
-    loading: membersLoading, 
-    isOwner, 
-    inviteMember, 
-    removeMember 
+  const {
+    members,
+    loading: membersLoading,
+    isOwner,
+    inviteMember,
+    removeMember
   } = useAccountMembers(sharingAccountId, sharingAccount?.name);
 
   // Get expense categories for the current account
-  const { 
-    categories, 
+  const {
+    categories,
     addCategory,
     deleteCategory
   } = useExpenseCategories(currentAccount?.id ?? null);
+
+  // Category budget configs
+  const {
+    configs: categoryConfigs,
+    getCategorySpending,
+    getAlerts,
+    saveConfig: saveCategoryConfig,
+  } = useCategoryBudgets(currentAccount?.id ?? null, expenses);
+
+  // Emoji map for alerts
+  const emojiMap = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.name, c.emoji])),
+    [categories]
+  );
+
+  const categorySpending = useMemo(
+    () => getCategorySpending(emojiMap),
+    [getCategorySpending, emojiMap]
+  );
+
+  const alerts = useMemo(
+    () => getAlerts(emojiMap),
+    [getAlerts, emojiMap]
+  );
 
   const handleShareAccount = (accountId: string) => {
     setSharingAccountId(accountId);
@@ -215,6 +243,24 @@ export function BudgetDashboard({
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0 bg-card/70 border border-border/60 rounded-full p-1 shadow-sm">
+          {/* Budget caps overview button — badge if alerts */}
+          <div className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setOverviewOpen(true)}
+              className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+              title="Plafonds par catégorie"
+            >
+              <BarChart2 className="w-[18px] h-[18px]" />
+            </Button>
+            {alerts.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white pointer-events-none shadow-[0_0_6px_rgba(239,68,68,0.7)]">
+                {alerts.length > 9 ? '9+' : alerts.length}
+              </span>
+            )}
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -323,6 +369,76 @@ export function BudgetDashboard({
           </div>
         </div>
 
+
+        {/* Alerts banner */}
+        {alerts.length > 0 && (
+          <div className="w-full max-w-sm mb-3 relative z-10 animate-fade-in-up" style={{ animationDelay: '0.08s' }}>
+            <AlertsBanner alerts={alerts} onOpenOverview={() => setOverviewOpen(true)} />
+          </div>
+        )}
+
+        {/* Category mini-gauges strip (capped categories only) */}
+        {categorySpending.filter((s) => s.status !== 'uncapped').length > 0 && (
+          <div className="w-full max-w-sm mb-3 relative z-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <button
+              type="button"
+              onClick={() => setOverviewOpen(true)}
+              className="w-full rounded-2xl border border-border/50 bg-card/60 px-4 py-3 hover:border-primary/30 hover:bg-card/80 transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Plafonds du mois
+                </p>
+                <p className="text-[10px] text-primary font-semibold">Voir tout →</p>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+                {categorySpending
+                  .filter((s) => s.status !== 'uncapped')
+                  .map((s) => {
+                    const isExceeded = s.status === 'exceeded';
+                    const isWarning = s.status === 'warning';
+                    const pct = Math.min(100, s.percentage ?? 0);
+                    const emoji = emojiMap[s.categoryName] ?? '📦';
+                    return (
+                      <div key={s.categoryName} className="flex flex-col items-center gap-1 shrink-0">
+                        {/* Mini gauge ring */}
+                        <div className="relative w-12 h-12">
+                          <svg width="48" height="48" viewBox="0 0 48 48" style={{ transform: 'rotate(-90deg)' }}>
+                            <circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="4.5" />
+                            <circle
+                              cx="24" cy="24" r="19"
+                              fill="none"
+                              stroke={isExceeded ? '#ef4444' : isWarning ? '#f59e0b' : (s.config?.color ?? '#10b981')}
+                              strokeWidth="4.5"
+                              strokeLinecap="round"
+                              strokeDasharray={`${2 * Math.PI * 19}`}
+                              strokeDashoffset={`${2 * Math.PI * 19 * (1 - pct / 100)}`}
+                              style={{
+                                transition: 'stroke-dashoffset 0.6s ease',
+                                filter: `drop-shadow(0 0 4px ${isExceeded ? '#ef444488' : isWarning ? '#f59e0b88' : (s.config?.color ?? '#10b981') + '88'})`,
+                              }}
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-base">{emoji}</span>
+                          {isExceeded && (
+                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(239,68,68,0.7)]">
+                              <span className="text-[8px] text-white font-bold">!</span>
+                            </span>
+                          )}
+                        </div>
+                        <span className={cn(
+                          'text-[9px] font-semibold text-center leading-tight max-w-[48px] truncate',
+                          isExceeded ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-muted-foreground'
+                        )}>
+                          {isExceeded ? 'Dépassé' : `${Math.round(pct)}%`}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </button>
+          </div>
+        )}
 
         {/* Today's Expenses */}
         {todayExpenses.length > 0 && (
@@ -502,6 +618,7 @@ export function BudgetDashboard({
         onAddCategory={addCategory}
         onDeleteCategory={deleteCategory}
         budgetConfig={config}
+        categorySpending={categorySpending}
       />
 
       {/* Daily Forecast Sheet */}
@@ -595,6 +712,16 @@ export function BudgetDashboard({
           onClose={() => setStickerData(null)}
         />
       )}
+
+      {/* Category Budgets Overview Sheet */}
+      <CategoryBudgetsOverview
+        open={overviewOpen}
+        onOpenChange={setOverviewOpen}
+        categorySpending={categorySpending}
+        categories={categories}
+        configs={categoryConfigs}
+        onSaveConfig={saveCategoryConfig}
+      />
     </div>
   );
 }

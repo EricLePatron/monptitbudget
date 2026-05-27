@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Check, CalendarIcon, Camera, Loader2 } from 'lucide-react';
+import { Check, CalendarIcon, Camera, Loader2, AlertTriangle, TrendingUp } from 'lucide-react';
 import { CategorySelector } from './CategorySelector';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
+import { CategorySpending } from '@/hooks/useCategoryBudgets';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { BudgetConfig } from '@/lib/budget';
+import { BudgetConfig, formatCurrencyCompact } from '@/lib/budget';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -23,6 +24,7 @@ interface AddExpenseSheetProps {
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
   onDeleteCategory?: (categoryId: string) => Promise<void>;
   budgetConfig?: BudgetConfig | null;
+  categorySpending?: CategorySpending[];
 }
 
 export function AddExpenseSheet({
@@ -33,6 +35,7 @@ export function AddExpenseSheet({
   onAddCategory,
   onDeleteCategory,
   budgetConfig,
+  categorySpending = [],
 }: AddExpenseSheetProps) {
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
@@ -40,6 +43,11 @@ export function AddExpenseSheet({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Find spending info for the currently selected category
+  const selectedCatSpending = selectedCategory
+    ? categorySpending.find((s) => s.categoryName === selectedCategory)
+    : undefined;
 
   const handleScanReceipt = async (file: File) => {
     setIsScanning(true);
@@ -155,6 +163,68 @@ export function AddExpenseSheet({
               onAddCategory={onAddCategory}
               onDeleteCategory={onDeleteCategory}
             />
+
+            {/* Category budget status indicator */}
+            {selectedCatSpending && selectedCatSpending.status !== 'uncapped' && selectedCatSpending.config?.capAmount && (
+              <div className={cn(
+                'flex items-center gap-2.5 rounded-xl px-3 py-2.5 border text-sm',
+                selectedCatSpending.status === 'exceeded'
+                  ? 'border-red-500/40 bg-red-500/8'
+                  : selectedCatSpending.status === 'warning'
+                  ? 'border-amber-500/40 bg-amber-500/8'
+                  : 'border-emerald-500/30 bg-emerald-500/5'
+              )}>
+                {selectedCatSpending.status === 'exceeded' ? (
+                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                ) : selectedCatSpending.status === 'warning' ? (
+                  <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
+                ) : (
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                )}
+
+                <div className="flex-1 min-w-0">
+                  {/* Progress bar */}
+                  <div className="h-1.5 rounded-full bg-muted/40 mb-1 overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all',
+                        selectedCatSpending.status === 'exceeded'
+                          ? 'bg-red-500'
+                          : selectedCatSpending.status === 'warning'
+                          ? 'bg-amber-500'
+                          : 'bg-emerald-500'
+                      )}
+                      style={{ width: `${Math.min(100, selectedCatSpending.percentage ?? 0)}%` }}
+                    />
+                  </div>
+                  <p className={cn(
+                    'text-[11px] font-medium tabular-nums',
+                    selectedCatSpending.status === 'exceeded'
+                      ? 'text-red-400'
+                      : selectedCatSpending.status === 'warning'
+                      ? 'text-amber-400'
+                      : 'text-emerald-400'
+                  )}>
+                    {selectedCatSpending.status === 'exceeded'
+                      ? `Plafond dépassé de ${formatCurrencyCompact(Math.abs(selectedCatSpending.remaining ?? 0))}`
+                      : selectedCatSpending.remaining !== undefined
+                      ? `${formatCurrencyCompact(selectedCatSpending.remaining)} restant sur ${formatCurrencyCompact(selectedCatSpending.config.capAmount)}`
+                      : ''}
+                  </p>
+                </div>
+
+                <span className={cn(
+                  'shrink-0 text-[11px] font-bold tabular-nums',
+                  selectedCatSpending.status === 'exceeded'
+                    ? 'text-red-400'
+                    : selectedCatSpending.status === 'warning'
+                    ? 'text-amber-400'
+                    : 'text-emerald-400'
+                )}>
+                  {Math.round(selectedCatSpending.percentage ?? 0)}%
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Date Picker */}
