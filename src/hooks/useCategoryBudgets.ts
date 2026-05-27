@@ -13,6 +13,9 @@ export interface CategoryBudgetConfig {
   warningThreshold: number; // percentage 0-100
   color: string;
   groupName?: string;
+  /** NULL = global default (applies to all months without a specific config) */
+  month?: number; // 0-11
+  year?: number;
 }
 
 export type CategoryStatus = 'ok' | 'warning' | 'exceeded' | 'uncapped';
@@ -64,7 +67,10 @@ export const CATEGORY_GROUPS = [
 
 export function useCategoryBudgets(
   accountId: string | null,
-  expenses: Expense[]
+  expenses: Expense[],
+  /** Active month/year — used to resolve per-month configs */
+  activeMonth?: number,
+  activeYear?: number,
 ) {
   const [configs, setConfigs] = useState<CategoryBudgetConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,56 +93,76 @@ export function useCategoryBudgets(
 
       if (error) throw error;
 
-      setConfigs(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (data || []).map((c: any) => ({
-          id: c.id,
-          categoryName: c.category_name,
-          budgetType: c.budget_type as BudgetType,
-          capAmount: c.cap_amount != null ? Number(c.cap_amount) : undefined,
-          warningThreshold: c.warning_threshold ?? 80,
-          color: c.color ?? '#6366f1',
-          groupName: c.group_name ?? undefined,
-        }))
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setConfigs((data || []).map((c: any) => ({
+        id: c.id,
+        categoryName: c.category_name,
+        budgetType: c.budget_type as BudgetType,
+        capAmount: c.cap_amount != null ? Number(c.cap_amount) : undefined,
+        warningThreshold: c.warning_threshold ?? 80,
+        color: c.color ?? '#6366f1',
+        groupName: c.group_name ?? undefined,
+        month: c.month ?? undefined,
+        year: c.year ?? undefined,
+      })));
     } catch {
-      // Table may not exist yet (before migration); silently ignore
       setConfigs([]);
     } finally {
       setLoading(false);
     }
   }, [accountId]);
 
+  /**
+   * Resolve the effective config for a given category name.
+   * Priority: specific month/year > global (NULL month/year).
+   */
+  const resolveConfig = useCallback((categoryName: string): CategoryBudgetConfig | undefined => {
+    const all = configs.filter((c) => c.categoryName === categoryName);
+    if (all.length === 0) return undefined;
+    // 1. Specific month config
+    if (activeMonth !== undefined && activeYear !== undefined) {
+      const specific = all.find((c) => c.month === activeMonth && c.year === activeYear);
+      if (specific) return specific;
+    }
+    // 2. Global config (no month/year)
+    return all.find((c) => c.month === undefined && c.year === undefined) ?? all[0];
+  }, [configs, activeMonth, activeYear]);
+
   useEffect(() => {
     loadConfigs();
   }, [loadConfigs]);
 
-  /** Upsert budget config for a category */
+  /** Upsert budget config for a category.
+   *  Pass month/year to set a monthly override; omit for global default.
+   */
   const saveConfig = async (
     categoryName: string,
-    updates: Partial<Omit<CategoryBudgetConfig, 'id' | 'categoryName'>>
+    updates: Partial<Omit<CategoryBudgetConfig, 'id' | 'categoryName'>>,
+    forMonth?: number,
+    forYear?: number,
   ) => {
     if (!accountId) return;
 
-    const existing = configs.find((c) => c.categoryName === categoryName);
+    // Find matching existing config (same month/year scope)
+    const existing = configs.find((c) =>
+      c.categoryName === categoryName &&
+      c.month === forMonth &&
+      c.year === forYear
+    );
 
     const payload = {
       account_id: accountId,
       category_name: categoryName,
       budget_type: updates.budgetType ?? existing?.budgetType ?? 'uncapped',
       cap_amount:
-        updates.capAmount !== undefined
-          ? updates.capAmount
-          : (existing?.capAmount ?? null),
+        updates.capAmount !== undefined ? updates.capAmount : (existing?.capAmount ?? null),
       warning_threshold:
-        updates.warningThreshold !== undefined
-          ? updates.warningThreshold
-          : (existing?.warningThreshold ?? 80),
+        updates.warningThreshold !== undefined ? updates.warningThreshold : (existing?.warningThreshold ?? 80),
       color: updates.color ?? existing?.color ?? '#6366f1',
       group_name:
-        updates.groupName !== undefined
-          ? (updates.groupName || null)
-          : (existing?.groupName ?? null),
+        updates.groupName !== undefined ? (updates.groupName || null) : (existing?.groupName ?? null),
+      month: forMonth ?? null,
+      year: forYear ?? null,
     };
 
     try {
@@ -163,6 +189,8 @@ export function useCategoryBudgets(
                   warningThreshold: data.warning_threshold ?? 80,
                   color: data.color ?? '#6366f1',
                   groupName: data.group_name ?? undefined,
+                  month: data.month ?? undefined,
+                  year: data.year ?? undefined,
                 }
               : c
           )
@@ -183,11 +211,12 @@ export function useCategoryBudgets(
             id: data.id,
             categoryName: data.category_name,
             budgetType: data.budget_type as BudgetType,
-            capAmount:
-              data.cap_amount != null ? Number(data.cap_amount) : undefined,
+            capAmount: data.cap_amount != null ? Number(data.cap_amount) : undefined,
             warningThreshold: data.warning_threshold ?? 80,
             color: data.color ?? '#6366f1',
             groupName: data.group_name ?? undefined,
+            month: data.month ?? undefined,
+            year: data.year ?? undefined,
           },
         ]);
       }
@@ -196,17 +225,16 @@ export function useCategoryBudgets(
     }
   };
 
-  /** Compute spending per category from the current expenses */
+  /** Compute spending per category using the resolved (month-aware) config */
   const getCategorySpending = useCallback(
     (categoryEmojis?: Record<string, string>): CategorySpending[] => {
-      // Aggregate spending by category name
       const spendingMap: Record<string, number> = {};
       for (const expense of expenses) {
         const cat = expense.category || 'Autre';
         spendingMap[cat] = (spendingMap[cat] || 0) + expense.amount;
       }
 
-      // All unique categories (spending + configured)
+      // All unique categories (spending + configured caps)
       const allCategories = new Set([
         ...Object.keys(spendingMap),
         ...configs
@@ -217,7 +245,7 @@ export function useCategoryBudgets(
       return Array.from(allCategories)
         .map((categoryName): CategorySpending => {
           const spent = spendingMap[categoryName] || 0;
-          const config = configs.find((c) => c.categoryName === categoryName);
+          const config = resolveConfig(categoryName);   // ← month-aware resolution
 
           if (!config || config.budgetType === 'uncapped' || !config.capAmount) {
             return {
@@ -289,6 +317,7 @@ export function useCategoryBudgets(
     configs,
     loading,
     saveConfig,
+    resolveConfig,
     getCategorySpending,
     getAlerts,
     refetch: loadConfigs,

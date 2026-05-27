@@ -1,142 +1,129 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, X } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface CategorySelectorProps {
+  /** All categories (parents + subcategories) — kept for legacy compat */
   categories: ExpenseCategory[];
+  /** Parent categories only */
+  parentCategories: ExpenseCategory[];
+  /** Get subcategories for a parent id */
+  subcategoriesOf: (parentId: string) => ExpenseCategory[];
   selectedCategory?: string;
-  onSelectCategory: (category: string | undefined) => void;
-  onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
+  selectedSubcategory?: string;
+  onSelectCategory: (category: string | undefined, subcategory?: string) => void;
+  /** Legacy compat */
+  onAddCategory?: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
   onDeleteCategory?: (categoryId: string) => Promise<void>;
 }
 
-const EMOJI_OPTIONS = ['🛒', '🥖', '🍽️', '🚌', '💊', '☕', '🏠', '📱', '🎁', '📦'];
-
 export function CategorySelector({
-  categories,
+  parentCategories,
+  subcategoriesOf,
   selectedCategory,
+  selectedSubcategory,
   onSelectCategory,
-  onAddCategory,
-  onDeleteCategory,
 }: CategorySelectorProps) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('📦');
+  const [expandedParentId, setExpandedParentId] = useState<string | null>(null);
 
-  const handleAddCategory = async () => {
-    if (!newCategoryName.trim()) return;
-    
-    const newCat = await onAddCategory(newCategoryName.trim(), selectedEmoji);
-    if (newCat) {
-      onSelectCategory(newCat.name);
-      setNewCategoryName('');
-      setSelectedEmoji('📦');
-      setIsAdding(false);
+  const handleSelectParent = (name: string, id: string) => {
+    if (selectedCategory === name) {
+      onSelectCategory(undefined, undefined);
+      setExpandedParentId(null);
+      return;
     }
-  };
-
-  const handleDeleteCategory = async (e: React.MouseEvent, cat: ExpenseCategory) => {
-    e.stopPropagation();
-    if (onDeleteCategory) {
-      await onDeleteCategory(cat.id);
-      if (selectedCategory === cat.name) {
-        onSelectCategory(undefined);
-      }
-    }
+    const subs = subcategoriesOf(id);
+    onSelectCategory(name, undefined);
+    setExpandedParentId(subs.length > 0 ? id : null);
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {/* No category option */}
-      <Button
-        type="button"
-        variant={selectedCategory === undefined ? 'default' : 'outline'}
-        size="sm"
-        className="h-8 rounded-full text-sm"
-        onClick={() => onSelectCategory(undefined)}
-      >
-        Aucune
-      </Button>
-
-      {categories.map((cat) => (
-        <div key={cat.id} className="relative group">
-          <Button
-            type="button"
-            variant={selectedCategory === cat.name ? 'default' : 'outline'}
-            size="sm"
-            className="h-8 rounded-full text-sm pr-2"
-            onClick={() => onSelectCategory(cat.name)}
-          >
-            <span className="mr-1">{cat.emoji}</span>
-            {cat.name}
-          </Button>
-          {onDeleteCategory && (
-            <button
-              type="button"
-              onClick={(e) => handleDeleteCategory(e, cat)}
-              className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="w-3 h-3" />
-            </button>
+    <div className="space-y-2">
+      {/* Level 1 — parent categories */}
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => { onSelectCategory(undefined, undefined); setExpandedParentId(null); }}
+          className={cn(
+            'h-8 px-3 rounded-full text-xs font-semibold border transition-all',
+            !selectedCategory
+              ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]'
+              : 'bg-muted text-muted-foreground border-transparent hover:border-border',
           )}
-        </div>
-      ))}
+        >
+          Aucune
+        </button>
 
-      {/* Add category */}
-      <Popover open={isAdding} onOpenChange={setIsAdding}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 rounded-full border border-dashed text-sm"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Ajouter
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64 p-3" align="start">
-          <div className="space-y-3">
-            <Input
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Nom de la catégorie"
-              className="h-9"
-              maxLength={20}
-            />
-            <div className="flex flex-wrap gap-1">
-              {EMOJI_OPTIONS.map((emoji) => (
-                <Button
-                  key={emoji}
-                  type="button"
-                  variant={selectedEmoji === emoji ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 w-7 p-0 text-base"
-                  onClick={() => setSelectedEmoji(emoji)}
-                >
-                  {emoji}
-                </Button>
-              ))}
-            </div>
-            <Button
+        {parentCategories.map((cat) => {
+          const isSelected = selectedCategory === cat.name;
+          const subs = subcategoriesOf(cat.id);
+          return (
+            <button
+              key={cat.id}
               type="button"
-              size="sm"
-              className="w-full"
-              onClick={handleAddCategory}
-              disabled={!newCategoryName.trim()}
+              onClick={() => handleSelectParent(cat.name, cat.id)}
+              className={cn(
+                'h-8 pl-2 pr-2.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1',
+                isSelected
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted text-muted-foreground border-transparent hover:border-border hover:text-foreground',
+              )}
             >
-              Créer
-            </Button>
+              <span>{cat.emoji}</span>
+              <span>{cat.name}</span>
+              {subs.length > 0 && (
+                <ChevronRight className={cn(
+                  'w-3 h-3 transition-transform',
+                  isSelected && expandedParentId === cat.id ? 'rotate-90 opacity-80' : 'opacity-40',
+                )} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Level 2 — subcategories */}
+      {expandedParentId && (() => {
+        const subs = subcategoriesOf(expandedParentId);
+        if (subs.length === 0) return null;
+        const parent = parentCategories.find((p) => p.id === expandedParentId);
+        return (
+          <div className="pl-3 border-l-2 border-primary/30 space-y-1">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+              Sous-catégorie (optionnel)
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {subs.map((sub) => {
+                const isSubSelected = selectedSubcategory === sub.name;
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => {
+                      if (parent) {
+                        onSelectCategory(
+                          parent.name,
+                          isSubSelected ? undefined : sub.name,
+                        );
+                      }
+                    }}
+                    className={cn(
+                      'h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1',
+                      isSubSelected
+                        ? 'bg-primary/15 text-primary border-primary/50'
+                        : 'bg-muted/50 text-muted-foreground border-transparent hover:border-border hover:text-foreground',
+                    )}
+                  >
+                    <span>{sub.emoji}</span>
+                    <span>{sub.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </PopoverContent>
-      </Popover>
+        );
+      })()}
     </div>
   );
 }

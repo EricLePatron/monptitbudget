@@ -9,6 +9,7 @@ import { Check, CalendarIcon, Camera, Loader2, AlertTriangle, TrendingUp } from 
 import { CategorySelector } from './CategorySelector';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 import { CategorySpending } from '@/hooks/useCategoryBudgets';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -19,8 +20,10 @@ import { toast } from 'sonner';
 interface AddExpenseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddExpense: (amount: number, name?: string, category?: string, date?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => void;
   categories: ExpenseCategory[];
+  parentCategories: ExpenseCategory[];
+  subcategoriesOf: (parentId: string) => ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
   onDeleteCategory?: (categoryId: string) => Promise<void>;
   budgetConfig?: BudgetConfig | null;
@@ -32,6 +35,8 @@ export function AddExpenseSheet({
   onOpenChange,
   onAddExpense,
   categories,
+  parentCategories,
+  subcategoriesOf,
   onAddCategory,
   onDeleteCategory,
   budgetConfig,
@@ -40,6 +45,7 @@ export function AddExpenseSheet({
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,10 +116,11 @@ export function AddExpenseSheet({
     const value = parseFloat(amount);
     if (value > 0) {
       const dateStr = getDefaultDateStr();
-      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr);
+      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr, selectedSubcategory);
       setAmount('');
       setName('');
       setSelectedCategory(undefined);
+      setSelectedSubcategory(undefined);
       setSelectedDate(undefined);
       onOpenChange(false);
     }
@@ -158,8 +165,14 @@ export function AddExpenseSheet({
             <Label className="text-sm font-medium">Catégorie</Label>
             <CategorySelector
               categories={categories}
+              parentCategories={parentCategories}
+              subcategoriesOf={subcategoriesOf}
               selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              onSelectCategory={(cat, sub) => {
+                setSelectedCategory(cat);
+                setSelectedSubcategory(sub);
+              }}
               onAddCategory={onAddCategory}
               onDeleteCategory={onDeleteCategory}
             />

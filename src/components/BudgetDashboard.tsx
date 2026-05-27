@@ -12,6 +12,8 @@ import { DailyForecastSheet } from './DailyForecastSheet';
 import { SavingsSheet } from './SavingsSheet';
 import { AlertsBanner } from './AlertsBanner';
 import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
+import { CategoryTreeManagerSheet } from './CategoryTreeManagerSheet';
+import { PendingTransactionsSheet } from './PendingTransactionsSheet';
 import {
   BudgetConfig,
   Expense,
@@ -27,7 +29,8 @@ import { Account } from '@/hooks/useAccounts';
 import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet, PiggyBank, Landmark, BarChart2 } from 'lucide-react';
+import { usePendingTransactions } from '@/hooks/usePendingTransactions';
+import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet, PiggyBank, Landmark, BarChart2, ListTodo, FolderTree } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -93,6 +96,8 @@ export function BudgetDashboard({
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [pendingSheetOpen, setPendingSheetOpen] = useState(false);
+  const [treeManagerOpen, setTreeManagerOpen] = useState(false);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
@@ -105,12 +110,23 @@ export function BudgetDashboard({
     removeMember
   } = useAccountMembers(sharingAccountId, sharingAccount?.name);
 
-  // Get expense categories for the current account
+  // Get expense categories (with subcategory support)
   const {
     categories,
+    parentCategories,
+    subcategoriesOf,
     addCategory,
-    deleteCategory
+    deleteCategory,
   } = useExpenseCategories(currentAccount?.id ?? null);
+
+  // Pending DSP2 transactions
+  const {
+    pending: pendingTxs,
+    pendingCount,
+    validate: validateTx,
+    ignore: ignoreTx,
+    refetch: refetchPending,
+  } = usePendingTransactions(currentAccount?.id ?? null);
 
   // Category budget configs
   const {
@@ -243,6 +259,35 @@ export function BudgetDashboard({
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0 bg-card/70 border border-border/60 rounded-full p-1 shadow-sm">
+          {/* Pending DSP2 transactions badge */}
+          <div className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setPendingSheetOpen(true)}
+              className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+              title="Transactions à catégoriser"
+            >
+              <ListTodo className="w-[18px] h-[18px]" />
+            </Button>
+            {pendingCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white pointer-events-none shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+                {pendingCount > 9 ? '9+' : pendingCount}
+              </span>
+            )}
+          </div>
+          {/* Categories tree manager */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setTreeManagerOpen(true)}
+            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+            title="Gérer les catégories"
+          >
+            <FolderTree className="w-[18px] h-[18px]" />
+          </Button>
           {/* Budget caps overview button — badge if alerts */}
           <div className="relative">
             <Button
@@ -615,6 +660,8 @@ export function BudgetDashboard({
         onOpenChange={setSheetOpen}
         onAddExpense={handleAddExpense}
         categories={categories}
+        parentCategories={parentCategories}
+        subcategoriesOf={subcategoriesOf}
         onAddCategory={addCategory}
         onDeleteCategory={deleteCategory}
         budgetConfig={config}
@@ -721,6 +768,25 @@ export function BudgetDashboard({
         categories={categories}
         configs={categoryConfigs}
         onSaveConfig={saveCategoryConfig}
+      />
+
+      {/* Pending DSP2 Transactions Sheet */}
+      <PendingTransactionsSheet
+        open={pendingSheetOpen}
+        onOpenChange={setPendingSheetOpen}
+        pending={pendingTxs}
+        categories={categories}
+        parentCategories={parentCategories}
+        subcategoriesOf={subcategoriesOf}
+        onValidate={async (id, cat, sub) => { await validateTx(id, cat, sub); refetchPending(); }}
+        onIgnore={async (id) => { await ignoreTx(id); refetchPending(); }}
+      />
+
+      {/* Category Tree Manager Sheet */}
+      <CategoryTreeManagerSheet
+        open={treeManagerOpen}
+        onOpenChange={setTreeManagerOpen}
+        accountId={currentAccount?.id ?? null}
       />
     </div>
   );
