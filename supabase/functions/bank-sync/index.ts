@@ -178,7 +178,6 @@ Deno.serve(async (req) => {
     };
 
     const isAllowedCardExpense = (desc: string, fallbackDate?: string | null) => {
-      if (isExcludedDesc(desc)) return false;
       const dateFromLabel = extractFactDate(desc);
       return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
     };
