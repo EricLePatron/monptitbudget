@@ -303,9 +303,9 @@ export function BudgetDashboard({
           aria-label="Paramètres"
         >
           <Settings className="w-5 h-5" />
-          {(pendingCount + alerts.length) > 0 && (
+          {alerts.length > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
-              {(pendingCount + alerts.length) > 9 ? '9+' : (pendingCount + alerts.length)}
+              {alerts.length > 9 ? '9+' : alerts.length}
             </span>
           )}
         </Button>
