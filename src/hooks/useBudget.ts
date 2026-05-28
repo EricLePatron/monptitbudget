@@ -238,6 +238,9 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           category: category || null,
           date: expenseDate,
           user_email: user.email,
+          // New expenses must be confirmed in the "à catégoriser" inbox
+          validation_status: 'pending',
+          suggested_category: category || null,
         } as never)
         .select()
         .single();
@@ -255,7 +258,8 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       };
 
       setExpenses((prev) => [newExpense, ...prev]);
-      toast.success('Dépense ajoutée');
+      window.dispatchEvent(new CustomEvent('expense-added', { detail: { accountId } }));
+      toast.success('Dépense ajoutée — à valider dans l’inbox');
     } catch {
       toast.error("Erreur lors de l'ajout de la dépense");
     }
