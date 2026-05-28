@@ -100,6 +100,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             amount: Number(e.amount),
             name: e.name ?? undefined,
             category: (e as { category?: string }).category ?? undefined,
+            subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
             userEmail: (e as { user_email?: string }).user_email ?? undefined,
@@ -226,7 +227,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   };
 
   // Add expense with optional date
-  const addExpense = async (amount: number, name?: string, category?: string, date?: string) => {
+  const addExpense = async (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => {
     if (!user || !budgetId) return;
 
     try {
@@ -240,11 +241,13 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           amount,
           name: name || null,
           category: category || null,
+          subcategory: subcategory || null,
           date: expenseDate,
           user_email: user.email,
           // New expenses must be confirmed in the "à catégoriser" inbox
           validation_status: 'pending',
           suggested_category: category || null,
+          suggested_subcategory: subcategory || null,
         } as never)
         .select()
         .single();
@@ -256,6 +259,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         amount: Number(data.amount),
         name: data.name ?? undefined,
         category: (data as { category?: string }).category ?? undefined,
+        subcategory: (data as { subcategory?: string }).subcategory ?? undefined,
         date: data.date,
         createdAt: new Date(data.created_at).getTime(),
         userEmail: (data as { user_email?: string }).user_email ?? undefined,
@@ -272,13 +276,14 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   // Update expense
   const updateExpense = async (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string }
   ) => {
     try {
       const updatePayload: Record<string, unknown> = {};
       if (updates.amount !== undefined) updatePayload.amount = updates.amount;
       if (updates.name !== undefined) updatePayload.name = updates.name || null;
       if (updates.category !== undefined) updatePayload.category = updates.category || null;
+      if (updates.subcategory !== undefined) updatePayload.subcategory = updates.subcategory || null;
       if (updates.date !== undefined) updatePayload.date = updates.date;
 
       const { error } = await supabase
@@ -296,6 +301,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
                 amount: updates.amount ?? e.amount,
                 name: updates.name !== undefined ? (updates.name || undefined) : e.name,
                 category: updates.category !== undefined ? (updates.category || undefined) : e.category,
+                subcategory: updates.subcategory !== undefined ? (updates.subcategory || undefined) : e.subcategory,
                 date: updates.date ?? e.date,
               }
             : e

@@ -19,7 +19,7 @@ interface EditExpenseSheetProps {
   expense: Expense | null;
   onUpdateExpense: (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string }
   ) => Promise<void>;
   categories: ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
@@ -40,6 +40,7 @@ export function EditExpenseSheet({
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const initializedExpenseIdRef = useRef<string | null>(null);
 
@@ -56,6 +57,7 @@ export function EditExpenseSheet({
       setAmount(expense.amount.toString());
       setName(cleanExpenseName(expense.name || ''));
       setSelectedCategory(expense.category);
+      setSelectedSubcategory(expense.subcategory);
       // Parse the date string to Date object
       const [year, month, day] = expense.date.split('-').map(Number);
       setSelectedDate(new Date(year, month - 1, day));
@@ -77,6 +79,7 @@ export function EditExpenseSheet({
         amount: value,
         name: cleanExpenseName(name),
         category: selectedCategory,
+        subcategory: selectedSubcategory,
         date: dateStr,
       });
       onOpenChange(false);
@@ -113,7 +116,11 @@ export function EditExpenseSheet({
               parentCategories={categories.filter((c) => !c.parentId)}
               subcategoriesOf={(parentId) => categories.filter((c) => c.parentId === parentId)}
               selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              onSelectCategory={(cat, sub) => {
+                setSelectedCategory(cat);
+                setSelectedSubcategory(sub);
+              }}
               onAddCategory={onAddCategory}
               onDeleteCategory={onDeleteCategory}
             />
