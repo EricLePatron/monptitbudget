@@ -10,7 +10,7 @@ import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import { DailyForecastSheet } from './DailyForecastSheet';
 import { SavingsSheet } from './SavingsSheet';
-import { AlertsBanner } from './AlertsBanner';
+
 import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
 import { CategoryTreeManagerSheet } from './CategoryTreeManagerSheet';
 import { PendingTransactionsSheet } from './PendingTransactionsSheet';
