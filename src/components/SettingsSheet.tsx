@@ -6,7 +6,6 @@ import {
   Landmark,
   LogOut,
   FolderTree,
-  ListTodo,
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
