@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
 
 export interface ExpenseCategory {
   id: string;
@@ -10,61 +11,6 @@ export interface ExpenseCategory {
   sortOrder: number;
 }
 
-/** Flat list pre-seeded on first use (parent categories only) */
-const DEFAULT_CATEGORIES: Omit<ExpenseCategory, 'id' | 'sortOrder'>[] = [
-  { name: 'Logement',                emoji: '🏠' },
-  { name: 'Courses',                  emoji: '🛒' },
-  { name: 'Enfant',                   emoji: '👶' },
-  { name: 'Transport',                emoji: '🚗' },
-  { name: 'Médias & Abonnements',     emoji: '📺' },
-  { name: 'Plaisirs',                 emoji: '🍝' },
-  { name: 'Administratif',            emoji: '🧾' },
-  { name: 'Autre',                    emoji: '📦' },
-];
-
-/** Sub-categories pre-seeded, keyed by parent name */
-const DEFAULT_SUBCATEGORIES: Record<string, Omit<ExpenseCategory, 'id' | 'sortOrder' | 'parentId'>[]> = {
-  Logement: [
-    { name: 'Mensualité prêt',    emoji: '🏦' },
-    { name: 'Assurance prêt',     emoji: '🛡️' },
-    { name: 'Assurance habitation', emoji: '🏡' },
-    { name: 'Eau',                emoji: '💧' },
-    { name: 'Électricité',        emoji: '⚡' },
-    { name: 'Gaz',                emoji: '🔥' },
-    { name: 'Alarme',             emoji: '🔔' },
-    { name: 'Ménage',             emoji: '🧹' },
-  ],
-  Courses: [
-    { name: 'Supermarché',   emoji: '🛒' },
-    { name: 'Boucherie',     emoji: '🥩' },
-    { name: 'Boulangerie',   emoji: '🥖' },
-    { name: 'Pharmacie',     emoji: '💊' },
-  ],
-  Enfant: [
-    { name: 'Cantine',          emoji: '🍱' },
-    { name: 'Centre de loisirs', emoji: '🎠' },
-    { name: 'Shopping enfant',  emoji: '👕' },
-    { name: 'Pédiatre',         emoji: '👨‍⚕️' },
-  ],
-  Transport: [
-    { name: 'Location voiture', emoji: '🚙' },
-    { name: 'Carburant',        emoji: '⛽' },
-    { name: 'Péage',            emoji: '🛣️' },
-  ],
-  'Médias & Abonnements': [
-    { name: 'Box internet',  emoji: '📡' },
-    { name: 'Netflix',       emoji: '🎬' },
-    { name: 'Amazon Prime',  emoji: '📦' },
-  ],
-  Plaisirs: [
-    { name: 'Restaurant',           emoji: '🍽️' },
-    { name: 'Vacances / Week-end',  emoji: '🏖️' },
-  ],
-  Administratif: [
-    { name: 'Impôts / Taxe foncière', emoji: '🏛️' },
-    { name: 'Frais bancaires',        emoji: '🏦' },
-  ],
-};
 
 export function useExpenseCategories(accountId: string | null) {
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
