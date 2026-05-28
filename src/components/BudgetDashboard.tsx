@@ -217,13 +217,18 @@ export function BudgetDashboard({
             variant="ghost"
             size="icon"
             onClick={() => setPendingSheetOpen(true)}
-            className="relative h-9 w-9 rounded-full bg-card/80 border border-border/60 shadow-sm text-foreground hover:bg-card"
+            className={cn(
+              'relative h-9 w-9 rounded-full border shadow-sm transition-all',
+              pendingCount > 0
+                ? 'bg-amber-500/15 border-amber-500/50 text-amber-500 hover:bg-amber-500/25 animate-pulse shadow-[0_0_14px_rgba(245,158,11,0.55)]'
+                : 'bg-card/80 border-border/60 text-foreground hover:bg-card',
+            )}
             title="Transactions à catégoriser"
             aria-label="Transactions à catégoriser"
           >
             <Inbox className="w-4 h-4" />
             {pendingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.8)]">
                 {pendingCount > 9 ? '9+' : pendingCount}
               </span>
             )}
