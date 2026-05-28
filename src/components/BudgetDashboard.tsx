@@ -162,45 +162,35 @@ export function BudgetDashboard({
 
   const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
-  const todayExpenses = getExpensesForDay(expenses, getTodayKey());
 
   const handleAddExpense = (amount: number, name?: string, category?: string, date?: string) => {
     onAddExpense(amount, name, category, date);
-    
-    // Trigger animation
     setAnimateAmount(true);
     setTimeout(() => setAnimateAmount(false), 300);
-    
-    // Show Donald Duck sticker
     setStickerData({ amount, name });
   };
 
-  const statusConfig = {
-    ok: {
-      bgClass: 'bg-budget-ok-soft',
-      textClass: 'text-budget-ok',
-      glowClass: 'shadow-glow-ok',
-      label: 'Tout va bien',
-      icon: TrendingUp,
-    },
-    warning: {
-      bgClass: 'bg-budget-warning-soft',
-      textClass: 'text-budget-warning',
-      glowClass: 'shadow-glow-warning',
-      label: 'Attention',
-      icon: Minus,
-    },
-    danger: {
-      bgClass: 'bg-budget-danger-soft',
-      textClass: 'text-budget-danger',
-      glowClass: 'shadow-glow-danger',
-      label: 'Dépassé',
-      icon: TrendingDown,
-    },
+  const [historyInitialCategory, setHistoryInitialCategory] = useState<string | null>(null);
+  const openHistoryForCategory = (cat: string) => {
+    setHistoryInitialCategory(cat);
+    setHistoryOpen(true);
   };
 
-  const currentStatus = statusConfig[status];
-  const StatusIcon = currentStatus.icon;
+  const statusGlow = {
+    ok: 'shadow-glow-ok',
+    warning: 'shadow-glow-warning',
+    danger: 'shadow-glow-danger',
+  }[status];
+  const statusText = {
+    ok: 'text-budget-ok',
+    warning: 'text-budget-warning',
+    danger: 'text-budget-danger',
+  }[status];
+  const statusBar = {
+    ok: 'bg-gradient-to-r from-budget-ok to-accent',
+    warning: 'bg-gradient-to-r from-budget-warning to-primary',
+    danger: 'bg-gradient-to-r from-budget-danger to-budget-danger/70',
+  }[status];
 
   const { signOut } = useAuth();
 
