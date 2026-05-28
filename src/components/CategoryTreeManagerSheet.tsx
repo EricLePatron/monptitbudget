@@ -150,7 +150,7 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
   const [editing, setEditing] = useState<string | null>(null);
   const [addingSubTo, setAddingSubTo] = useState<string | null>(null);
   const [addingParent, setAddingParent] = useState(false);
-  const [importing, setImporting] = useState(false);
+  
 
   const capFor = (name: string): number | undefined => {
     const cfg = configs.find((c) =>
