@@ -43,7 +43,7 @@ export function SettingsSheet({
   onOpenBudgetSetup,
   onOpenManageAccounts,
   onOpenBank,
-  onOpenSavings,
+  onOpenSavings: _onOpenSavings,
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
   onOpenPending,
