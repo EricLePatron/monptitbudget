@@ -30,9 +30,10 @@ import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
 import { usePendingTransactions } from '@/hooks/usePendingTransactions';
-import { Plus, TrendingUp, TrendingDown, Minus, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet } from 'lucide-react';
+import { Plus, History, Settings, ChevronLeft, ChevronRight, Calendar, Wallet } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { SettingsSheet } from './SettingsSheet';
+import { CategoryPieChart } from './CategoryPieChart';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
