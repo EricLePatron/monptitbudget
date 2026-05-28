@@ -19,7 +19,7 @@ import {
   Expense,
   Deduction,
   calculateBudgetMetrics,
-  getBudgetStatus,
+  
   formatCurrencyCompact,
   getMonthName,
 } from '@/lib/budget';
