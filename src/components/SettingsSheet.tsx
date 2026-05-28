@@ -68,13 +68,6 @@ export function SettingsSheet({
       badge: alertsCount,
     },
     {
-      icon: ListTodo,
-      title: 'Transactions à catégoriser',
-      subtitle: 'Valider les dépenses en attente',
-      onClick: handle(onOpenPending),
-      badge: pendingCount,
-    },
-    {
       icon: Users,
       title: 'Gérer les comptes',
       subtitle: 'Comptes partagés et membres',
