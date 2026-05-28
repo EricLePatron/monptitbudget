@@ -5,7 +5,6 @@ import {
   Users,
   Landmark,
   LogOut,
-  PiggyBank,
   FolderTree,
   ListTodo,
   ChevronRight,
@@ -20,7 +19,7 @@ interface SettingsSheetProps {
   onOpenBudgetSetup: () => void;
   onOpenManageAccounts: () => void;
   onOpenBank: () => void;
-  onOpenSavings: () => void;
+  onOpenSavings?: () => void;
   onOpenOverview?: () => void;
   onOpenCategoryTree: () => void;
   onOpenPending: () => void;
@@ -44,7 +43,7 @@ export function SettingsSheet({
   onOpenBudgetSetup,
   onOpenManageAccounts,
   onOpenBank,
-  onOpenSavings,
+  onOpenSavings: _onOpenSavings,
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
   onOpenPending,
@@ -75,12 +74,6 @@ export function SettingsSheet({
       subtitle: 'Valider les dépenses en attente',
       onClick: handle(onOpenPending),
       badge: pendingCount,
-    },
-    {
-      icon: PiggyBank,
-      title: 'Épargne',
-      subtitle: 'Historique et objectifs',
-      onClick: handle(onOpenSavings),
     },
     {
       icon: Users,
