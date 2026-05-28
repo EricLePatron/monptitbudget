@@ -6,7 +6,6 @@ import {
   Landmark,
   LogOut,
   FolderTree,
-  ListTodo,
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,7 +37,7 @@ interface Row {
 export function SettingsSheet({
   open,
   onOpenChange,
-  pendingCount,
+  pendingCount: _pendingCount,
   alertsCount,
   onOpenBudgetSetup,
   onOpenManageAccounts,
@@ -46,7 +45,7 @@ export function SettingsSheet({
   onOpenSavings: _onOpenSavings,
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
-  onOpenPending,
+  onOpenPending: _onOpenPending,
   onSignOut,
 }: SettingsSheetProps) {
   const handle = (fn: () => void) => () => {
@@ -67,13 +66,6 @@ export function SettingsSheet({
       subtitle: 'Arborescence et limites mensuelles',
       onClick: handle(onOpenCategoryTree),
       badge: alertsCount,
-    },
-    {
-      icon: ListTodo,
-      title: 'Transactions à catégoriser',
-      subtitle: 'Valider les dépenses en attente',
-      onClick: handle(onOpenPending),
-      badge: pendingCount,
     },
     {
       icon: Users,
