@@ -139,8 +139,11 @@ export type Database = {
           description: string | null
           expense_id: string | null
           id: string
+          suggested_category: string | null
+          suggested_subcategory: string | null
           transaction_date: string
           transaction_id: string
+          validation_status: string
         }
         Insert: {
           account_id: string
@@ -150,8 +153,11 @@ export type Database = {
           description?: string | null
           expense_id?: string | null
           id?: string
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
           transaction_date: string
           transaction_id: string
+          validation_status?: string
         }
         Update: {
           account_id?: string
@@ -161,8 +167,11 @@ export type Database = {
           description?: string | null
           expense_id?: string | null
           id?: string
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
           transaction_date?: string
           transaction_id?: string
+          validation_status?: string
         }
         Relationships: [
           {
@@ -285,7 +294,12 @@ export type Database = {
           date: string
           id: string
           name: string | null
+          subcategory: string | null
+          suggested_category: string | null
+          suggested_subcategory: string | null
+          user_email: string | null
           user_id: string
+          validation_status: string
         }
         Insert: {
           amount: number
@@ -295,7 +309,12 @@ export type Database = {
           date: string
           id?: string
           name?: string | null
+          subcategory?: string | null
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
+          user_email?: string | null
           user_id: string
+          validation_status?: string
         }
         Update: {
           amount?: number
@@ -305,7 +324,12 @@ export type Database = {
           date?: string
           id?: string
           name?: string | null
+          subcategory?: string | null
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
+          user_email?: string | null
           user_id?: string
+          validation_status?: string
         }
         Relationships: [
           {
