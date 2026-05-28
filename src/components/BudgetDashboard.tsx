@@ -22,8 +22,6 @@ import {
   getBudgetStatus,
   formatCurrencyCompact,
   getMonthName,
-  getTodayKey,
-  getExpensesForDay,
 } from '@/lib/budget';
 import { Account } from '@/hooks/useAccounts';
 import { useAccountMembers } from '@/hooks/useAccountMembers';
