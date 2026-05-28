@@ -77,12 +77,6 @@ export function SettingsSheet({
       badge: pendingCount,
     },
     {
-      icon: PiggyBank,
-      title: 'Épargne',
-      subtitle: 'Historique et objectifs',
-      onClick: handle(onOpenSavings),
-    },
-    {
       icon: Users,
       title: 'Gérer les comptes',
       subtitle: 'Comptes partagés et membres',
