@@ -129,7 +129,11 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     };
 
     window.addEventListener('bank-sync-completed', refreshAfterBankSync);
-    return () => window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+    window.addEventListener('expense-validated', refreshAfterBankSync);
+    return () => {
+      window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+      window.removeEventListener('expense-validated', refreshAfterBankSync);
+    };
   }, [accountId, loadBudget]);
 
   // Create or update budget
@@ -238,6 +242,9 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           category: category || null,
           date: expenseDate,
           user_email: user.email,
+          // New expenses must be confirmed in the "à catégoriser" inbox
+          validation_status: 'pending',
+          suggested_category: category || null,
         } as never)
         .select()
         .single();
@@ -255,7 +262,8 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       };
 
       setExpenses((prev) => [newExpense, ...prev]);
-      toast.success('Dépense ajoutée');
+      window.dispatchEvent(new CustomEvent('expense-added', { detail: { accountId } }));
+      toast.success('Dépense ajoutée — à valider dans l’inbox');
     } catch {
       toast.error("Erreur lors de l'ajout de la dépense");
     }
