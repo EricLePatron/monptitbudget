@@ -110,6 +110,8 @@ export function EditExpenseSheet({
             <Label className="text-sm font-medium">Catégorie</Label>
             <CategorySelector
               categories={categories}
+              parentCategories={categories.filter((c) => !c.parentId)}
+              subcategoriesOf={(parentId) => categories.filter((c) => c.parentId === parentId)}
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
               onAddCategory={onAddCategory}
