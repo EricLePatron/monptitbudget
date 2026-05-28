@@ -545,7 +545,7 @@ export function BudgetDashboard({
         <div className="h-24" />
       </main>
 
-      {/* Bottom action bar — Add expense + History */}
+      {/* Bottom action bar — History + Add expense + Settings */}
       <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         <Button
           type="button"
@@ -565,9 +565,25 @@ export function BudgetDashboard({
             className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
           >
             <Plus className="mr-1.5 w-5 h-5" />
-            Ajouter une dépense
+            Ajouter
           </Button>
         )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setSettingsOpen(true)}
+          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all relative"
+          title="Paramètres"
+          aria-label="Paramètres"
+        >
+          <Settings className="w-5 h-5" />
+          {(pendingCount + alerts.length) > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+              {(pendingCount + alerts.length) > 9 ? '9+' : (pendingCount + alerts.length)}
+            </span>
+          )}
+        </Button>
       </div>
 
       {/* placeholder removed: bottom bar replaces FAB */}
