@@ -62,10 +62,31 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius="62%"
+              innerRadius="58%"
               outerRadius="92%"
               paddingAngle={2}
               stroke="none"
+              labelLine={false}
+              label={(props: any) => {
+                const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
+                const RAD = Math.PI / 180;
+                const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+                const x = cx + r * Math.cos(-midAngle * RAD);
+                const y = cy + r * Math.sin(-midAngle * RAD);
+                const pct = (data[index].value / total) * 100;
+                if (pct < 4) return null;
+                return (
+                  <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{ fontSize: 16, pointerEvents: 'none' }}
+                  >
+                    {data[index].emoji}
+                  </text>
+                );
+              }}
               onClick={(_, idx) => {
                 setActiveIdx(idx);
                 onCategoryClick?.(data[idx].name);
