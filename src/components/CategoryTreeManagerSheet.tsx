@@ -183,44 +183,6 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
     await deleteCategory(cat.id);
   };
 
-  const importTemplate = async () => {
-    setImporting(true);
-    try {
-      let createdCount = 0;
-      const existingParentNames = new Set(parentCategories.map((p) => p.name.toLowerCase()));
-
-      for (const tpl of CATEGORY_TEMPLATE) {
-        let parent = parentCategories.find((p) => p.name.toLowerCase() === tpl.name.toLowerCase());
-        if (!parent) {
-          if (existingParentNames.has(tpl.name.toLowerCase())) continue;
-          parent = await addCategory(tpl.name, tpl.emoji) ?? undefined;
-          if (parent) createdCount++;
-        }
-        if (!parent) continue;
-
-        const existingSubs = subcategoriesOf(parent.id);
-        const existingSubNames = new Set(existingSubs.map((s) => s.name.toLowerCase()));
-
-        for (const sub of tpl.subcategories) {
-          let subCat = existingSubs.find((s) => s.name.toLowerCase() === sub.name.toLowerCase());
-          if (!subCat && !existingSubNames.has(sub.name.toLowerCase())) {
-            subCat = (await addSubcategory(parent.id, sub.name, sub.emoji)) ?? undefined;
-            if (subCat) createdCount++;
-          }
-          if (sub.cap != null) {
-            await persistCap(sub.name, sub.cap);
-          }
-        }
-      }
-      toast.success(createdCount > 0
-        ? `Modèle importé (${createdCount} éléments créés)`
-        : 'Modèle à jour, plafonds appliqués');
-    } catch {
-      toast.error("Erreur lors de l'import du modèle");
-    } finally {
-      setImporting(false);
-    }
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
