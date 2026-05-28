@@ -722,6 +722,22 @@ export function BudgetDashboard({
         onOpenChange={setTreeManagerOpen}
         accountId={currentAccount?.id ?? null}
       />
+
+      {/* Settings Sheet — central access to all secondary actions */}
+      <SettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        pendingCount={pendingCount}
+        alertsCount={alerts.length}
+        onOpenBudgetSetup={() => setEditBudgetOpen(true)}
+        onOpenManageAccounts={() => setManageAccountsOpen(true)}
+        onOpenBank={() => setBankSheetOpen(true)}
+        onOpenSavings={() => setSavingsOpen(true)}
+        onOpenOverview={() => setOverviewOpen(true)}
+        onOpenCategoryTree={() => setTreeManagerOpen(true)}
+        onOpenPending={() => setPendingSheetOpen(true)}
+        onSignOut={signOut}
+      />
     </div>
   );
 }
