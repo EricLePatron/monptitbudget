@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
-  ChevronDown, ChevronRight, Plus, Pencil, Trash2, Check, X, Sparkles,
+  ChevronDown, ChevronRight, Plus, Pencil, Trash2, Check, X,
 } from 'lucide-react';
+
 import { ExpenseCategory, useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
-import { CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
+
 import { formatCurrencyCompact } from '@/lib/budget';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -149,7 +150,7 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
   const [editing, setEditing] = useState<string | null>(null);
   const [addingSubTo, setAddingSubTo] = useState<string | null>(null);
   const [addingParent, setAddingParent] = useState(false);
-  const [importing, setImporting] = useState(false);
+  
 
   const capFor = (name: string): number | undefined => {
     const cfg = configs.find((c) =>
@@ -182,44 +183,6 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
     await deleteCategory(cat.id);
   };
 
-  const importTemplate = async () => {
-    setImporting(true);
-    try {
-      let createdCount = 0;
-      const existingParentNames = new Set(parentCategories.map((p) => p.name.toLowerCase()));
-
-      for (const tpl of CATEGORY_TEMPLATE) {
-        let parent = parentCategories.find((p) => p.name.toLowerCase() === tpl.name.toLowerCase());
-        if (!parent) {
-          if (existingParentNames.has(tpl.name.toLowerCase())) continue;
-          parent = await addCategory(tpl.name, tpl.emoji) ?? undefined;
-          if (parent) createdCount++;
-        }
-        if (!parent) continue;
-
-        const existingSubs = subcategoriesOf(parent.id);
-        const existingSubNames = new Set(existingSubs.map((s) => s.name.toLowerCase()));
-
-        for (const sub of tpl.subcategories) {
-          let subCat = existingSubs.find((s) => s.name.toLowerCase() === sub.name.toLowerCase());
-          if (!subCat && !existingSubNames.has(sub.name.toLowerCase())) {
-            subCat = (await addSubcategory(parent.id, sub.name, sub.emoji)) ?? undefined;
-            if (subCat) createdCount++;
-          }
-          if (sub.cap != null) {
-            await persistCap(sub.name, sub.cap);
-          }
-        }
-      }
-      toast.success(createdCount > 0
-        ? `Modèle importé (${createdCount} éléments créés)`
-        : 'Modèle à jour, plafonds appliqués');
-    } catch {
-      toast.error("Erreur lors de l'import du modèle");
-    } finally {
-      setImporting(false);
-    }
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -234,17 +197,8 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
-          {/* Import template button */}
-          <Button
-            type="button"
-            variant="outline"
-            disabled={importing}
-            onClick={importTemplate}
-            className="w-full h-11 border-dashed gap-2 text-sm font-medium border-primary/40 text-primary hover:bg-primary/5"
-          >
-            <Sparkles className="w-4 h-4" />
-            {importing ? 'Import en cours…' : 'Importer le modèle Lovable'}
-          </Button>
+
+
 
           {parentCategories.map((parent) => {
             const subs = subcategoriesOf(parent.id);

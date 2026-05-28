@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
 
 export interface ExpenseCategory {
   id: string;
@@ -10,61 +11,6 @@ export interface ExpenseCategory {
   sortOrder: number;
 }
 
-/** Flat list pre-seeded on first use (parent categories only) */
-const DEFAULT_CATEGORIES: Omit<ExpenseCategory, 'id' | 'sortOrder'>[] = [
-  { name: 'Logement',                emoji: '🏠' },
-  { name: 'Courses',                  emoji: '🛒' },
-  { name: 'Enfant',                   emoji: '👶' },
-  { name: 'Transport',                emoji: '🚗' },
-  { name: 'Médias & Abonnements',     emoji: '📺' },
-  { name: 'Plaisirs',                 emoji: '🍝' },
-  { name: 'Administratif',            emoji: '🧾' },
-  { name: 'Autre',                    emoji: '📦' },
-];
-
-/** Sub-categories pre-seeded, keyed by parent name */
-const DEFAULT_SUBCATEGORIES: Record<string, Omit<ExpenseCategory, 'id' | 'sortOrder' | 'parentId'>[]> = {
-  Logement: [
-    { name: 'Mensualité prêt',    emoji: '🏦' },
-    { name: 'Assurance prêt',     emoji: '🛡️' },
-    { name: 'Assurance habitation', emoji: '🏡' },
-    { name: 'Eau',                emoji: '💧' },
-    { name: 'Électricité',        emoji: '⚡' },
-    { name: 'Gaz',                emoji: '🔥' },
-    { name: 'Alarme',             emoji: '🔔' },
-    { name: 'Ménage',             emoji: '🧹' },
-  ],
-  Courses: [
-    { name: 'Supermarché',   emoji: '🛒' },
-    { name: 'Boucherie',     emoji: '🥩' },
-    { name: 'Boulangerie',   emoji: '🥖' },
-    { name: 'Pharmacie',     emoji: '💊' },
-  ],
-  Enfant: [
-    { name: 'Cantine',          emoji: '🍱' },
-    { name: 'Centre de loisirs', emoji: '🎠' },
-    { name: 'Shopping enfant',  emoji: '👕' },
-    { name: 'Pédiatre',         emoji: '👨‍⚕️' },
-  ],
-  Transport: [
-    { name: 'Location voiture', emoji: '🚙' },
-    { name: 'Carburant',        emoji: '⛽' },
-    { name: 'Péage',            emoji: '🛣️' },
-  ],
-  'Médias & Abonnements': [
-    { name: 'Box internet',  emoji: '📡' },
-    { name: 'Netflix',       emoji: '🎬' },
-    { name: 'Amazon Prime',  emoji: '📦' },
-  ],
-  Plaisirs: [
-    { name: 'Restaurant',           emoji: '🍽️' },
-    { name: 'Vacances / Week-end',  emoji: '🏖️' },
-  ],
-  Administratif: [
-    { name: 'Impôts / Taxe foncière', emoji: '🏛️' },
-    { name: 'Frais bancaires',        emoji: '🏦' },
-  ],
-};
 
 export function useExpenseCategories(accountId: string | null) {
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
@@ -101,8 +47,8 @@ export function useExpenseCategories(accountId: string | null) {
           }))
         );
       } else {
-        // Seed default categories + subcategories
-        const parentRows = DEFAULT_CATEGORIES.map((c, i) => ({
+        // Seed default categories + subcategories from the template
+        const parentRows = CATEGORY_TEMPLATE.map((c, i) => ({
           account_id: accountId,
           name: c.name,
           emoji: c.emoji,
@@ -123,10 +69,12 @@ export function useExpenseCategories(accountId: string | null) {
           sortOrder: i,
         }));
 
-        // Insert subcategories
+        // Insert subcategories from template (matched by parent name)
         const subRows: object[] = [];
+        const capRows: { name: string; cap: number }[] = [];
         for (const parent of newParents || []) {
-          const subs = DEFAULT_SUBCATEGORIES[parent.name] || [];
+          const tpl = CATEGORY_TEMPLATE.find((t) => t.name === parent.name);
+          const subs = tpl?.subcategories ?? [];
           subs.forEach((s, i) => {
             subRows.push({
               account_id: accountId,
@@ -136,6 +84,7 @@ export function useExpenseCategories(accountId: string | null) {
               emoji: s.emoji,
               sort_order: i,
             });
+            if (s.cap != null) capRows.push({ name: s.name, cap: s.cap });
           });
         }
 
@@ -158,8 +107,26 @@ export function useExpenseCategories(accountId: string | null) {
           }
         }
 
+        // Seed mandatory monthly caps (global, no month/year)
+        if (capRows.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any)
+            .from('category_budget_configs')
+            .insert(
+              capRows.map((c) => ({
+                account_id: accountId,
+                category_name: c.name,
+                budget_type: 'fixed',
+                cap_amount: c.cap,
+                warning_threshold: 80,
+                color: '#6366f1',
+              }))
+            );
+        }
+
         setCategories(all);
       }
+
     } catch {
       toast.error('Erreur lors du chargement des catégories');
     } finally {
