@@ -29,10 +29,6 @@ export function CategorySelector({
   const expandedParentId = expandedParent?.id ?? null;
 
   const handleSelectParent = (name: string) => {
-    if (selectedCategory === name) {
-      onSelectCategory(undefined, undefined);
-      return;
-    }
     onSelectCategory(name, undefined);
   };
 
@@ -98,7 +94,9 @@ export function CategorySelector({
                   <button
                     key={sub.id}
                     type="button"
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
                       if (parent) {
                         onSelectCategory(
                           parent.name,
