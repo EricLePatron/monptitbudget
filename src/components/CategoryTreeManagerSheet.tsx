@@ -12,7 +12,7 @@ import {
 
 import { ExpenseCategory, useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
-import { CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
+import { CATEGORY_TEMPLATE as _CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
 import { formatCurrencyCompact } from '@/lib/budget';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
