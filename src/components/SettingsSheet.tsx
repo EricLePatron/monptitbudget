@@ -5,7 +5,6 @@ import {
   Users,
   Landmark,
   LogOut,
-  PiggyBank,
   FolderTree,
   ListTodo,
   ChevronRight,
