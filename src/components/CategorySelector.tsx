@@ -60,7 +60,7 @@ export function CategorySelector({
             <button
               key={cat.id}
               type="button"
-              onClick={() => handleSelectParent(cat.name, cat.id)}
+              onClick={() => handleSelectParent(cat.name)}
               className={cn(
                 'h-8 pl-2 pr-2.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1',
                 isSelected
