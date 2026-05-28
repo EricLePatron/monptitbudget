@@ -240,6 +240,51 @@ export type Database = {
           },
         ]
       }
+      category_budget_configs: {
+        Row: {
+          account_id: string
+          budget_type: string
+          cap_amount: number | null
+          category_name: string
+          color: string
+          created_at: string
+          group_name: string | null
+          id: string
+          month: number | null
+          updated_at: string
+          warning_threshold: number
+          year: number | null
+        }
+        Insert: {
+          account_id: string
+          budget_type?: string
+          cap_amount?: number | null
+          category_name: string
+          color?: string
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          month?: number | null
+          updated_at?: string
+          warning_threshold?: number
+          year?: number | null
+        }
+        Update: {
+          account_id?: string
+          budget_type?: string
+          cap_amount?: number | null
+          category_name?: string
+          color?: string
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          month?: number | null
+          updated_at?: string
+          warning_threshold?: number
+          year?: number | null
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           account_id: string
