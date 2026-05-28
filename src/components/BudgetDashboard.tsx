@@ -256,6 +256,31 @@ export function BudgetDashboard({
         </div>
 
 
+        {/* Budget mensuel total restant */}
+        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-3 mt-2">
+          <div className="rounded-2xl bg-card/90 backdrop-blur border border-border/60 shadow-sm px-4 py-3 flex items-baseline justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Budget restant
+              </span>
+              <span className={cn(
+                "text-2xl font-bold leading-tight",
+                metrics.budgetRemaining < 0 ? "text-destructive" : "text-foreground"
+              )}>
+                {formatCurrencyCompact(metrics.budgetRemaining)}
+              </span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Sur
+              </span>
+              <span className="text-sm font-semibold text-muted-foreground">
+                {formatCurrencyCompact(config.monthlyBudget)}
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Camembert des dépenses par catégorie */}
         <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4" style={{ animationDelay: '0.08s' }}>
           <CategoryPieChart
@@ -264,6 +289,7 @@ export function BudgetDashboard({
             onCategoryClick={openHistoryForCategory}
           />
         </div>
+
 
         {/* Spacer for FAB */}
         <div className="h-24" />
