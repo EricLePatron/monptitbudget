@@ -30,8 +30,9 @@ import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
 import { usePendingTransactions } from '@/hooks/usePendingTransactions';
-import { Plus, TrendingUp, TrendingDown, Minus, LogOut, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet, PiggyBank, Landmark, BarChart2, ListTodo, FolderTree } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, History, Settings, Trash2, ChevronLeft, ChevronRight, Calendar, Wallet } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
+import { SettingsSheet } from './SettingsSheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
@@ -98,6 +99,7 @@ export function BudgetDashboard({
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [pendingSheetOpen, setPendingSheetOpen] = useState(false);
   const [treeManagerOpen, setTreeManagerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
@@ -224,14 +226,9 @@ export function BudgetDashboard({
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <button
-              type="button"
-              onClick={() => setEditBudgetOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-0.5 rounded-full hover:bg-secondary/80 transition-colors cursor-pointer"
-            >
+            <div className="flex items-center gap-1 px-3 py-0.5">
               <span className="font-semibold text-sm text-foreground whitespace-nowrap">{getMonthName(config.month)} {config.year}</span>
-              <Settings className="w-3 h-3 text-muted-foreground" />
-            </button>
+            </div>
             <Button
               type="button"
               variant="ghost"
@@ -257,85 +254,6 @@ export function BudgetDashboard({
               </button>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-1 shrink-0 bg-card/70 border border-border/60 rounded-full p-1 shadow-sm">
-          {/* Pending DSP2 transactions badge */}
-          <div className="relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setPendingSheetOpen(true)}
-              className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-              title="Transactions à catégoriser"
-            >
-              <ListTodo className="w-[18px] h-[18px]" />
-            </Button>
-            {pendingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white pointer-events-none shadow-[0_0_6px_rgba(245,158,11,0.7)]">
-                {pendingCount > 9 ? '9+' : pendingCount}
-              </span>
-            )}
-          </div>
-          {/* Categories tree manager */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setTreeManagerOpen(true)}
-            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-            title="Gérer les catégories"
-          >
-            <FolderTree className="w-[18px] h-[18px]" />
-          </Button>
-          {/* Budget caps overview button — badge if alerts */}
-          <div className="relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setOverviewOpen(true)}
-              className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-              title="Plafonds par catégorie"
-            >
-              <BarChart2 className="w-[18px] h-[18px]" />
-            </Button>
-            {alerts.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white pointer-events-none shadow-[0_0_6px_rgba(239,68,68,0.7)]">
-                {alerts.length > 9 ? '9+' : alerts.length}
-              </span>
-            )}
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setSavingsOpen(true)}
-            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-            title="Épargne"
-          >
-            <PiggyBank className="w-[18px] h-[18px]" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setBankSheetOpen(true)}
-            className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-            title="Connecter ma banque"
-          >
-            <Landmark className="w-[18px] h-[18px]" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={signOut}
-            className="h-9 w-9 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Déconnexion"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-          </Button>
         </div>
       </header>
 
@@ -627,7 +545,7 @@ export function BudgetDashboard({
         <div className="h-24" />
       </main>
 
-      {/* Bottom action bar — Add expense + History */}
+      {/* Bottom action bar — History + Add expense + Settings */}
       <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         <Button
           type="button"
@@ -647,9 +565,25 @@ export function BudgetDashboard({
             className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
           >
             <Plus className="mr-1.5 w-5 h-5" />
-            Ajouter une dépense
+            Ajouter
           </Button>
         )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setSettingsOpen(true)}
+          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all relative"
+          title="Paramètres"
+          aria-label="Paramètres"
+        >
+          <Settings className="w-5 h-5" />
+          {(pendingCount + alerts.length) > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+              {(pendingCount + alerts.length) > 9 ? '9+' : (pendingCount + alerts.length)}
+            </span>
+          )}
+        </Button>
       </div>
 
       {/* placeholder removed: bottom bar replaces FAB */}
@@ -787,6 +721,22 @@ export function BudgetDashboard({
         open={treeManagerOpen}
         onOpenChange={setTreeManagerOpen}
         accountId={currentAccount?.id ?? null}
+      />
+
+      {/* Settings Sheet — central access to all secondary actions */}
+      <SettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        pendingCount={pendingCount}
+        alertsCount={alerts.length}
+        onOpenBudgetSetup={() => setEditBudgetOpen(true)}
+        onOpenManageAccounts={() => setManageAccountsOpen(true)}
+        onOpenBank={() => setBankSheetOpen(true)}
+        onOpenSavings={() => setSavingsOpen(true)}
+        onOpenOverview={() => setOverviewOpen(true)}
+        onOpenCategoryTree={() => setTreeManagerOpen(true)}
+        onOpenPending={() => setPendingSheetOpen(true)}
+        onSignOut={signOut}
       />
     </div>
   );
