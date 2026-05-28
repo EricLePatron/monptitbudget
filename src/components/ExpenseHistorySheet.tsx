@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Expense, formatCurrencyCompact, BudgetConfig } from '@/lib/budget';
@@ -14,6 +14,7 @@ interface ExpenseHistorySheetProps {
   onEditExpense: (expense: Expense) => void;
   categories: ExpenseCategory[];
   budgetConfig?: BudgetConfig | null;
+  initialCategory?: string | null;
 }
 
 export function ExpenseHistorySheet({
@@ -23,8 +24,13 @@ export function ExpenseHistorySheet({
   onDeleteExpense,
   onEditExpense,
   categories,
+  initialCategory,
 }: ExpenseHistorySheetProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
+
+  useEffect(() => {
+    if (open) setSelectedCategory(initialCategory ?? null);
+  }, [open, initialCategory]);
 
   const filteredExpenses = selectedCategory
     ? expenses.filter(e => (e.category || 'Sans catégorie') === selectedCategory)
