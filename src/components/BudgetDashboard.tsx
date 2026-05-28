@@ -226,14 +226,9 @@ export function BudgetDashboard({
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <button
-              type="button"
-              onClick={() => setEditBudgetOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-0.5 rounded-full hover:bg-secondary/80 transition-colors cursor-pointer"
-            >
+            <div className="flex items-center gap-1 px-3 py-0.5">
               <span className="font-semibold text-sm text-foreground whitespace-nowrap">{getMonthName(config.month)} {config.year}</span>
-              <Settings className="w-3 h-3 text-muted-foreground" />
-            </button>
+            </div>
             <Button
               type="button"
               variant="ghost"
