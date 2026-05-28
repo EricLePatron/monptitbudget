@@ -19,7 +19,7 @@ interface SettingsSheetProps {
   onOpenBudgetSetup: () => void;
   onOpenManageAccounts: () => void;
   onOpenBank: () => void;
-  onOpenSavings: () => void;
+  onOpenSavings?: () => void;
   onOpenOverview?: () => void;
   onOpenCategoryTree: () => void;
   onOpenPending: () => void;
