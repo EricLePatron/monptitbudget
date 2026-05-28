@@ -99,6 +99,7 @@ export function BudgetDashboard({
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [pendingSheetOpen, setPendingSheetOpen] = useState(false);
   const [treeManagerOpen, setTreeManagerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
