@@ -37,7 +37,7 @@ interface Row {
 export function SettingsSheet({
   open,
   onOpenChange,
-  pendingCount,
+  pendingCount: _pendingCount,
   alertsCount,
   onOpenBudgetSetup,
   onOpenManageAccounts,
@@ -45,7 +45,7 @@ export function SettingsSheet({
   onOpenSavings: _onOpenSavings,
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
-  onOpenPending,
+  onOpenPending: _onOpenPending,
   onSignOut,
 }: SettingsSheetProps) {
   const handle = (fn: () => void) => () => {
