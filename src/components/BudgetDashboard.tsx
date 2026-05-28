@@ -254,48 +254,6 @@ export function BudgetDashboard({
           <div className="absolute bottom-20 -right-10 w-56 h-56 bg-accent/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
         </div>
 
-        {/* Budget restant du mois — hero card */}
-        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4">
-          <div className={cn(
-            'relative rounded-3xl glass-card shadow-lg px-5 pt-5 pb-5 overflow-hidden',
-            statusGlow
-          )}>
-            <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-            <div className="relative">
-              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-1.5 mb-1">
-                <Wallet className="w-3 h-3" />
-                Budget restant ce mois
-              </p>
-
-              <div
-                className={cn(
-                  'text-center font-display font-bold leading-none transition-all duration-200 relative text-[52px]',
-                  statusText,
-                  animateAmount && 'animate-number-pop'
-                )}
-              >
-                <span className="relative drop-shadow-[0_0_20px_currentColor]">
-                  {formatCurrencyCompact(metrics.budgetRemaining)}
-                </span>
-              </div>
-
-              <div className="mt-5">
-                <div className="bg-background/50 rounded-full h-2 overflow-hidden border border-border/40 backdrop-blur-sm">
-                  <div
-                    className={cn('h-full rounded-full transition-all duration-500 ease-out', statusBar)}
-                    style={{
-                      width: `${Math.max(0, Math.min(100, (metrics.budgetRemaining / config.monthlyBudget) * 100))}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between mt-2 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider tabular-nums">
-                  <span>{formatCurrencyCompact(metrics.totalSpentThisMonth)} dépensé</span>
-                  <span>/ {formatCurrencyCompact(config.monthlyBudget)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Camembert des dépenses par catégorie */}
         <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4" style={{ animationDelay: '0.08s' }}>
