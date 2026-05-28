@@ -47,8 +47,8 @@ export function useExpenseCategories(accountId: string | null) {
           }))
         );
       } else {
-        // Seed default categories + subcategories
-        const parentRows = DEFAULT_CATEGORIES.map((c, i) => ({
+        // Seed default categories + subcategories from the template
+        const parentRows = CATEGORY_TEMPLATE.map((c, i) => ({
           account_id: accountId,
           name: c.name,
           emoji: c.emoji,
@@ -69,10 +69,12 @@ export function useExpenseCategories(accountId: string | null) {
           sortOrder: i,
         }));
 
-        // Insert subcategories
+        // Insert subcategories from template (matched by parent name)
         const subRows: object[] = [];
+        const capRows: { name: string; cap: number }[] = [];
         for (const parent of newParents || []) {
-          const subs = DEFAULT_SUBCATEGORIES[parent.name] || [];
+          const tpl = CATEGORY_TEMPLATE.find((t) => t.name === parent.name);
+          const subs = tpl?.subcategories ?? [];
           subs.forEach((s, i) => {
             subRows.push({
               account_id: accountId,
@@ -82,6 +84,7 @@ export function useExpenseCategories(accountId: string | null) {
               emoji: s.emoji,
               sort_order: i,
             });
+            if (s.cap != null) capRows.push({ name: s.name, cap: s.cap });
           });
         }
 
@@ -104,8 +107,26 @@ export function useExpenseCategories(accountId: string | null) {
           }
         }
 
+        // Seed mandatory monthly caps (global, no month/year)
+        if (capRows.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any)
+            .from('category_budget_configs')
+            .insert(
+              capRows.map((c) => ({
+                account_id: accountId,
+                category_name: c.name,
+                budget_type: 'fixed',
+                cap_amount: c.cap,
+                warning_threshold: 80,
+                color: '#6366f1',
+              }))
+            );
+        }
+
         setCategories(all);
       }
+
     } catch {
       toast.error('Erreur lors du chargement des catégories');
     } finally {
