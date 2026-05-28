@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
-  ChevronDown, ChevronRight, Plus, Pencil, Trash2, Check, X, Sparkles,
+  ChevronDown, ChevronRight, Plus, Pencil, Trash2, Check, X,
 } from 'lucide-react';
+
 import { ExpenseCategory, useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
 import { CATEGORY_TEMPLATE } from '@/lib/categoryTemplate';
