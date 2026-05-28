@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 import { cn } from '@/lib/utils';
@@ -25,17 +24,16 @@ export function CategorySelector({
   selectedSubcategory,
   onSelectCategory,
 }: CategorySelectorProps) {
-  const [expandedParentId, setExpandedParentId] = useState<string | null>(null);
+  // Subcategories panel is auto-expanded for whichever parent is currently selected.
+  const expandedParent = parentCategories.find((p) => p.name === selectedCategory);
+  const expandedParentId = expandedParent?.id ?? null;
 
-  const handleSelectParent = (name: string, id: string) => {
+  const handleSelectParent = (name: string) => {
     if (selectedCategory === name) {
       onSelectCategory(undefined, undefined);
-      setExpandedParentId(null);
       return;
     }
-    const subs = subcategoriesOf(id);
     onSelectCategory(name, undefined);
-    setExpandedParentId(subs.length > 0 ? id : null);
   };
 
   return (
