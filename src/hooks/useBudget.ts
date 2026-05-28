@@ -129,7 +129,11 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     };
 
     window.addEventListener('bank-sync-completed', refreshAfterBankSync);
-    return () => window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+    window.addEventListener('expense-validated', refreshAfterBankSync);
+    return () => {
+      window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+      window.removeEventListener('expense-validated', refreshAfterBankSync);
+    };
   }, [accountId, loadBudget]);
 
   // Create or update budget
