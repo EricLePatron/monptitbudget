@@ -197,17 +197,8 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
-          {/* Import template button */}
-          <Button
-            type="button"
-            variant="outline"
-            disabled={importing}
-            onClick={importTemplate}
-            className="w-full h-11 border-dashed gap-2 text-sm font-medium border-primary/40 text-primary hover:bg-primary/5"
-          >
-            <Sparkles className="w-4 h-4" />
-            {importing ? 'Import en cours…' : 'Importer le modèle Lovable'}
-          </Button>
+
+
 
           {parentCategories.map((parent) => {
             const subs = subcategoriesOf(parent.id);
