@@ -42,7 +42,7 @@ export function CategorySelector({
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => { onSelectCategory(undefined, undefined); setExpandedParentId(null); }}
+          onClick={() => onSelectCategory(undefined, undefined)}
           className={cn(
             'h-8 px-3 rounded-full text-xs font-semibold border transition-all',
             !selectedCategory
