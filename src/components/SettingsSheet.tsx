@@ -6,7 +6,6 @@ import {
   Landmark,
   LogOut,
   PiggyBank,
-  BarChart2,
   FolderTree,
   ListTodo,
   ChevronRight,
