@@ -45,7 +45,7 @@ export function SettingsSheet({
   onOpenManageAccounts,
   onOpenBank,
   onOpenSavings,
-  onOpenOverview,
+  onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
   onOpenPending,
   onSignOut,
