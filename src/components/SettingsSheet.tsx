@@ -63,17 +63,11 @@ export function SettingsSheet({
       onClick: handle(onOpenBudgetSetup),
     },
     {
-      icon: BarChart2,
-      title: 'Plafonds par catégorie',
-      subtitle: 'Limites mensuelles & alertes',
-      onClick: handle(onOpenOverview),
-      badge: alertsCount,
-    },
-    {
       icon: FolderTree,
-      title: 'Catégories',
-      subtitle: 'Gérer l\'arborescence',
+      title: 'Catégories & plafonds',
+      subtitle: 'Arborescence et limites mensuelles',
       onClick: handle(onOpenCategoryTree),
+      badge: alertsCount,
     },
     {
       icon: ListTodo,
