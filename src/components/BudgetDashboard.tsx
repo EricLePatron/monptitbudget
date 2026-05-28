@@ -176,8 +176,8 @@ export function BudgetDashboard({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header — compact mobile-first */}
-      <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 flex items-start justify-between gap-2 relative z-10">
-        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+      <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 relative z-10">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           {/* Account Selector */}
           <AccountSelector
             accounts={accounts}
@@ -185,8 +185,9 @@ export function BudgetDashboard({
             onSwitch={onSwitchAccount}
             onManage={() => setManageAccountsOpen(true)}
           />
-          {/* Month Navigation - Compact */}
-          <div className="flex items-center gap-0.5 bg-secondary/60 rounded-full px-1 py-0.5 w-fit shadow-sm">
+
+          {/* Month Navigation */}
+          <div className="flex items-center gap-0.5 bg-card/80 border border-border/60 rounded-full px-1 py-0.5 shadow-sm">
             <Button
               type="button"
               variant="ghost"
@@ -196,9 +197,9 @@ export function BudgetDashboard({
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <div className="flex items-center gap-1 px-3 py-0.5">
-              <span className="font-semibold text-sm text-foreground whitespace-nowrap">{getMonthName(config.month)} {config.year}</span>
-            </div>
+            <span className="font-semibold text-sm text-foreground whitespace-nowrap px-2">
+              {getMonthName(config.month)} {config.year}
+            </span>
             <Button
               type="button"
               variant="ghost"
@@ -209,21 +210,40 @@ export function BudgetDashboard({
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-          <div className="flex items-center gap-2 pl-1">
-            <p className="text-[11px] text-muted-foreground font-medium">
-              {formatCurrencyCompact(config.monthlyBudget)} / mois
-            </p>
-            {!isCurrentMonth && (
-              <button
-                type="button"
-                onClick={onGoToCurrentMonth}
-                className="inline-flex items-center gap-1 h-5 px-2 text-[10px] rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors"
-              >
-                <Calendar className="w-3 h-3" />
-                Aujourd'hui
-              </button>
+
+          {/* Pending transactions to categorize */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setPendingSheetOpen(true)}
+            className="relative h-9 w-9 rounded-full bg-card/80 border border-border/60 shadow-sm text-foreground hover:bg-card"
+            title="Transactions à catégoriser"
+            aria-label="Transactions à catégoriser"
+          >
+            <Inbox className="w-4 h-4" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+                {pendingCount > 9 ? '9+' : pendingCount}
+              </span>
             )}
-          </div>
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 pl-1 mt-1.5">
+          <p className="text-[11px] text-muted-foreground font-medium">
+            {formatCurrencyCompact(config.monthlyBudget)} / mois
+          </p>
+          {!isCurrentMonth && (
+            <button
+              type="button"
+              onClick={onGoToCurrentMonth}
+              className="inline-flex items-center gap-1 h-5 px-2 text-[10px] rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors"
+            >
+              <Calendar className="w-3 h-3" />
+              Aujourd'hui
+            </button>
+          )}
         </div>
       </header>
 
