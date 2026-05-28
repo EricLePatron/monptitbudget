@@ -92,7 +92,7 @@ export function BudgetDashboard({
   const [savingsOpen, setSavingsOpen] = useState(false);
   const [bankSheetOpen, setBankSheetOpen] = useState(false);
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
-  const [animateAmount, setAnimateAmount] = useState(false);
+  
   const [stickerData, setStickerData] = useState<{ amount: number; name?: string } | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [overviewOpen, setOverviewOpen] = useState(false);
