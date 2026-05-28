@@ -238,6 +238,8 @@ export type Database = {
           emoji: string | null
           id: string
           name: string
+          parent_id: string | null
+          sort_order: number
         }
         Insert: {
           account_id: string
@@ -245,6 +247,8 @@ export type Database = {
           emoji?: string | null
           id?: string
           name: string
+          parent_id?: string | null
+          sort_order?: number
         }
         Update: {
           account_id?: string
@@ -252,6 +256,8 @@ export type Database = {
           emoji?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
+          sort_order?: number
         }
         Relationships: [
           {
@@ -259,6 +265,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
             referencedColumns: ["id"]
           },
         ]
