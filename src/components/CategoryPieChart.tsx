@@ -53,7 +53,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }
       </p>
 
       {/* Chart with center label */}
-      <div className="relative h-56 w-full">
+      <div className="relative h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

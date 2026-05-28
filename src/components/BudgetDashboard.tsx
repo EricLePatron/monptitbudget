@@ -256,28 +256,36 @@ export function BudgetDashboard({
         </div>
 
 
-        {/* Budget mensuel total restant */}
-        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-3 mt-2">
-          <div className="rounded-2xl bg-card/90 backdrop-blur border border-border/60 shadow-sm px-4 py-3 flex items-baseline justify-between gap-3">
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                Budget restant
-              </span>
+        {/* Budget mensuel — barre discrète */}
+        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-3 mt-2 px-1">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <div className="flex items-baseline gap-1.5">
               <span className={cn(
-                "text-2xl font-bold leading-tight",
+                "text-base font-display font-bold tabular-nums leading-none",
                 metrics.budgetRemaining < 0 ? "text-destructive" : "text-foreground"
               )}>
                 {formatCurrencyCompact(metrics.budgetRemaining)}
               </span>
-            </div>
-            <div className="flex flex-col items-end">
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                Sur
-              </span>
-              <span className="text-sm font-semibold text-muted-foreground">
-                {formatCurrencyCompact(config.monthlyBudget)}
+                restant
               </span>
             </div>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              / {formatCurrencyCompact(config.monthlyBudget)}
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                metrics.budgetRemaining < 0
+                  ? "bg-gradient-to-r from-destructive/80 to-destructive"
+                  : "bg-gradient-to-r from-primary/70 to-primary"
+              )}
+              style={{
+                width: `${Math.min(100, Math.max(0, (1 - metrics.budgetRemaining / Math.max(config.monthlyBudget, 1)) * 100))}%`,
+              }}
+            />
           </div>
         </div>
 
