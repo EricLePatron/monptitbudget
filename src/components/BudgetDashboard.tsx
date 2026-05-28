@@ -304,6 +304,16 @@ export function BudgetDashboard({
           />
         </div>
 
+        {/* Plafonds par catégorie — vue rapide de l'état */}
+        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4" style={{ animationDelay: '0.12s' }}>
+          <CategoryCapsList
+            categorySpending={categorySpending}
+            emojiMap={emojiMap}
+            onCategoryClick={openHistoryForCategory}
+            onOpenAll={() => setOverviewOpen(true)}
+          />
+        </div>
+
 
         {/* Spacer for FAB */}
         <div className="h-24" />
