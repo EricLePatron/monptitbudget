@@ -117,12 +117,13 @@ export function AddExpenseSheet({
     const value = parseFloat(amount);
     if (value > 0) {
       const dateStr = getDefaultDateStr();
-      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr, selectedSubcategory);
+      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr, selectedSubcategory, isDirectDebit);
       setAmount('');
       setName('');
       setSelectedCategory(undefined);
       setSelectedSubcategory(undefined);
       setSelectedDate(undefined);
+      setIsDirectDebit(false);
       onOpenChange(false);
     }
   };
