@@ -83,6 +83,7 @@ export function EditExpenseSheet({
         category: selectedCategory,
         subcategory: selectedSubcategory,
         date: dateStr,
+        isDirectDebit,
       });
       onOpenChange(false);
     }
