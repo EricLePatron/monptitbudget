@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 interface AddExpenseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => void;
   categories: ExpenseCategory[];
   parentCategories: ExpenseCategory[];
   subcategoriesOf: (parentId: string) => ExpenseCategory[];
