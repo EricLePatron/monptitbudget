@@ -28,11 +28,13 @@ export function ExpenseHistorySheet({
 }: ExpenseHistorySheetProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [directDebitFilter, setDirectDebitFilter] = useState<'all' | 'only' | 'none'>('all');
 
   useEffect(() => {
     if (open) {
       setSelectedCategory(initialCategory ?? null);
       setSelectedSubcategory(null);
+      setDirectDebitFilter('all');
     }
   }, [open, initialCategory]);
 
@@ -44,8 +46,13 @@ export function ExpenseHistorySheet({
   const filteredExpenses = expenses.filter(e => {
     if (selectedCategory && (e.category || 'Sans catégorie') !== selectedCategory) return false;
     if (selectedSubcategory && (e.subcategory || '') !== selectedSubcategory) return false;
+    if (directDebitFilter === 'only' && !e.isDirectDebit) return false;
+    if (directDebitFilter === 'none' && e.isDirectDebit) return false;
     return true;
   });
+
+  const directDebitCount = expenses.filter(e => e.isDirectDebit).length;
+  const directDebitTotal = expenses.filter(e => e.isDirectDebit).reduce((s, e) => s + e.amount, 0);
 
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
     if (!acc[expense.date]) acc[expense.date] = [];
