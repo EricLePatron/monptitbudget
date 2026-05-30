@@ -116,6 +116,33 @@ export function ExpenseHistorySheet({
 
         <ScrollArea className="h-[calc(100vh-100px)]">
           <div className="px-4 py-5 space-y-5">
+          {directDebitCount > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {(['all', 'only', 'none'] as const).map((mode) => {
+                const isActive = directDebitFilter === mode;
+                const label =
+                  mode === 'all'
+                    ? 'Tout'
+                    : mode === 'only'
+                    ? `🔁 Prélèvements · ${formatCurrencyCompact(directDebitTotal)}`
+                    : 'Hors prélèvements';
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDirectDebitFilter(mode)}
+                    className={`h-7 px-3 rounded-full text-[11px] font-semibold border transition-all ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {sortedCategories.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-border">
               <div className="flex items-center justify-between">
