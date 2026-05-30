@@ -346,6 +346,37 @@ export function AddExpenseSheet({
             ))}
           </div>
 
+          {/* Prélèvement toggle */}
+          <button
+            type="button"
+            onClick={() => setIsDirectDebit((v) => !v)}
+            className={cn(
+              'w-full flex items-center justify-between gap-3 rounded-xl border px-4 h-12 transition-all',
+              isDirectDebit
+                ? 'border-primary/50 bg-primary/10'
+                : 'border-border bg-secondary/40 hover:bg-secondary/60'
+            )}
+            aria-pressed={isDirectDebit}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔁</span>
+              <span className="text-sm font-medium">Prélèvement</span>
+            </div>
+            <span
+              className={cn(
+                'h-6 w-11 rounded-full relative transition-colors',
+                isDirectDebit ? 'bg-primary' : 'bg-muted'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all',
+                  isDirectDebit ? 'left-[22px]' : 'left-0.5'
+                )}
+              />
+            </span>
+          </button>
+
           {/* Scan Receipt Button */}
           <Button
             type="button"
