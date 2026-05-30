@@ -243,9 +243,29 @@ export function ExpenseHistorySheet({
                               <div className="flex items-center justify-between gap-2 mt-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                                   {expense.category && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCategory(expense.category!);
+                                        setSelectedSubcategory(null);
+                                      }}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+                                    >
                                       {expense.category}
-                                    </span>
+                                    </button>
+                                  )}
+                                  {expense.subcategory && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (expense.category) setSelectedCategory(expense.category);
+                                        setSelectedSubcategory(expense.subcategory!);
+                                      }}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-accent/40 text-foreground/80 font-medium border border-border/60 hover:bg-accent/60 transition-colors flex items-center gap-1"
+                                    >
+                                      <span>{getSubcategoryEmoji(expense.subcategory)}</span>
+                                      <span>{expense.subcategory}</span>
+                                    </button>
                                   )}
                                   <span className="text-[11px] text-muted-foreground">
                                     {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
