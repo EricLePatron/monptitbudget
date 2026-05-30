@@ -71,7 +71,7 @@ export function ExpenseHistorySheet({
   };
 
   const getSubcategoryEmoji = (subcategoryName: string) => {
-    const cat = categories.find(c => c.name === subcategoryName && c.parent_id);
+    const cat = categories.find(c => c.name === subcategoryName && c.parentId);
     return cat?.emoji || '🏷️';
   };
 
