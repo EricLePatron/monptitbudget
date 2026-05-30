@@ -161,8 +161,8 @@ export function BudgetDashboard({
 
   const metrics = calculateBudgetMetrics(config, expenses);
 
-  const handleAddExpense = (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => {
-    onAddExpense(amount, name, category, date, subcategory);
+  const handleAddExpense = (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => {
+    onAddExpense(amount, name, category, date, subcategory, isDirectDebit);
     setStickerData({ amount, name });
   };
 
