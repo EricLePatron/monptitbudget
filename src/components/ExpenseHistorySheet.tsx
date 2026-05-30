@@ -27,14 +27,25 @@ export function ExpenseHistorySheet({
   initialCategory,
 }: ExpenseHistorySheetProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) setSelectedCategory(initialCategory ?? null);
+    if (open) {
+      setSelectedCategory(initialCategory ?? null);
+      setSelectedSubcategory(null);
+    }
   }, [open, initialCategory]);
 
-  const filteredExpenses = selectedCategory
-    ? expenses.filter(e => (e.category || 'Sans catégorie') === selectedCategory)
-    : expenses;
+  // Reset subcategory when category changes
+  useEffect(() => {
+    setSelectedSubcategory(null);
+  }, [selectedCategory]);
+
+  const filteredExpenses = expenses.filter(e => {
+    if (selectedCategory && (e.category || 'Sans catégorie') !== selectedCategory) return false;
+    if (selectedSubcategory && (e.subcategory || '') !== selectedSubcategory) return false;
+    return true;
+  });
 
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
     if (!acc[expense.date]) acc[expense.date] = [];
@@ -58,6 +69,23 @@ export function ExpenseHistorySheet({
     const cat = categories.find(c => c.name === categoryName);
     return cat?.emoji || '📦';
   };
+
+  const getSubcategoryEmoji = (subcategoryName: string) => {
+    const cat = categories.find(c => c.name === subcategoryName && c.parent_id);
+    return cat?.emoji || '🏷️';
+  };
+
+  // Compute subcategory totals for the currently selected category
+  const subcategoryTotals = selectedCategory
+    ? expenses
+        .filter(e => (e.category || 'Sans catégorie') === selectedCategory && e.subcategory)
+        .reduce((acc, expense) => {
+          const sub = expense.subcategory as string;
+          acc[sub] = (acc[sub] || 0) + expense.amount;
+          return acc;
+        }, {} as Record<string, number>)
+    : {};
+  const sortedSubcategories = Object.entries(subcategoryTotals).sort((a, b) => b[1] - a[1]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
