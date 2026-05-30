@@ -22,6 +22,7 @@ export interface Expense {
   date: string; // YYYY-MM-DD
   createdAt: number;
   userEmail?: string; // Email of who created the expense
+  isDirectDebit?: boolean;
 }
 
 export interface BudgetState {
