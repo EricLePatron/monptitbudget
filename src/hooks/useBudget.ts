@@ -104,6 +104,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
             userEmail: (e as { user_email?: string }).user_email ?? undefined,
+            isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
           }))
         );
       } else {
