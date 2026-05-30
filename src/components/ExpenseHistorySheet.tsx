@@ -301,6 +301,16 @@ export function ExpenseHistorySheet({
                                       <span>{expense.subcategory}</span>
                                     </button>
                                   )}
+                                  {expense.isDirectDebit && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setDirectDebitFilter(prev => prev === 'only' ? 'all' : 'only')}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold border border-primary/30 hover:bg-primary/25 transition-colors flex items-center gap-1"
+                                    >
+                                      <span>🔁</span>
+                                      <span>Prélèvement</span>
+                                    </button>
+                                  )}
                                   <span className="text-[11px] text-muted-foreground">
                                     {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
                                       hour: '2-digit',
