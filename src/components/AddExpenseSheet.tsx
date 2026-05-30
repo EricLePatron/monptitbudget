@@ -47,6 +47,7 @@ export function AddExpenseSheet({
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isDirectDebit, setIsDirectDebit] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
