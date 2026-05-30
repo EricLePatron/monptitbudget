@@ -338,6 +338,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          is_direct_debit: boolean
           name: string | null
           subcategory: string | null
           suggested_category: string | null
@@ -353,6 +354,7 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          is_direct_debit?: boolean
           name?: string | null
           subcategory?: string | null
           suggested_category?: string | null
@@ -368,6 +370,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          is_direct_debit?: boolean
           name?: string | null
           subcategory?: string | null
           suggested_category?: string | null

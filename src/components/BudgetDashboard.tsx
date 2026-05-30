@@ -38,11 +38,11 @@ import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
-  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateExpense: (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string; isDirectDebit?: boolean }
   ) => Promise<void>;
   onUpdateConfig: (config: BudgetConfig) => void;
   // Account management
@@ -161,8 +161,8 @@ export function BudgetDashboard({
 
   const metrics = calculateBudgetMetrics(config, expenses);
 
-  const handleAddExpense = (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => {
-    onAddExpense(amount, name, category, date, subcategory);
+  const handleAddExpense = (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => {
+    onAddExpense(amount, name, category, date, subcategory, isDirectDebit);
     setStickerData({ amount, name });
   };
 

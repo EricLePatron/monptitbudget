@@ -28,11 +28,13 @@ export function ExpenseHistorySheet({
 }: ExpenseHistorySheetProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [directDebitFilter, setDirectDebitFilter] = useState<'all' | 'only' | 'none'>('all');
 
   useEffect(() => {
     if (open) {
       setSelectedCategory(initialCategory ?? null);
       setSelectedSubcategory(null);
+      setDirectDebitFilter('all');
     }
   }, [open, initialCategory]);
 
@@ -44,8 +46,13 @@ export function ExpenseHistorySheet({
   const filteredExpenses = expenses.filter(e => {
     if (selectedCategory && (e.category || 'Sans catégorie') !== selectedCategory) return false;
     if (selectedSubcategory && (e.subcategory || '') !== selectedSubcategory) return false;
+    if (directDebitFilter === 'only' && !e.isDirectDebit) return false;
+    if (directDebitFilter === 'none' && e.isDirectDebit) return false;
     return true;
   });
+
+  const directDebitCount = expenses.filter(e => e.isDirectDebit).length;
+  const directDebitTotal = expenses.filter(e => e.isDirectDebit).reduce((s, e) => s + e.amount, 0);
 
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
     if (!acc[expense.date]) acc[expense.date] = [];
@@ -109,6 +116,33 @@ export function ExpenseHistorySheet({
 
         <ScrollArea className="h-[calc(100vh-100px)]">
           <div className="px-4 py-5 space-y-5">
+          {directDebitCount > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {(['all', 'only', 'none'] as const).map((mode) => {
+                const isActive = directDebitFilter === mode;
+                const label =
+                  mode === 'all'
+                    ? 'Tout'
+                    : mode === 'only'
+                    ? `🔁 Prélèvements · ${formatCurrencyCompact(directDebitTotal)}`
+                    : 'Hors prélèvements';
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDirectDebitFilter(mode)}
+                    className={`h-7 px-3 rounded-full text-[11px] font-semibold border transition-all ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {sortedCategories.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-border">
               <div className="flex items-center justify-between">
@@ -265,6 +299,16 @@ export function ExpenseHistorySheet({
                                     >
                                       <span>{getSubcategoryEmoji(expense.subcategory)}</span>
                                       <span>{expense.subcategory}</span>
+                                    </button>
+                                  )}
+                                  {expense.isDirectDebit && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setDirectDebitFilter(prev => prev === 'only' ? 'all' : 'only')}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold border border-primary/30 hover:bg-primary/25 transition-colors flex items-center gap-1"
+                                    >
+                                      <span>🔁</span>
+                                      <span>Prélèvement</span>
                                     </button>
                                   )}
                                   <span className="text-[11px] text-muted-foreground">

@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 interface AddExpenseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string) => void;
+  onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => void;
   categories: ExpenseCategory[];
   parentCategories: ExpenseCategory[];
   subcategoriesOf: (parentId: string) => ExpenseCategory[];
@@ -47,6 +47,7 @@ export function AddExpenseSheet({
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isDirectDebit, setIsDirectDebit] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -116,12 +117,13 @@ export function AddExpenseSheet({
     const value = parseFloat(amount);
     if (value > 0) {
       const dateStr = getDefaultDateStr();
-      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr, selectedSubcategory);
+      onAddExpense(value, name.trim() || undefined, selectedCategory, dateStr, selectedSubcategory, isDirectDebit);
       setAmount('');
       setName('');
       setSelectedCategory(undefined);
       setSelectedSubcategory(undefined);
       setSelectedDate(undefined);
+      setIsDirectDebit(false);
       onOpenChange(false);
     }
   };
@@ -343,6 +345,37 @@ export function AddExpenseSheet({
               </Button>
             ))}
           </div>
+
+          {/* Prélèvement toggle */}
+          <button
+            type="button"
+            onClick={() => setIsDirectDebit((v) => !v)}
+            className={cn(
+              'w-full flex items-center justify-between gap-3 rounded-xl border px-4 h-12 transition-all',
+              isDirectDebit
+                ? 'border-primary/50 bg-primary/10'
+                : 'border-border bg-secondary/40 hover:bg-secondary/60'
+            )}
+            aria-pressed={isDirectDebit}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔁</span>
+              <span className="text-sm font-medium">Prélèvement</span>
+            </div>
+            <span
+              className={cn(
+                'h-6 w-11 rounded-full relative transition-colors',
+                isDirectDebit ? 'bg-primary' : 'bg-muted'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all',
+                  isDirectDebit ? 'left-[22px]' : 'left-0.5'
+                )}
+              />
+            </span>
+          </button>
 
           {/* Scan Receipt Button */}
           <Button
