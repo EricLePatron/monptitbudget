@@ -27,14 +27,25 @@ export function ExpenseHistorySheet({
   initialCategory,
 }: ExpenseHistorySheetProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) setSelectedCategory(initialCategory ?? null);
+    if (open) {
+      setSelectedCategory(initialCategory ?? null);
+      setSelectedSubcategory(null);
+    }
   }, [open, initialCategory]);
 
-  const filteredExpenses = selectedCategory
-    ? expenses.filter(e => (e.category || 'Sans catégorie') === selectedCategory)
-    : expenses;
+  // Reset subcategory when category changes
+  useEffect(() => {
+    setSelectedSubcategory(null);
+  }, [selectedCategory]);
+
+  const filteredExpenses = expenses.filter(e => {
+    if (selectedCategory && (e.category || 'Sans catégorie') !== selectedCategory) return false;
+    if (selectedSubcategory && (e.subcategory || '') !== selectedSubcategory) return false;
+    return true;
+  });
 
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
     if (!acc[expense.date]) acc[expense.date] = [];
@@ -58,6 +69,23 @@ export function ExpenseHistorySheet({
     const cat = categories.find(c => c.name === categoryName);
     return cat?.emoji || '📦';
   };
+
+  const getSubcategoryEmoji = (subcategoryName: string) => {
+    const cat = categories.find(c => c.name === subcategoryName && c.parentId);
+    return cat?.emoji || '🏷️';
+  };
+
+  // Compute subcategory totals for the currently selected category
+  const subcategoryTotals = selectedCategory
+    ? expenses
+        .filter(e => (e.category || 'Sans catégorie') === selectedCategory && e.subcategory)
+        .reduce((acc, expense) => {
+          const sub = expense.subcategory as string;
+          acc[sub] = (acc[sub] || 0) + expense.amount;
+          return acc;
+        }, {} as Record<string, number>)
+    : {};
+  const sortedSubcategories = Object.entries(subcategoryTotals).sort((a, b) => b[1] - a[1]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -91,20 +119,50 @@ export function ExpenseHistorySheet({
               </div>
 
               {selectedCategory && (
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
-                  <span className="text-sm text-primary flex-1">
-                    Filtre: {getCategoryEmoji(selectedCategory)} {selectedCategory}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-primary hover:text-primary hover:bg-primary/20"
-                    onClick={() => setSelectedCategory(null)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
+                    <span className="text-sm text-primary flex-1">
+                      Filtre: {getCategoryEmoji(selectedCategory)} {selectedCategory}
+                      {selectedSubcategory && (
+                        <> · {getSubcategoryEmoji(selectedSubcategory)} {selectedSubcategory}</>
+                      )}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-primary hover:text-primary hover:bg-primary/20"
+                      onClick={() => setSelectedCategory(null)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {sortedSubcategories.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 px-1">
+                      {sortedSubcategories.map(([sub, total]) => {
+                        const isSubSel = selectedSubcategory === sub;
+                        return (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => setSelectedSubcategory(prev => prev === sub ? null : sub)}
+                            className={`h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1 ${
+                              isSubSel
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground'
+                            }`}
+                          >
+                            <span>{getSubcategoryEmoji(sub)}</span>
+                            <span>{sub}</span>
+                            <span className="opacity-70 tabular-nums">· {formatCurrencyCompact(total)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
+
 
               <div className="space-y-3">
                 {sortedCategories.map(([category, total]) => {
@@ -185,9 +243,29 @@ export function ExpenseHistorySheet({
                               <div className="flex items-center justify-between gap-2 mt-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                                   {expense.category && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCategory(expense.category!);
+                                        setSelectedSubcategory(null);
+                                      }}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+                                    >
                                       {expense.category}
-                                    </span>
+                                    </button>
+                                  )}
+                                  {expense.subcategory && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (expense.category) setSelectedCategory(expense.category);
+                                        setSelectedSubcategory(expense.subcategory!);
+                                      }}
+                                      className="text-[10px] px-2 py-0.5 rounded-full bg-accent/40 text-foreground/80 font-medium border border-border/60 hover:bg-accent/60 transition-colors flex items-center gap-1"
+                                    >
+                                      <span>{getSubcategoryEmoji(expense.subcategory)}</span>
+                                      <span>{expense.subcategory}</span>
+                                    </button>
                                   )}
                                   <span className="text-[11px] text-muted-foreground">
                                     {new Date(expense.createdAt).toLocaleTimeString('fr-FR', {
