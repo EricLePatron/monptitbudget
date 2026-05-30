@@ -42,6 +42,7 @@ export function EditExpenseSheet({
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isDirectDebit, setIsDirectDebit] = useState(false);
   const initializedExpenseIdRef = useRef<string | null>(null);
 
   const cleanExpenseName = (value: string) => value.replace(/\s+/g, ' ').trim();
@@ -58,6 +59,7 @@ export function EditExpenseSheet({
       setName(cleanExpenseName(expense.name || ''));
       setSelectedCategory(expense.category);
       setSelectedSubcategory(expense.subcategory);
+      setIsDirectDebit(!!expense.isDirectDebit);
       // Parse the date string to Date object
       const [year, month, day] = expense.date.split('-').map(Number);
       setSelectedDate(new Date(year, month - 1, day));
