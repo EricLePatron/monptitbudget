@@ -19,7 +19,7 @@ interface EditExpenseSheetProps {
   expense: Expense | null;
   onUpdateExpense: (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string; isDirectDebit?: boolean }
   ) => Promise<void>;
   categories: ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
