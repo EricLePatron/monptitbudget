@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AccountMember } from '@/hooks/useAccountMembers';
-import { UserPlus, Trash2, Crown, User, Loader2 } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AccountMembersSheetProps {
@@ -15,6 +15,7 @@ interface AccountMembersSheetProps {
   loading: boolean;
   onInvite: (email: string) => Promise<boolean>;
   onRemove: (memberId: string) => Promise<void>;
+  onResend: (email: string) => Promise<boolean>;
 }
 
 export function AccountMembersSheet({
