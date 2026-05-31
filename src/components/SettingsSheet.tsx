@@ -82,12 +82,6 @@ export function SettingsSheet({
       subtitle: 'Synchroniser mes relevés',
       onClick: handle(onOpenBank),
     },
-    {
-      icon: CalendarClock,
-      title: 'Calendrier des prélèvements',
-      subtitle: 'Vue mensuelle de tes prélèvements récurrents',
-      onClick: handle(onOpenRecurringDebits),
-    },
   ];
 
   return (
