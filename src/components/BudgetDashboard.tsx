@@ -142,6 +142,9 @@ export function BudgetDashboard({
     saveConfig: saveCategoryConfig,
   } = useCategoryBudgets(currentAccount?.id ?? null, expenses);
 
+  // Auto-project recurring direct debits onto the displayed month
+  useAutoRecurringDebits(currentAccount?.id ?? null, config.year, config.month);
+
   // Emoji map for alerts
   const emojiMap = useMemo(
     () => Object.fromEntries(categories.map((c) => [c.name, c.emoji])),
