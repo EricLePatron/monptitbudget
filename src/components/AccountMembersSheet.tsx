@@ -94,15 +94,33 @@ export function AccountMembersSheet({
                       </p>
                     </div>
                     {isOwner && member.role !== 'owner' && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onRemove(member.id)}
-                        className="h-10 w-10 text-muted-foreground hover:text-budget-danger"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleResend(member)}
+                          disabled={resendingId === member.id}
+                          className="h-10 w-10 text-muted-foreground hover:text-primary"
+                          title="Renvoyer l'invitation"
+                          aria-label="Renvoyer l'invitation"
+                        >
+                          {resendingId === member.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Mail className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onRemove(member.id)}
+                          className="h-10 w-10 text-muted-foreground hover:text-budget-danger"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
