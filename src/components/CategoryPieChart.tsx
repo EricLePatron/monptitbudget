@@ -19,19 +19,28 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  const data = useMemo(() => {
+  // List shows everything actionable: any spent, or any cap defined
+  const listData = useMemo(() => {
     return categorySpending
-      .filter((s) => s.spent > 0)
-      .sort((a, b) => b.spent - a.spent)
+      .filter((s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount))
+      .sort((a, b) => {
+        const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
+        const r = rank(a.status) - rank(b.status);
+        if (r !== 0) return r;
+        return b.spent - a.spent;
+      })
       .map((s, i) => ({
         name: s.categoryName,
         value: s.spent,
         color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
         emoji: emojiMap[s.categoryName] ?? '📦',
-        cap: s.config && s.config.budgetType !== 'uncapped' ? s.config.capAmount ?? null : null,
+        cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
         status: s.status,
       }));
   }, [categorySpending, emojiMap]);
+
+  // Pie only shows spent
+  const data = useMemo(() => listData.filter((d) => d.value > 0), [listData]);
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
