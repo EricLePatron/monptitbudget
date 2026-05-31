@@ -119,6 +119,7 @@ export function BudgetDashboard({
     subcategoriesOf,
     addCategory,
     deleteCategory,
+    refetch: refetchCategories,
   } = useExpenseCategories(currentAccount?.id ?? null);
 
   // Pending DSP2 transactions
@@ -499,7 +500,10 @@ export function BudgetDashboard({
       {/* Category Tree Manager Sheet */}
       <CategoryTreeManagerSheet
         open={treeManagerOpen}
-        onOpenChange={setTreeManagerOpen}
+        onOpenChange={(o) => {
+          setTreeManagerOpen(o);
+          if (!o) refetchCategories();
+        }}
         accountId={currentAccount?.id ?? null}
       />
 
