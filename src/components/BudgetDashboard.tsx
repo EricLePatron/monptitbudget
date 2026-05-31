@@ -529,7 +529,19 @@ export function BudgetDashboard({
         onOpenOverview={() => setOverviewOpen(true)}
         onOpenCategoryTree={() => setTreeManagerOpen(true)}
         onOpenPending={() => setPendingSheetOpen(true)}
+        onOpenRecurringDebits={() => setRecurringDebitsOpen(true)}
         onSignOut={signOut}
+      />
+
+      {/* Recurring direct-debits calendar */}
+      <RecurringDebitsCalendarSheet
+        open={recurringDebitsOpen}
+        onOpenChange={setRecurringDebitsOpen}
+        accountId={currentAccount?.id ?? null}
+        accountName={currentAccount?.name}
+        targetMonth={config.month}
+        targetYear={config.year}
+        monthlyBudget={config.monthlyBudget}
       />
     </div>
   );
