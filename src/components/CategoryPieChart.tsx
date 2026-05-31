@@ -19,32 +19,62 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // List shows everything actionable: any spent, or any cap defined
-  const listData = useMemo(() => {
-    return categorySpending
-      .filter((s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount))
+  // Visible rows: any spent, or any cap defined
+  const visible = useMemo(
+    () =>
+      categorySpending.filter(
+        (s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount),
+      ),
+    [categorySpending],
+  );
+
+  const toRow = (s: typeof visible[number], i: number) => ({
+    name: s.categoryName,
+    value: s.spent,
+    color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+    emoji: emojiMap[s.categoryName] ?? '📦',
+    cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
+    status: s.status,
+    parentName: s.parentName,
+  });
+
+  // Parent rows only (for pie + top-level list ordering)
+  const parentRows = useMemo(() => {
+    const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
+    return visible
+      .filter((s) => !s.parentName)
       .sort((a, b) => {
-        const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
         const r = rank(a.status) - rank(b.status);
         if (r !== 0) return r;
         return b.spent - a.spent;
       })
-      .map((s, i) => ({
-        name: s.categoryName,
-        value: s.spent,
-        color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-        emoji: emojiMap[s.categoryName] ?? '📦',
-        cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
-        status: s.status,
-      }));
-  }, [categorySpending, emojiMap]);
+      .map(toRow);
+  }, [visible, emojiMap]);
 
-  // Pie only shows spent
-  const data = useMemo(() => listData.filter((d) => d.value > 0), [listData]);
+  // Subcategory rows grouped by parent name
+  const subsByParent = useMemo(() => {
+    const map: Record<string, ReturnType<typeof toRow>[]> = {};
+    visible
+      .filter((s) => !!s.parentName)
+      .forEach((s, i) => {
+        const row = toRow(s, i);
+        const p = s.parentName as string;
+        if (!map[p]) map[p] = [];
+        map[p].push(row);
+      });
+    // Sort each parent's subs by spend desc
+    for (const k of Object.keys(map)) {
+      map[k].sort((a, b) => b.value - a.value);
+    }
+    return map;
+  }, [visible, emojiMap]);
+
+  // Pie only shows parents with spend
+  const data = useMemo(() => parentRows.filter((d) => d.value > 0), [parentRows]);
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
-  if (listData.length === 0) {
+  if (visible.length === 0) {
     return (
       <div className="w-full rounded-3xl glass-card shadow-lg p-8 text-center">
         <p className="text-4xl mb-2">📊</p>
@@ -171,85 +201,136 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
         </div>
       )}
 
-      {/* Unified list — each row = catégorie + plafond inline */}
+      {/* Unified list — each row = catégorie + plafond inline, sous-catégories imbriquées */}
       <div className="mt-3 space-y-1.5">
-        {listData.map((d) => {
-          const pct = total > 0 ? (d.value / total) * 100 : 0;
-          const hasCap = d.cap !== null && d.cap > 0;
-          const capPct = hasCap ? Math.min(100, (d.value / (d.cap as number)) * 100) : 0;
-          const isExceeded = d.status === 'exceeded';
-          const isWarning = d.status === 'warning';
-          const pieIdx = data.findIndex((x) => x.name === d.name);
-
+        {parentRows.map((d) => {
+          const subs = subsByParent[d.name] ?? [];
           return (
-            <button
-              key={d.name}
-              type="button"
-              onMouseEnter={() => pieIdx >= 0 && setActiveIdx(pieIdx)}
-              onMouseLeave={() => setActiveIdx(null)}
-              onClick={() => onCategoryClick?.(d.name)}
-              className={cn(
-                'w-full text-left rounded-xl px-2.5 py-2 transition-all border',
-                isExceeded
-                  ? 'border-destructive/40 bg-destructive/5'
-                  : isWarning
-                    ? 'border-amber-500/40 bg-amber-500/5'
-                    : 'border-transparent hover:bg-card/60'
-              )}
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: d.color, boxShadow: `0 0 6px ${d.color}88` }}
-                />
-                <span className="text-base shrink-0">{d.emoji}</span>
-                <span className="flex-1 text-sm font-medium text-foreground truncate">{d.name}</span>
-                <div className="text-right shrink-0 tabular-nums">
-                  <p
-                    className={cn(
-                      'text-sm font-display font-semibold leading-tight',
-                      isExceeded ? 'text-destructive' : isWarning ? 'text-amber-500' : 'text-foreground'
-                    )}
-                  >
-                    {formatCurrencyCompact(d.value)}
-                    {hasCap && (
-                      <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                        / {formatCurrencyCompact(d.cap as number)}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {hasCap
-                      ? isExceeded
-                        ? `+${formatCurrencyCompact(d.value - (d.cap as number))} dépassé`
-                        : `${Math.round(capPct)}% du plafond`
-                      : d.value > 0
-                        ? `${pct.toFixed(1)}% du total`
-                        : 'Aucune dépense'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Cap progress bar (inline, only if cap defined) */}
-              {hasCap && (
-                <div className="mt-1.5 ml-7 h-1 rounded-full bg-muted/60 overflow-hidden">
-                  <div
-                    className={cn(
-                      'h-full rounded-full transition-all duration-500',
-                      isExceeded
-                        ? 'bg-destructive'
-                        : isWarning
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
-                    )}
-                    style={{ width: `${capPct}%` }}
-                  />
+            <div key={d.name} className="space-y-1">
+              <Row
+                d={d}
+                total={total}
+                pieIdx={data.findIndex((x) => x.name === d.name)}
+                setActiveIdx={setActiveIdx}
+                onCategoryClick={onCategoryClick}
+                isSub={false}
+              />
+              {subs.length > 0 && (
+                <div className="ml-5 pl-2 border-l border-border/50 space-y-1">
+                  {subs.map((sd) => (
+                    <Row
+                      key={sd.name}
+                      d={sd}
+                      total={d.value || total}
+                      pieIdx={-1}
+                      setActiveIdx={setActiveIdx}
+                      onCategoryClick={onCategoryClick}
+                      isSub
+                    />
+                  ))}
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
     </div>
+  );
+}
+
+interface RowProps {
+  d: {
+    name: string;
+    value: number;
+    color: string;
+    emoji: string;
+    cap: number | null;
+    status: string;
+  };
+  total: number;
+  pieIdx: number;
+  setActiveIdx: (i: number | null) => void;
+  onCategoryClick?: (name: string) => void;
+  isSub: boolean;
+}
+
+function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub }: RowProps) {
+  const pct = total > 0 ? (d.value / total) * 100 : 0;
+  const hasCap = d.cap !== null && d.cap > 0;
+  const capPct = hasCap ? Math.min(100, (d.value / (d.cap as number)) * 100) : 0;
+  const isExceeded = d.status === 'exceeded';
+  const isWarning = d.status === 'warning';
+
+  return (
+    <button
+      type="button"
+      onMouseEnter={() => pieIdx >= 0 && setActiveIdx(pieIdx)}
+      onMouseLeave={() => setActiveIdx(null)}
+      onClick={() => onCategoryClick?.(d.name)}
+      className={cn(
+        'w-full text-left rounded-xl transition-all border',
+        isSub ? 'px-2 py-1.5' : 'px-2.5 py-2',
+        isExceeded
+          ? 'border-destructive/40 bg-destructive/5'
+          : isWarning
+            ? 'border-amber-500/40 bg-amber-500/5'
+            : 'border-transparent hover:bg-card/60'
+      )}
+    >
+      <div className="flex items-center gap-2.5">
+        <span
+          className={cn('rounded-full shrink-0', isSub ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5')}
+          style={{ backgroundColor: d.color, boxShadow: isSub ? undefined : `0 0 6px ${d.color}88` }}
+        />
+        <span className={cn('shrink-0', isSub ? 'text-sm' : 'text-base')}>{d.emoji}</span>
+        <span
+          className={cn(
+            'flex-1 font-medium text-foreground truncate',
+            isSub ? 'text-xs text-muted-foreground' : 'text-sm'
+          )}
+        >
+          {d.name}
+        </span>
+        <div className="text-right shrink-0 tabular-nums">
+          <p
+            className={cn(
+              'font-display font-semibold leading-tight',
+              isSub ? 'text-xs' : 'text-sm',
+              isExceeded ? 'text-destructive' : isWarning ? 'text-amber-500' : 'text-foreground'
+            )}
+          >
+            {formatCurrencyCompact(d.value)}
+            {hasCap && (
+              <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                / {formatCurrencyCompact(d.cap as number)}
+              </span>
+            )}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {hasCap
+              ? isExceeded
+                ? `+${formatCurrencyCompact(d.value - (d.cap as number))} dépassé`
+                : `${Math.round(capPct)}% du plafond`
+              : !isSub && d.value > 0
+                ? `${pct.toFixed(1)}% du total`
+                : d.value > 0
+                  ? `${pct.toFixed(0)}% du parent`
+                  : 'Aucune dépense'}
+          </p>
+        </div>
+      </div>
+
+      {hasCap && (
+        <div className={cn('mt-1.5 h-1 rounded-full bg-muted/60 overflow-hidden', isSub ? 'ml-5' : 'ml-7')}>
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-500',
+              isExceeded ? 'bg-destructive' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+            )}
+            style={{ width: `${capPct}%` }}
+          />
+        </div>
+      )}
+    </button>
   );
 }

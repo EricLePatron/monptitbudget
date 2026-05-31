@@ -145,9 +145,22 @@ export function BudgetDashboard({
     [categories]
   );
 
+  // Map subcategory name → parent category name (used to nest subcat caps under their parent)
+  const subToParent = useMemo(() => {
+    const idToName: Record<string, string> = {};
+    for (const c of categories) idToName[c.id] = c.name;
+    const map: Record<string, string> = {};
+    for (const c of categories) {
+      if (c.parentId && idToName[c.parentId]) {
+        map[c.name] = idToName[c.parentId];
+      }
+    }
+    return map;
+  }, [categories]);
+
   const categorySpending = useMemo(
-    () => getCategorySpending(emojiMap),
-    [getCategorySpending, emojiMap]
+    () => getCategorySpending(emojiMap, subToParent),
+    [getCategorySpending, emojiMap, subToParent]
   );
 
   const alerts = useMemo(
