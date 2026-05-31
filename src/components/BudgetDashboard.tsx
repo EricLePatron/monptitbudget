@@ -32,7 +32,6 @@ import { Plus, History, Settings, ChevronLeft, ChevronRight, Calendar, Inbox } f
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { SettingsSheet } from './SettingsSheet';
 import { CategoryPieChart } from './CategoryPieChart';
-import { CategoryCapsList } from './CategoryCapsList';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
