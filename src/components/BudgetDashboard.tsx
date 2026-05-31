@@ -119,6 +119,7 @@ export function BudgetDashboard({
     subcategoriesOf,
     addCategory,
     deleteCategory,
+    refetch: refetchCategories,
   } = useExpenseCategories(currentAccount?.id ?? null);
 
   // Pending DSP2 transactions
