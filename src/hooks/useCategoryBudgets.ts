@@ -28,6 +28,8 @@ export interface CategorySpending {
   status: CategoryStatus;
   remaining?: number;         // remaining before cap (negative = exceeded)
   isOverCap: boolean;
+  /** If this entry represents a subcategory, the name of its parent category */
+  parentName?: string;
 }
 
 export interface CategoryAlert {
