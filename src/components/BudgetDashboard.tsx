@@ -29,6 +29,7 @@ import { useAccountMembers } from '@/hooks/useAccountMembers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
 import { usePendingTransactions } from '@/hooks/usePendingTransactions';
+import { useAutoRecurringDebits } from '@/hooks/useAutoRecurringDebits';
 import { Plus, History, Settings, ChevronLeft, ChevronRight, Calendar, Inbox } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { SettingsSheet } from './SettingsSheet';
