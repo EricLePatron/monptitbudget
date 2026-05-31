@@ -451,6 +451,7 @@ export function BudgetDashboard({
         loading={membersLoading}
         onInvite={inviteMember}
         onRemove={removeMember}
+        onResend={resendInvitation}
       />
 
       {/* Savings Sheet */}
