@@ -103,7 +103,7 @@ export function EditExpenseSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-3xl pb-8">
+      <SheetContent side="bottom" className="rounded-t-3xl pb-8 max-h-[90vh] overflow-y-auto overscroll-contain">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-center font-display text-xl">
             Modifier la dépense
