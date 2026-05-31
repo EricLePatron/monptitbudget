@@ -7,6 +7,7 @@ import {
   LogOut,
   FolderTree,
   ChevronRight,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
