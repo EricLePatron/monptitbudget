@@ -8,6 +8,7 @@ interface CategoryPieChartProps {
   categorySpending: CategorySpending[];
   emojiMap: Record<string, string>;
   onCategoryClick?: (categoryName: string) => void;
+  onManageCaps?: () => void;
 }
 
 const FALLBACK_COLORS = [
@@ -15,24 +16,35 @@ const FALLBACK_COLORS = [
   '#8b5cf6', '#ef4444', '#f97316', '#3b82f6', '#64748b',
 ];
 
-export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }: CategoryPieChartProps) {
+export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  const data = useMemo(() => {
+  // List shows everything actionable: any spent, or any cap defined
+  const listData = useMemo(() => {
     return categorySpending
-      .filter((s) => s.spent > 0)
-      .sort((a, b) => b.spent - a.spent)
+      .filter((s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount))
+      .sort((a, b) => {
+        const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
+        const r = rank(a.status) - rank(b.status);
+        if (r !== 0) return r;
+        return b.spent - a.spent;
+      })
       .map((s, i) => ({
         name: s.categoryName,
         value: s.spent,
         color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
         emoji: emojiMap[s.categoryName] ?? '📦',
+        cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
+        status: s.status,
       }));
   }, [categorySpending, emojiMap]);
 
+  // Pie only shows spent
+  const data = useMemo(() => listData.filter((d) => d.value > 0), [listData]);
+
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
-  if (data.length === 0) {
+  if (listData.length === 0) {
     return (
       <div className="w-full rounded-3xl glass-card shadow-lg p-8 text-center">
         <p className="text-4xl mb-2">📊</p>
@@ -40,6 +52,15 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }
         <p className="text-xs text-muted-foreground mt-1">
           Ajoutez votre première dépense pour voir le détail par catégorie
         </p>
+        {onManageCaps && (
+          <button
+            type="button"
+            onClick={onManageCaps}
+            className="mt-4 text-xs font-semibold text-primary hover:underline"
+          >
+            Configurer mes plafonds →
+          </button>
+        )}
       </div>
     );
   }
@@ -48,126 +69,183 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }
 
   return (
     <div className="w-full rounded-3xl glass-card shadow-lg p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground text-center mb-2">
-        Dépenses par catégorie
-      </p>
-
-      {/* Chart with center label */}
-      <div className="relative h-72 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius="58%"
-              outerRadius="92%"
-              paddingAngle={2}
-              stroke="none"
-              labelLine={false}
-              label={(props: any) => {
-                const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
-                const RAD = Math.PI / 180;
-                const r = innerRadius + (outerRadius - innerRadius) * 0.55;
-                const x = cx + r * Math.cos(-midAngle * RAD);
-                const y = cy + r * Math.sin(-midAngle * RAD);
-                const pct = (data[index].value / total) * 100;
-                if (pct < 4) return null;
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    style={{ fontSize: 16, pointerEvents: 'none' }}
-                  >
-                    {data[index].emoji}
-                  </text>
-                );
-              }}
-              onClick={(_, idx) => {
-                setActiveIdx(idx);
-                onCategoryClick?.(data[idx].name);
-              }}
-              onMouseEnter={(_, idx) => setActiveIdx(idx)}
-              onMouseLeave={() => setActiveIdx(null)}
-            >
-              {data.map((d, i) => (
-                <Cell
-                  key={d.name}
-                  fill={d.color}
-                  opacity={activeIdx === null || activeIdx === i ? 1 : 0.35}
-                  style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-
-        {/* Center label */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          {active ? (
-            <>
-              <span className="text-3xl leading-none mb-1">{active.emoji}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate max-w-[120px]">
-                {active.name}
-              </span>
-              <span className="font-display font-bold text-xl text-foreground tabular-nums mt-0.5">
-                {formatCurrencyCompact(active.value)}
-              </span>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {Math.round((active.value / total) * 100)}%
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Total dépensé
-              </span>
-              <span className="font-display font-bold text-2xl text-foreground tabular-nums mt-0.5">
-                {formatCurrencyCompact(total)}
-              </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                {data.length} catégorie{data.length > 1 ? 's' : ''}
-              </span>
-            </>
-          )}
-        </div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          Catégories & plafonds
+        </p>
+        {onManageCaps && (
+          <button
+            type="button"
+            onClick={onManageCaps}
+            className="text-[10px] font-semibold text-primary hover:underline"
+          >
+            Gérer
+          </button>
+        )}
       </div>
 
-      {/* Legend list */}
-      <div className="mt-4 space-y-1.5 max-h-72 overflow-y-auto pr-1">
-        {data.map((d, i) => {
-          const pct = (d.value / total) * 100;
-          const isActive = activeIdx === i;
+      {/* Chart with center label — only if there are actual expenses */}
+      {data.length > 0 && (
+        <div className="relative h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius="58%"
+                outerRadius="92%"
+                paddingAngle={2}
+                stroke="none"
+                labelLine={false}
+                label={(props: any) => {
+                  const { cx, cy, midAngle, innerRadius, outerRadius, index } = props;
+                  const RAD = Math.PI / 180;
+                  const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+                  const x = cx + r * Math.cos(-midAngle * RAD);
+                  const y = cy + r * Math.sin(-midAngle * RAD);
+                  const pct = (data[index].value / total) * 100;
+                  if (pct < 4) return null;
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      style={{ fontSize: 16, pointerEvents: 'none' }}
+                    >
+                      {data[index].emoji}
+                    </text>
+                  );
+                }}
+                onClick={(_, idx) => {
+                  setActiveIdx(idx);
+                  onCategoryClick?.(data[idx].name);
+                }}
+                onMouseEnter={(_, idx) => setActiveIdx(idx)}
+                onMouseLeave={() => setActiveIdx(null)}
+              >
+                {data.map((d, i) => (
+                  <Cell
+                    key={d.name}
+                    fill={d.color}
+                    opacity={activeIdx === null || activeIdx === i ? 1 : 0.35}
+                    style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+
+          {/* Center label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            {active ? (
+              <>
+                <span className="text-3xl leading-none mb-1">{active.emoji}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate max-w-[120px]">
+                  {active.name}
+                </span>
+                <span className="font-display font-bold text-xl text-foreground tabular-nums mt-0.5">
+                  {formatCurrencyCompact(active.value)}
+                </span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {Math.round((active.value / total) * 100)}%
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Total dépensé
+                </span>
+                <span className="font-display font-bold text-2xl text-foreground tabular-nums mt-0.5">
+                  {formatCurrencyCompact(total)}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  {data.length} catégorie{data.length > 1 ? 's' : ''}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Unified list — each row = catégorie + plafond inline */}
+      <div className="mt-3 space-y-1.5">
+        {listData.map((d) => {
+          const pct = total > 0 ? (d.value / total) * 100 : 0;
+          const hasCap = d.cap !== null && d.cap > 0;
+          const capPct = hasCap ? Math.min(100, (d.value / (d.cap as number)) * 100) : 0;
+          const isExceeded = d.status === 'exceeded';
+          const isWarning = d.status === 'warning';
+          const pieIdx = data.findIndex((x) => x.name === d.name);
+
           return (
             <button
               key={d.name}
               type="button"
-              onMouseEnter={() => setActiveIdx(i)}
+              onMouseEnter={() => pieIdx >= 0 && setActiveIdx(pieIdx)}
               onMouseLeave={() => setActiveIdx(null)}
               onClick={() => onCategoryClick?.(d.name)}
               className={cn(
-                'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl transition-all text-left',
-                isActive ? 'bg-card/80' : 'hover:bg-card/50'
+                'w-full text-left rounded-xl px-2.5 py-2 transition-all border',
+                isExceeded
+                  ? 'border-destructive/40 bg-destructive/5'
+                  : isWarning
+                    ? 'border-amber-500/40 bg-amber-500/5'
+                    : 'border-transparent hover:bg-card/60'
               )}
             >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: d.color, boxShadow: `0 0 6px ${d.color}88` }}
-              />
-              <span className="text-base shrink-0">{d.emoji}</span>
-              <span className="flex-1 text-sm font-medium text-foreground truncate">{d.name}</span>
-              <div className="text-right shrink-0">
-                <p className="text-sm font-display font-semibold text-foreground tabular-nums leading-tight">
-                  {formatCurrencyCompact(d.value)}
-                </p>
-                <p className="text-[10px] text-muted-foreground tabular-nums">
-                  {pct.toFixed(1)}%
-                </p>
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: d.color, boxShadow: `0 0 6px ${d.color}88` }}
+                />
+                <span className="text-base shrink-0">{d.emoji}</span>
+                <span className="flex-1 text-sm font-medium text-foreground truncate">{d.name}</span>
+                <div className="text-right shrink-0 tabular-nums">
+                  <p
+                    className={cn(
+                      'text-sm font-display font-semibold leading-tight',
+                      isExceeded ? 'text-destructive' : isWarning ? 'text-amber-500' : 'text-foreground'
+                    )}
+                  >
+                    {formatCurrencyCompact(d.value)}
+                    {hasCap && (
+                      <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                        / {formatCurrencyCompact(d.cap as number)}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {hasCap
+                      ? isExceeded
+                        ? `+${formatCurrencyCompact(d.value - (d.cap as number))} dépassé`
+                        : `${Math.round(capPct)}% du plafond`
+                      : d.value > 0
+                        ? `${pct.toFixed(1)}% du total`
+                        : 'Aucune dépense'}
+                  </p>
+                </div>
               </div>
+
+              {/* Cap progress bar (inline, only if cap defined) */}
+              {hasCap && (
+                <div className="mt-1.5 ml-7 h-1 rounded-full bg-muted/60 overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all duration-500',
+                      isExceeded
+                        ? 'bg-destructive'
+                        : isWarning
+                          ? 'bg-amber-500'
+                          : 'bg-emerald-500'
+                    )}
+                    style={{ width: `${capPct}%` }}
+                  />
+                </div>
+              )}
             </button>
           );
         })}

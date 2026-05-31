@@ -32,7 +32,6 @@ import { Plus, History, Settings, ChevronLeft, ChevronRight, Calendar, Inbox } f
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { SettingsSheet } from './SettingsSheet';
 import { CategoryPieChart } from './CategoryPieChart';
-import { CategoryCapsList } from './CategoryCapsList';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
@@ -297,24 +296,17 @@ export function BudgetDashboard({
           </div>
         </div>
 
-        {/* Camembert des dépenses par catégorie */}
+        {/* Catégories & plafonds — vue unifiée */}
         <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4" style={{ animationDelay: '0.08s' }}>
           <CategoryPieChart
             categorySpending={categorySpending}
             emojiMap={emojiMap}
             onCategoryClick={openHistoryForCategory}
+            onManageCaps={() => setOverviewOpen(true)}
           />
         </div>
 
-        {/* Plafonds par catégorie — vue rapide de l'état */}
-        <div className="w-full max-w-sm relative z-10 animate-fade-in-up mb-4" style={{ animationDelay: '0.12s' }}>
-          <CategoryCapsList
-            categorySpending={categorySpending}
-            emojiMap={emojiMap}
-            onCategoryClick={openHistoryForCategory}
-            onOpenAll={() => setOverviewOpen(true)}
-          />
-        </div>
+
 
 
         {/* Spacer for FAB */}
