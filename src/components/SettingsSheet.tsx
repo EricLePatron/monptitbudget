@@ -48,6 +48,7 @@ export function SettingsSheet({
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
   onOpenPending: _onOpenPending,
+  onOpenRecurringDebits,
   onSignOut,
 }: SettingsSheetProps) {
   const handle = (fn: () => void) => () => {
