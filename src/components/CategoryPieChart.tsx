@@ -19,28 +19,58 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // List shows everything actionable: any spent, or any cap defined
-  const listData = useMemo(() => {
-    return categorySpending
-      .filter((s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount))
+  // Visible rows: any spent, or any cap defined
+  const visible = useMemo(
+    () =>
+      categorySpending.filter(
+        (s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount),
+      ),
+    [categorySpending],
+  );
+
+  const toRow = (s: typeof visible[number], i: number) => ({
+    name: s.categoryName,
+    value: s.spent,
+    color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+    emoji: emojiMap[s.categoryName] ?? '📦',
+    cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
+    status: s.status,
+    parentName: s.parentName,
+  });
+
+  // Parent rows only (for pie + top-level list ordering)
+  const parentRows = useMemo(() => {
+    const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
+    return visible
+      .filter((s) => !s.parentName)
       .sort((a, b) => {
-        const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
         const r = rank(a.status) - rank(b.status);
         if (r !== 0) return r;
         return b.spent - a.spent;
       })
-      .map((s, i) => ({
-        name: s.categoryName,
-        value: s.spent,
-        color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-        emoji: emojiMap[s.categoryName] ?? '📦',
-        cap: s.config && s.config.budgetType !== 'uncapped' ? (s.config.capAmount ?? null) : null,
-        status: s.status,
-      }));
-  }, [categorySpending, emojiMap]);
+      .map(toRow);
+  }, [visible, emojiMap]);
 
-  // Pie only shows spent
-  const data = useMemo(() => listData.filter((d) => d.value > 0), [listData]);
+  // Subcategory rows grouped by parent name
+  const subsByParent = useMemo(() => {
+    const map: Record<string, ReturnType<typeof toRow>[]> = {};
+    visible
+      .filter((s) => !!s.parentName)
+      .forEach((s, i) => {
+        const row = toRow(s, i);
+        const p = s.parentName as string;
+        if (!map[p]) map[p] = [];
+        map[p].push(row);
+      });
+    // Sort each parent's subs by spend desc
+    for (const k of Object.keys(map)) {
+      map[k].sort((a, b) => b.value - a.value);
+    }
+    return map;
+  }, [visible, emojiMap]);
+
+  // Pie only shows parents with spend
+  const data = useMemo(() => parentRows.filter((d) => d.value > 0), [parentRows]);
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
