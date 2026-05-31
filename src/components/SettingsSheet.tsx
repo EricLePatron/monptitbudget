@@ -23,7 +23,7 @@ interface SettingsSheetProps {
   onOpenOverview?: () => void;
   onOpenCategoryTree: () => void;
   onOpenPending: () => void;
-  onOpenRecurringDebits: () => void;
+  onOpenRecurringDebits?: () => void;
   onSignOut: () => void;
 }
 
