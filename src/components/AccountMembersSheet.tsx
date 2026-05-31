@@ -27,10 +27,12 @@ export function AccountMembersSheet({
   loading,
   onInvite,
   onRemove,
+  onResend,
 }: AccountMembersSheetProps) {
   const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +44,13 @@ export function AccountMembersSheet({
       setEmail('');
     }
     setIsInviting(false);
+  };
+
+  const handleResend = async (member: AccountMember) => {
+    if (!member.email || member.email === 'Utilisateur') return;
+    setResendingId(member.id);
+    await onResend(member.email);
+    setResendingId(null);
   };
 
   return (
