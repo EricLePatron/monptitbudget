@@ -333,7 +333,7 @@ export function BudgetDashboard({
       </main>
 
 
-      {/* Bottom action bar — History + Add expense + Settings */}
+      {/* Bottom action bar — History + Calendar + Add + Settings */}
       <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         <Button
           type="button"
@@ -346,14 +346,26 @@ export function BudgetDashboard({
         >
           <History className="w-5 h-5" />
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setRecurringDebitsOpen(true)}
+          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all"
+          title="Calendrier des prélèvements"
+          aria-label="Calendrier des prélèvements"
+        >
+          <CalendarClock className="w-5 h-5" />
+        </Button>
         {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
           <Button
-            size="lg"
+            size="icon"
             onClick={() => setSheetOpen(true)}
-            className="h-14 px-7 rounded-full shadow-xl text-base font-semibold"
+            className="h-16 w-16 rounded-full shadow-xl text-2xl font-bold"
+            title="Ajouter une dépense"
+            aria-label="Ajouter une dépense"
           >
-            <Plus className="mr-1.5 w-5 h-5" />
-            Ajouter
+            <Plus className="w-7 h-7" />
           </Button>
         )}
         <Button
