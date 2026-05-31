@@ -14,6 +14,7 @@ import { SavingsSheet } from './SavingsSheet';
 import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
 import { CategoryTreeManagerSheet } from './CategoryTreeManagerSheet';
 import { PendingTransactionsSheet } from './PendingTransactionsSheet';
+import { RecurringDebitsCalendarSheet } from './RecurringDebitsCalendarSheet';
 import {
   BudgetConfig,
   Expense,
@@ -99,6 +100,7 @@ export function BudgetDashboard({
   const [pendingSheetOpen, setPendingSheetOpen] = useState(false);
   const [treeManagerOpen, setTreeManagerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [recurringDebitsOpen, setRecurringDebitsOpen] = useState(false);
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
@@ -527,7 +529,19 @@ export function BudgetDashboard({
         onOpenOverview={() => setOverviewOpen(true)}
         onOpenCategoryTree={() => setTreeManagerOpen(true)}
         onOpenPending={() => setPendingSheetOpen(true)}
+        onOpenRecurringDebits={() => setRecurringDebitsOpen(true)}
         onSignOut={signOut}
+      />
+
+      {/* Recurring direct-debits calendar */}
+      <RecurringDebitsCalendarSheet
+        open={recurringDebitsOpen}
+        onOpenChange={setRecurringDebitsOpen}
+        accountId={currentAccount?.id ?? null}
+        accountName={currentAccount?.name}
+        targetMonth={config.month}
+        targetYear={config.year}
+        monthlyBudget={config.monthlyBudget}
       />
     </div>
   );

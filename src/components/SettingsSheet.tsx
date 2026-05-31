@@ -7,6 +7,7 @@ import {
   LogOut,
   FolderTree,
   ChevronRight,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ interface SettingsSheetProps {
   onOpenOverview?: () => void;
   onOpenCategoryTree: () => void;
   onOpenPending: () => void;
+  onOpenRecurringDebits: () => void;
   onSignOut: () => void;
 }
 
@@ -46,6 +48,7 @@ export function SettingsSheet({
   onOpenOverview: _onOpenOverview,
   onOpenCategoryTree,
   onOpenPending: _onOpenPending,
+  onOpenRecurringDebits,
   onSignOut,
 }: SettingsSheetProps) {
   const handle = (fn: () => void) => () => {
@@ -78,6 +81,12 @@ export function SettingsSheet({
       title: 'Connexion bancaire',
       subtitle: 'Synchroniser mes relevés',
       onClick: handle(onOpenBank),
+    },
+    {
+      icon: CalendarClock,
+      title: 'Calendrier des prélèvements',
+      subtitle: 'Vue mensuelle de tes prélèvements récurrents',
+      onClick: handle(onOpenRecurringDebits),
     },
   ];
 
