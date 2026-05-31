@@ -16,7 +16,7 @@ const FALLBACK_COLORS = [
   '#8b5cf6', '#ef4444', '#f97316', '#3b82f6', '#64748b',
 ];
 
-export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }: CategoryPieChartProps) {
+export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
   const data = useMemo(() => {
@@ -28,6 +28,8 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick }
         value: s.spent,
         color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
         emoji: emojiMap[s.categoryName] ?? '📦',
+        cap: s.config && s.config.budgetType !== 'uncapped' ? s.config.capAmount ?? null : null,
+        status: s.status,
       }));
   }, [categorySpending, emojiMap]);
 
