@@ -14,6 +14,7 @@ import { SavingsSheet } from './SavingsSheet';
 import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
 import { CategoryTreeManagerSheet } from './CategoryTreeManagerSheet';
 import { PendingTransactionsSheet } from './PendingTransactionsSheet';
+import { RecurringDebitsCalendarSheet } from './RecurringDebitsCalendarSheet';
 import {
   BudgetConfig,
   Expense,
