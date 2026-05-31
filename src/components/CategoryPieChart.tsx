@@ -8,6 +8,7 @@ interface CategoryPieChartProps {
   categorySpending: CategorySpending[];
   emojiMap: Record<string, string>;
   onCategoryClick?: (categoryName: string) => void;
+  onManageCaps?: () => void;
 }
 
 const FALLBACK_COLORS = [
