@@ -500,7 +500,10 @@ export function BudgetDashboard({
       {/* Category Tree Manager Sheet */}
       <CategoryTreeManagerSheet
         open={treeManagerOpen}
-        onOpenChange={setTreeManagerOpen}
+        onOpenChange={(o) => {
+          setTreeManagerOpen(o);
+          if (!o) refetchCategories();
+        }}
         accountId={currentAccount?.id ?? null}
       />
 
