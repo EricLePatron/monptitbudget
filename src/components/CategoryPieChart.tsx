@@ -44,7 +44,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
-  if (data.length === 0) {
+  if (listData.length === 0) {
     return (
       <div className="w-full rounded-3xl glass-card shadow-lg p-8 text-center">
         <p className="text-4xl mb-2">📊</p>
@@ -52,6 +52,15 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
         <p className="text-xs text-muted-foreground mt-1">
           Ajoutez votre première dépense pour voir le détail par catégorie
         </p>
+        {onManageCaps && (
+          <button
+            type="button"
+            onClick={onManageCaps}
+            className="mt-4 text-xs font-semibold text-primary hover:underline"
+          >
+            Configurer mes plafonds →
+          </button>
+        )}
       </div>
     );
   }
@@ -60,9 +69,20 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
   return (
     <div className="w-full rounded-3xl glass-card shadow-lg p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground text-center mb-2">
-        Dépenses par catégorie
-      </p>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          Catégories & plafonds
+        </p>
+        {onManageCaps && (
+          <button
+            type="button"
+            onClick={onManageCaps}
+            className="text-[10px] font-semibold text-primary hover:underline"
+          >
+            Gérer
+          </button>
+        )}
+      </div>
 
       {/* Chart with center label */}
       <div className="relative h-72 w-full">
