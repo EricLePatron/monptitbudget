@@ -109,7 +109,8 @@ export function BudgetDashboard({
     loading: membersLoading,
     isOwner,
     inviteMember,
-    removeMember
+    removeMember,
+    resendInvitation,
   } = useAccountMembers(sharingAccountId, sharingAccount?.name);
 
   // Get expense categories (with subcategory support)
@@ -450,6 +451,7 @@ export function BudgetDashboard({
         loading={membersLoading}
         onInvite={inviteMember}
         onRemove={removeMember}
+        onResend={resendInvitation}
       />
 
       {/* Savings Sheet */}

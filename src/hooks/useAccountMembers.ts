@@ -144,12 +144,25 @@ export function useAccountMembers(accountId: string | null, accountName?: string
     }
   };
 
+  const resendInvitation = async (email: string) => {
+    if (!user || !accountId) return false;
+    try {
+      await sendInvitationEmail(email);
+      toast.success(`Invitation renvoyée à ${email}`);
+      return true;
+    } catch {
+      toast.error("Erreur lors de l'envoi");
+      return false;
+    }
+  };
+
   return {
     members,
     loading,
     isOwner,
     inviteMember,
     removeMember,
+    resendInvitation,
     refetch: loadMembers,
   };
 }
