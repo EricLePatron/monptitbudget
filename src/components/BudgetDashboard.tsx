@@ -187,8 +187,10 @@ export function BudgetDashboard({
   };
 
   const [historyInitialCategory, setHistoryInitialCategory] = useState<string | null>(null);
-  const openHistoryForCategory = (cat: string) => {
+  const [historyInitialSubcategory, setHistoryInitialSubcategory] = useState<string | null>(null);
+  const openHistoryForCategory = (cat: string, sub?: string) => {
     setHistoryInitialCategory(cat);
+    setHistoryInitialSubcategory(sub ?? null);
     setHistoryOpen(true);
   };
 
