@@ -87,31 +87,16 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     });
   };
 
-  // CHART: show ALL top-level categories with spend (aggregating subcategory spend into their parent)
+  // CHART: show ALL top-level categories with spend.
+  // NOTE: parent.spent already includes subcategory expenses (each expense carries
+  // its parent category in `expense.category`), so we must NOT add subsSpend again.
   const data = useMemo(() => {
-    const subParentNames = new Set(
-      categorySpending.filter((s) => !!s.parentName).map((s) => s.parentName as string),
-    );
-    const topLevel = categorySpending.filter((s) => !s.parentName && !subParentNames.has(s.categoryName));
-    const parentsWithSubs = Array.from(subParentNames).map((parentName) => {
-      const parent = categorySpending.find((s) => !s.parentName && s.categoryName === parentName);
-      const subsSpend = categorySpending
-        .filter((s) => s.parentName === parentName)
-        .reduce((acc, s) => acc + s.spent, 0);
-      const ownSpend = parent?.spent ?? 0;
-      return {
-        categoryName: parentName,
-        spent: ownSpend + subsSpend,
-        config: parent?.config,
-        status: parent?.status ?? 'ok',
-        parentName: null as string | null,
-      } as CategorySpending;
-    });
-    return [...topLevel, ...parentsWithSubs]
-      .filter((s) => s.spent > 0)
+    return categorySpending
+      .filter((s) => !s.parentName && s.spent > 0)
       .sort((a, b) => b.spent - a.spent)
       .map(toRow);
   }, [categorySpending, emojiMap]);
+
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
