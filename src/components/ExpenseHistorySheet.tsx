@@ -375,7 +375,8 @@ export function ExpenseHistorySheet({
                     })}
                 </div>
               </div>
-            ))
+              );
+            })
           )}
           </div>
         </ScrollArea>
