@@ -70,6 +70,30 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     return map;
   }, [visible, emojiMap]);
 
+  // Collapsible subcategories: expanded by default only when a sub has a cap
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setExpandedParents((prev) => {
+      const next = new Set(prev);
+      for (const [parent, subs] of Object.entries(subsByParent)) {
+        if (subs.some((s) => s.cap !== null && s.cap > 0)) {
+          next.add(parent);
+        }
+      }
+      return next;
+    });
+  }, [subsByParent]);
+
+  const toggleParent = (name: string) => {
+    setExpandedParents((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
   // Pie only shows parents with spend
   const data = useMemo(() => parentRows.filter((d) => d.value > 0), [parentRows]);
 
