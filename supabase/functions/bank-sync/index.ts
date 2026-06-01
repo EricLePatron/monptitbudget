@@ -100,7 +100,8 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
     const userEmail = userData.user.email;
 
-    const { account_id } = await req.json();
+    const body = await req.json();
+    const { account_id } = body;
     if (!account_id) {
       return new Response(JSON.stringify({ error: 'account_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -129,10 +130,12 @@ Deno.serve(async (req) => {
     const categoryNames = (catsData || []).map((c: { name: string }) => c.name);
     if (categoryNames.length === 0) categoryNames.push('Autre');
 
-    // Trouve le budget du mois courant
+    // Trouve le budget du mois demandé (mois courant par défaut)
     const today = new Date();
-    const month = today.getMonth();
-    const year = today.getFullYear();
+    const requestedMonth = Number.isInteger(body?.target_month) ? Number(body.target_month) : today.getMonth();
+    const requestedYear = Number.isInteger(body?.target_year) ? Number(body.target_year) : today.getFullYear();
+    const month = Math.min(11, Math.max(0, requestedMonth));
+    const year = Math.max(2000, Math.min(2100, requestedYear));
 
     const { data: budget } = await supabase
       .from('budgets')
@@ -210,28 +213,17 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Nettoyage : supprimer les dépenses déjà importées qui ne devraient plus l'être
-      // (libellé exclu OU hors mois budget courant)
+        // Nettoyage : ne touche qu'au budget du mois synchronisé.
+        // Important : ne jamais supprimer les dépenses des mois passés quand on sync le mois courant.
       try {
-        const { data: accountBudgets } = await supabase
-          .from('budgets')
-          .select('id, month, year')
-          .eq('account_id', account_id);
-
-        const budgetById = new Map((accountBudgets || []).map((b: { id: string; month: number; year: number }) => [b.id, b]));
-        const budgetIds = Array.from(budgetById.keys());
-
-        if (budgetIds.length > 0) {
           const { data: importedExpenses } = await supabase
             .from('expenses')
-            .select('id, budget_id, name, date')
-            .in('budget_id', budgetIds)
+            .select('id, name, date')
+            .eq('budget_id', budget.id)
             .like('name', '🏦%');
 
           const staleExpenseIds = (importedExpenses || [])
-            .filter((e: { id: string; budget_id: string; name: string | null; date: string }) => {
-              const expenseBudget = budgetById.get(e.budget_id);
-              if (!expenseBudget || expenseBudget.month !== month || expenseBudget.year !== year) return true;
+            .filter((e: { id: string; name: string | null; date: string }) => {
               return !isAllowedCardExpense(e.name || '', e.date);
             })
             .map((e: { id: string }) => e.id);
@@ -240,12 +232,16 @@ Deno.serve(async (req) => {
             await supabase.from('expenses').delete().in('id', staleExpenseIds);
             totalDeleted += staleExpenseIds.length;
           }
-        }
+
+        const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
+        const endOfMonth = new Date(year, month + 1, 0).toISOString().split('T')[0];
 
         const { data: alreadySynced } = await supabase
           .from('bank_synced_transactions')
           .select('id, expense_id, description, transaction_date')
-          .eq('bank_connection_id', conn.id);
+          .eq('bank_connection_id', conn.id)
+          .gte('transaction_date', startOfMonth)
+          .lte('transaction_date', endOfMonth);
 
         const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
           return !isAllowedCardExpense(s.description || '', s.transaction_date);
