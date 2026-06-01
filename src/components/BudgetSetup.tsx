@@ -110,6 +110,16 @@ export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth,
             Retour au mois en cours
           </button>
         )}
+        {onViewPastMonths && (
+          <button
+            type="button"
+            onClick={onViewPastMonths}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <History className="w-4 h-4" />
+            Consulter les mois précédents
+          </button>
+        )}
 
         {/* Icon */}
         <div className="flex justify-center">
