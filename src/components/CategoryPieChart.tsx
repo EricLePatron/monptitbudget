@@ -230,6 +230,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
       <div className="mt-3 space-y-1.5">
         {parentRows.map((d) => {
           const subs = subsByParent[d.name] ?? [];
+          const isExpanded = expandedParents.has(d.name);
           return (
             <div key={d.name} className="space-y-1">
               <Row
@@ -239,8 +240,11 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
                 setActiveIdx={setActiveIdx}
                 onCategoryClick={onCategoryClick}
                 isSub={false}
+                hasSubs={subs.length > 0}
+                isExpanded={isExpanded}
+                onToggleExpand={() => toggleParent(d.name)}
               />
-              {subs.length > 0 && (
+              {isExpanded && subs.length > 0 && (
                 <div className="ml-5 pl-2 border-l border-border/50 space-y-1">
                   {subs.map((sd) => (
                     <Row
