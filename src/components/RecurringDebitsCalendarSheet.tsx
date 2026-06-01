@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CalendarClock, TrendingDown, Loader2 } from 'lucide-react';
+import { CalendarClock, TrendingDown, Loader2, Clock, Check } from 'lucide-react';
 import { useRecurringDebits } from '@/hooks/useRecurringDebits';
 import { formatCurrencyCompact, getDaysInMonth, getMonthName } from '@/lib/budget';
 import { cn } from '@/lib/utils';
@@ -43,6 +43,15 @@ export function RecurringDebitsCalendarSheet({
 
   const daysInTarget = getDaysInMonth(targetMonth, targetYear);
 
+  // Today, relative to the displayed month
+  const now = new Date();
+  const isCurrentMonth =
+    now.getFullYear() === targetYear && now.getMonth() === targetMonth;
+  const isFutureMonth =
+    targetYear > now.getFullYear() ||
+    (targetYear === now.getFullYear() && targetMonth > now.getMonth());
+  const todayDay = isCurrentMonth ? now.getDate() : 0;
+
   const byDay = useMemo(() => {
     const map = new Map<number, typeof debits>();
     for (const d of debits) {
@@ -59,6 +68,18 @@ export function RecurringDebitsCalendarSheet({
     () => Array.from(byDay.keys()).sort((a, b) => a - b),
     [byDay],
   );
+
+  // Upcoming total = debits whose day is strictly after today (current month)
+  // or every debit (future month). Past month → 0.
+  const upcomingTotal = useMemo(() => {
+    if (isFutureMonth) return total;
+    if (!isCurrentMonth) return 0;
+    return debits.reduce(
+      (s, d) => (Math.min(d.day, daysInTarget) > todayDay ? s + d.amount : s),
+      0,
+    );
+  }, [debits, daysInTarget, isCurrentMonth, isFutureMonth, todayDay, total]);
+  const pastTotal = total - upcomingTotal;
 
   const usingFallback =
     debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== 4);
@@ -129,6 +150,31 @@ export function RecurringDebitsCalendarSheet({
                   }}
                 />
               </div>
+
+              {/* Past vs upcoming split */}
+              {(isCurrentMonth || isFutureMonth) && upcomingTotal > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-muted/40 border border-border/40 px-2.5 py-2">
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Déjà prélevé
+                    </p>
+                    <p className="text-sm font-display font-bold tabular-nums text-foreground mt-0.5">
+                      −{formatCurrencyCompact(pastTotal)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-2.5 py-2">
+                    <p className="text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      À venir
+                    </p>
+                    <p className="text-sm font-display font-bold tabular-nums text-amber-700 dark:text-amber-300 mt-0.5">
+                      −{formatCurrencyCompact(upcomingTotal)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <p className="text-[10px] text-muted-foreground mt-2">
                 Basé sur les prélèvements de{' '}
                 <span className="font-semibold text-foreground">
@@ -147,25 +193,77 @@ export function RecurringDebitsCalendarSheet({
                   const dayTotal = items.reduce((s, d) => s + d.amount, 0);
                   running += dayTotal;
                   const remaining = monthlyBudget - running;
+                  const isPast = isCurrentMonth ? day < todayDay : !isFutureMonth && !isCurrentMonth;
+                  const isToday = isCurrentMonth && day === todayDay;
+                  const isUpcoming = isFutureMonth || (isCurrentMonth && day > todayDay);
                   return (
                     <div
                       key={day}
-                      className="rounded-2xl border border-border/60 bg-card/40 p-3"
+                      className={cn(
+                        'rounded-2xl border p-3 transition-colors',
+                        isToday
+                          ? 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
+                          : isUpcoming
+                            ? 'border-amber-500/30 bg-amber-500/[0.04]'
+                            : 'border-border/60 bg-card/40 opacity-70',
+                      )}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/30 flex flex-col items-center justify-center leading-none">
-                            <span className="text-[8px] uppercase tracking-wider text-primary font-bold">
+                          <div
+                            className={cn(
+                              'w-10 h-10 rounded-xl border flex flex-col items-center justify-center leading-none',
+                              isToday
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : isUpcoming
+                                  ? 'bg-amber-500/15 border-amber-500/40'
+                                  : 'bg-muted/60 border-border/60',
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'text-[8px] uppercase tracking-wider font-bold',
+                                isToday
+                                  ? 'text-primary-foreground/80'
+                                  : isUpcoming
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-muted-foreground',
+                              )}
+                            >
                               {getMonthName(targetMonth).slice(0, 3)}
                             </span>
-                            <span className="text-sm font-display font-bold text-foreground tabular-nums">
+                            <span
+                              className={cn(
+                                'text-sm font-display font-bold tabular-nums',
+                                isToday ? 'text-primary-foreground' : 'text-foreground',
+                              )}
+                            >
                               {day}
                             </span>
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-foreground">
-                              {items.length} prélèvement{items.length > 1 ? 's' : ''}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-semibold text-foreground">
+                                {items.length} prélèvement{items.length > 1 ? 's' : ''}
+                              </p>
+                              {isToday && (
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+                                  Aujourd'hui
+                                </span>
+                              )}
+                              {isUpcoming && !isToday && (
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center gap-0.5">
+                                  <Clock className="w-2.5 h-2.5" />
+                                  À venir
+                                </span>
+                              )}
+                              {isPast && (
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground flex items-center gap-0.5">
+                                  <Check className="w-2.5 h-2.5" />
+                                  Prélevé
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-muted-foreground tabular-nums">
                               −{formatCurrencyCompact(dayTotal)} ce jour
                             </p>
