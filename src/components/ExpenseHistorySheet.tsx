@@ -82,17 +82,27 @@ export function ExpenseHistorySheet({
     return cat?.emoji || '🏷️';
   };
 
-  // Compute subcategory totals for the currently selected category
-  const subcategoryTotals = selectedCategory
-    ? expenses
-        .filter(e => (e.category || 'Sans catégorie') === selectedCategory && e.subcategory)
-        .reduce((acc, expense) => {
-          const sub = expense.subcategory as string;
-          acc[sub] = (acc[sub] || 0) + expense.amount;
-          return acc;
-        }, {} as Record<string, number>)
-    : {};
-  const sortedSubcategories = Object.entries(subcategoryTotals).sort((a, b) => b[1] - a[1]);
+  // Compute subcategory totals grouped per parent category (all categories, not just selected)
+  const subcategoryTotalsByCategory = expenses.reduce((acc, expense) => {
+    if (!expense.subcategory) return acc;
+    const cat = expense.category || 'Sans catégorie';
+    if (!acc[cat]) acc[cat] = {};
+    acc[cat][expense.subcategory] = (acc[cat][expense.subcategory] || 0) + expense.amount;
+    return acc;
+  }, {} as Record<string, Record<string, number>>);
+
+  // Add subcategories that have a configured cap but no expenses (so they remain visible/clickable)
+  categories
+    .filter((c) => !!c.parentId)
+    .forEach((sub) => {
+      const parent = categories.find((p) => p.id === sub.parentId);
+      const parentName = parent?.name || 'Sans catégorie';
+      if (!subcategoryTotalsByCategory[parentName]) subcategoryTotalsByCategory[parentName] = {};
+      if (subcategoryTotalsByCategory[parentName][sub.name] === undefined) {
+        subcategoryTotalsByCategory[parentName][sub.name] = 0;
+      }
+    });
+
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const isUpcoming = (e: Expense) => e.isDirectDebit && e.date > todayStr;
