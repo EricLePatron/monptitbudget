@@ -123,6 +123,7 @@ const Index = () => {
           targetMonth={targetMonth}
           targetYear={targetYear}
           onGoBack={!isCurrentMonth ? goToCurrentMonth : undefined}
+          onViewPastMonths={isCurrentMonth ? goToPreviousMonth : undefined}
         />
       ) : (
         <BudgetDashboard
