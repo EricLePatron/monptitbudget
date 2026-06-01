@@ -94,6 +94,9 @@ export function ExpenseHistorySheet({
     : {};
   const sortedSubcategories = Object.entries(subcategoryTotals).sort((a, b) => b[1] - a[1]);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isUpcoming = (e: Expense) => e.isDirectDebit && e.date > todayStr;
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
