@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CategorySpending } from '@/hooks/useCategoryBudgets';
 import { formatCurrencyCompact } from '@/lib/budget';
