@@ -41,16 +41,12 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
   // Parent rows only (for pie + top-level list ordering)
   const parentRows = useMemo(() => {
-    const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
     return visible
       .filter((s) => !s.parentName)
-      .sort((a, b) => {
-        const r = rank(a.status) - rank(b.status);
-        if (r !== 0) return r;
-        return b.spent - a.spent;
-      })
+      .sort((a, b) => b.spent - a.spent)
       .map(toRow);
   }, [visible, emojiMap]);
+
 
   // Subcategory rows grouped by parent name
   const subsByParent = useMemo(() => {
@@ -292,15 +288,11 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, 
       onMouseLeave={() => setActiveIdx(null)}
       onClick={() => onCategoryClick?.(d.name)}
       className={cn(
-        'w-full text-left rounded-xl transition-all border',
-        isSub ? 'px-2 py-1.5' : 'px-2.5 py-2',
-        isExceeded
-          ? 'border-destructive/40 bg-destructive/5'
-          : isWarning
-            ? 'border-amber-500/40 bg-amber-500/5'
-            : 'border-transparent hover:bg-card/60'
+        'w-full text-left rounded-xl transition-all border border-transparent hover:bg-card/60',
+        isSub ? 'px-2 py-1.5' : 'px-2.5 py-2'
       )}
     >
+
       <div className="flex items-center gap-2.5">
         {!isSub && hasSubs && (
           <span
