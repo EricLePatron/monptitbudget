@@ -218,11 +218,11 @@ export function ExpenseHistorySheet({
                         isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : ''
                       }`}
                     >
-                      <div className="relative">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => handleCategoryClick(category)}
-                          className={`w-full text-left space-y-1.5 p-2.5 pr-11 rounded-xl transition-colors ${
+                          className={`flex-1 text-left space-y-1.5 p-2.5 rounded-xl transition-colors ${
                             isSelected ? '' : 'hover:bg-secondary/60'
                           }`}
                         >
@@ -255,11 +255,12 @@ export function ExpenseHistorySheet({
                               e.stopPropagation();
                               toggleExpanded(category);
                             }}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/80 active:bg-secondary transition-colors"
+                            className="shrink-0 mr-1 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-muted/70 hover:bg-muted active:bg-muted/50 transition-colors"
                             aria-label={isExpanded ? 'Replier les sous-catégories' : 'Déplier les sous-catégories'}
                           >
+                            <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{subs.length}</span>
                             <ChevronDown
-                              className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
+                              className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
                                 isExpanded ? 'rotate-180' : ''
                               }`}
                             />
