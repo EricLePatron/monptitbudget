@@ -240,7 +240,11 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
                 total={total}
                 pieIdx={data.findIndex((x) => x.name === d.name)}
                 setActiveIdx={setActiveIdx}
-                onCategoryClick={onCategoryClick}
+                onCategoryClick={
+                  d.parentName
+                    ? (subName) => onCategoryClick?.(d.parentName as string, subName)
+                    : onCategoryClick
+                }
                 isSub={false}
                 hasSubs={otherSubs.length > 0}
                 isExpanded={isExpanded}
