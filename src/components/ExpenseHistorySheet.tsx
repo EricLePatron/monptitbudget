@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Expense, formatCurrencyCompact, BudgetConfig } from '@/lib/budget';
-import { Trash2, Pencil, X, Clock, ChevronDown } from 'lucide-react';
+import { Trash2, Pencil, X, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 
