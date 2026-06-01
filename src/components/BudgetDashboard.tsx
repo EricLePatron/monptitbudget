@@ -187,8 +187,10 @@ export function BudgetDashboard({
   };
 
   const [historyInitialCategory, setHistoryInitialCategory] = useState<string | null>(null);
-  const openHistoryForCategory = (cat: string) => {
+  const [historyInitialSubcategory, setHistoryInitialSubcategory] = useState<string | null>(null);
+  const openHistoryForCategory = (cat: string, sub?: string) => {
     setHistoryInitialCategory(cat);
+    setHistoryInitialSubcategory(sub ?? null);
     setHistoryOpen(true);
   };
 
@@ -415,7 +417,10 @@ export function BudgetDashboard({
         open={historyOpen}
         onOpenChange={(open) => {
           setHistoryOpen(open);
-          if (!open) setHistoryInitialCategory(null);
+          if (!open) {
+            setHistoryInitialCategory(null);
+            setHistoryInitialSubcategory(null);
+          }
         }}
         expenses={expenses}
         onDeleteExpense={onDeleteExpense}
@@ -426,6 +431,7 @@ export function BudgetDashboard({
         categories={categories}
         budgetConfig={config}
         initialCategory={historyInitialCategory}
+        initialSubcategory={historyInitialSubcategory}
       />
 
 
