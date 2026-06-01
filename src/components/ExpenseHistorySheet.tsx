@@ -128,14 +128,6 @@ export function ExpenseHistorySheet({
     setSelectedCategory(prev => prev === category ? null : category);
   };
 
-  const toggleExpanded = (category: string) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      return next;
-    });
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
