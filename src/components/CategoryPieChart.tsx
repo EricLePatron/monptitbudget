@@ -41,16 +41,12 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
   // Parent rows only (for pie + top-level list ordering)
   const parentRows = useMemo(() => {
-    const rank = (st: string) => (st === 'exceeded' ? 0 : st === 'warning' ? 1 : 2);
     return visible
       .filter((s) => !s.parentName)
-      .sort((a, b) => {
-        const r = rank(a.status) - rank(b.status);
-        if (r !== 0) return r;
-        return b.spent - a.spent;
-      })
+      .sort((a, b) => b.spent - a.spent)
       .map(toRow);
   }, [visible, emojiMap]);
+
 
   // Subcategory rows grouped by parent name
   const subsByParent = useMemo(() => {
