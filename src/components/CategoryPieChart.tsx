@@ -282,6 +282,7 @@ interface RowProps {
     emoji: string;
     cap: number | null;
     status: string;
+    parentName?: string | null;
   };
   total: number;
   pieIdx: number;
