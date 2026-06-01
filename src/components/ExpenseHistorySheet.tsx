@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Expense, formatCurrencyCompact, BudgetConfig } from '@/lib/budget';
-import { Trash2, Pencil, X } from 'lucide-react';
+import { Trash2, Pencil, X, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 
@@ -93,6 +93,9 @@ export function ExpenseHistorySheet({
         }, {} as Record<string, number>)
     : {};
   const sortedSubcategories = Object.entries(subcategoryTotals).sort((a, b) => b[1] - a[1]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isUpcoming = (e: Expense) => e.isDirectDebit && e.date > todayStr;
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -246,23 +249,40 @@ export function ExpenseHistorySheet({
               Aucune dépense enregistrée
             </p>
           ) : (
-            sortedDates.map((date) => (
+            sortedDates.map((date) => {
+              const dayItems = groupedExpenses[date];
+              const allUpcoming = dayItems.every(isUpcoming);
+              const someUpcoming = dayItems.some(isUpcoming);
+              return (
               <div key={date} className="space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize">
-                  {formatDate(date)}
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize flex items-center gap-2">
+                  <span>{formatDate(date)}</span>
+                  {(allUpcoming || (someUpcoming && date > todayStr)) && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-bold normal-case tracking-normal">
+                      <Clock className="w-2.5 h-2.5" />
+                      À venir
+                    </span>
+                  )}
                 </h3>
                 <div className="space-y-2">
-                  {groupedExpenses[date]
+                  {dayItems
                     .sort((a, b) => b.createdAt - a.createdAt)
                     .map((expense) => {
                       const emoji = getCategoryEmoji(expense.category || '');
+                      const upcoming = isUpcoming(expense);
                       return (
                         <div
                           key={expense.id}
-                          className="group relative p-3 rounded-2xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
+                          className={`group relative p-3 rounded-2xl border transition-all ${
+                            upcoming
+                              ? 'bg-amber-500/[0.06] border-amber-500/30 hover:border-amber-500/50'
+                              : 'bg-gradient-to-br from-secondary/60 to-secondary/30 border-border/50 hover:border-primary/30 hover:shadow-md'
+                          }`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="shrink-0 w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center text-xl shadow-sm">
+                            <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm ${
+                              upcoming ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-background/80'
+                            }`}>
                               {emoji}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -270,7 +290,9 @@ export function ExpenseHistorySheet({
                                 <p className="font-semibold text-foreground text-sm leading-snug break-words pr-1">
                                   {expense.name || 'Dépense'}
                                 </p>
-                                <span className="font-display font-bold text-base text-foreground tabular-nums shrink-0">
+                                <span className={`font-display font-bold text-base tabular-nums shrink-0 ${
+                                  upcoming ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'
+                                }`}>
                                   -{formatCurrencyCompact(expense.amount)}
                                 </span>
                               </div>
@@ -305,10 +327,14 @@ export function ExpenseHistorySheet({
                                     <button
                                       type="button"
                                       onClick={() => setDirectDebitFilter(prev => prev === 'only' ? 'all' : 'only')}
-                                      className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold border border-primary/30 hover:bg-primary/25 transition-colors flex items-center gap-1"
+                                      className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors flex items-center gap-1 ${
+                                        upcoming
+                                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/25'
+                                          : 'bg-primary/15 text-primary border-primary/30 hover:bg-primary/25'
+                                      }`}
                                     >
                                       <span>🔁</span>
-                                      <span>Prélèvement</span>
+                                      <span>{upcoming ? 'Prélèvement à venir' : 'Prélèvement'}</span>
                                     </button>
                                   )}
                                   <span className="text-[11px] text-muted-foreground">
@@ -349,7 +375,8 @@ export function ExpenseHistorySheet({
                     })}
                 </div>
               </div>
-            ))
+              );
+            })
           )}
           </div>
         </ScrollArea>
