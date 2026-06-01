@@ -70,20 +70,8 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     return map;
   }, [visible, emojiMap]);
 
-  // Collapsible subcategories: expanded by default only when a sub has a cap
+  // Subs with cap are always visible; others are collapsible (collapsed by default)
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    setExpandedParents((prev) => {
-      const next = new Set(prev);
-      for (const [parent, subs] of Object.entries(subsByParent)) {
-        if (subs.some((s) => s.cap !== null && s.cap > 0)) {
-          next.add(parent);
-        }
-      }
-      return next;
-    });
-  }, [subsByParent]);
 
   const toggleParent = (name: string) => {
     setExpandedParents((prev) => {
