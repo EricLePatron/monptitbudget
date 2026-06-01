@@ -408,29 +408,63 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const { data: expense, error: expErr } = await supabase
+          // Si une projection de prélèvement récurrent (même budget, même montant,
+          // is_direct_debit=true) existe à une autre date, on l'adapte à la réalité
+          // au lieu de créer un doublon.
+          const { data: projectedDebit } = await supabase
             .from('expenses')
-            .insert({
-              user_id: userId,
-              budget_id: budget.id,
-              amount,
-              name: `🏦 ${desc}`,
-              category: categories[i],
-              date,
-            })
-            .select()
-            .single();
+            .select('id, date, name')
+            .eq('budget_id', budget.id)
+            .eq('amount', amount)
+            .eq('is_direct_debit', true)
+            .neq('date', date)
+            .limit(1)
+            .maybeSingle();
 
-          if (expErr) {
-            console.error('Expense insert error:', expErr);
-            continue;
+          let expense: { id: string } | null = null;
+
+          if (projectedDebit) {
+            const { data: updated, error: updErr } = await supabase
+              .from('expenses')
+              .update({
+                date,
+                name: `🏦 ${desc}`,
+                category: categories[i],
+                validation_status: 'validated',
+              })
+              .eq('id', projectedDebit.id)
+              .select('id')
+              .single();
+            if (updErr) {
+              console.error('Projected debit update error:', updErr);
+              continue;
+            }
+            expense = updated;
+          } else {
+            const { data: inserted, error: expErr } = await supabase
+              .from('expenses')
+              .insert({
+                user_id: userId,
+                budget_id: budget.id,
+                amount,
+                name: `🏦 ${desc}`,
+                category: categories[i],
+                date,
+              })
+              .select('id')
+              .single();
+            if (expErr) {
+              console.error('Expense insert error:', expErr);
+              continue;
+            }
+            expense = inserted;
           }
 
           const { error: syncErr } = await supabase.from('bank_synced_transactions').insert({
             bank_connection_id: conn.id,
             account_id,
             transaction_id: txId,
-            expense_id: expense.id,
+            expense_id: expense!.id,
             amount,
             transaction_date: date,
             description: desc,
@@ -438,7 +472,9 @@ Deno.serve(async (req) => {
 
           if (syncErr) {
             console.error('Synced transaction insert error:', syncErr);
-            await supabase.from('expenses').delete().eq('id', expense.id);
+            if (!projectedDebit) {
+              await supabase.from('expenses').delete().eq('id', expense!.id);
+            }
             existingAmountDateKeys.add(amountDateKey);
             continue;
           }
@@ -449,6 +485,7 @@ Deno.serve(async (req) => {
 
           totalImported++;
         }
+
 
         await supabase.from('bank_connections').update({ last_synced_at: new Date().toISOString() }).eq('id', conn.id);
       } catch (e) {
