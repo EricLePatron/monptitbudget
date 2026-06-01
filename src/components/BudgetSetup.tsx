@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BudgetConfig, Deduction, getMonthName, getDaysInMonth, formatCurrency } from '@/lib/budget';
-import { ArrowRight, Wallet, Plus, Trash2, Calculator, Sparkles, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Wallet, Plus, Trash2, Calculator, Sparkles, ArrowLeft, History } from 'lucide-react';
 
 interface BudgetSetupProps {
   onComplete: (config: BudgetConfig) => void;
@@ -14,10 +14,11 @@ interface BudgetSetupProps {
   targetMonth: number;
   targetYear: number;
   onGoBack?: () => void;
+  onViewPastMonths?: () => void;
 }
 
 
-export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth, targetYear, onGoBack }: BudgetSetupProps) {
+export function BudgetSetup({ onComplete, previousBudgetSuggestion, targetMonth, targetYear, onGoBack, onViewPastMonths }: BudgetSetupProps) {
   const [monthlyBudget, setMonthlyBudget] = useState<string>('');
   const [month] = useState<number>(targetMonth);
   const [year] = useState<number>(targetYear);
