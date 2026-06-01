@@ -279,7 +279,13 @@ export function useCategoryBudgets(
         for (const n of cappedConfigNames) {
           if (subToParent[n]) subNames.add(n);
         }
+        // Ensure parents of visible subcategories are included so they can be displayed
+        for (const n of subNames) {
+          const parent = subToParent[n];
+          if (parent) parentNames.add(parent);
+        }
       }
+
 
       const rows: CategorySpending[] = [];
       for (const n of parentNames) rows.push(buildRow(n, parentSpend[n] || 0));
