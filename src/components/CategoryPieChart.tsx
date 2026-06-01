@@ -358,11 +358,9 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, 
               ? isExceeded
                 ? `+${formatCurrencyCompact(d.value - (d.cap as number))} dépassé`
                 : `${Math.round(capPct)}% du plafond`
-              : !isSub && d.value > 0
-                ? `${pct.toFixed(1)}% du total`
-                : d.value > 0
-                  ? `${pct.toFixed(0)}% du parent`
-                  : 'Aucune dépense'}
+              : d.value === 0
+                ? 'Aucune dépense'
+                : ''}
           </p>
         </div>
       </div>
