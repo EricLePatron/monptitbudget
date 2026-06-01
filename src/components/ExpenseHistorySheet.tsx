@@ -15,6 +15,7 @@ interface ExpenseHistorySheetProps {
   categories: ExpenseCategory[];
   budgetConfig?: BudgetConfig | null;
   initialCategory?: string | null;
+  initialSubcategory?: string | null;
 }
 
 export function ExpenseHistorySheet({
@@ -25,23 +26,19 @@ export function ExpenseHistorySheet({
   onEditExpense,
   categories,
   initialCategory,
+  initialSubcategory,
 }: ExpenseHistorySheetProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(initialSubcategory ?? null);
   const [directDebitFilter, setDirectDebitFilter] = useState<'all' | 'only' | 'none'>('all');
 
   useEffect(() => {
     if (open) {
       setSelectedCategory(initialCategory ?? null);
-      setSelectedSubcategory(null);
+      setSelectedSubcategory(initialSubcategory ?? null);
       setDirectDebitFilter('all');
     }
-  }, [open, initialCategory]);
-
-  // Reset subcategory when category changes
-  useEffect(() => {
-    setSelectedSubcategory(null);
-  }, [selectedCategory]);
+  }, [open, initialCategory, initialSubcategory]);
 
   const filteredExpenses = expenses.filter(e => {
     if (selectedCategory && (e.category || 'Sans catégorie') !== selectedCategory) return false;
