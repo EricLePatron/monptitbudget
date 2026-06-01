@@ -281,9 +281,12 @@ interface RowProps {
   setActiveIdx: (i: number | null) => void;
   onCategoryClick?: (name: string) => void;
   isSub: boolean;
+  hasSubs?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub }: RowProps) {
+function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, isExpanded, onToggleExpand }: RowProps) {
   const pct = total > 0 ? (d.value / total) * 100 : 0;
   const hasCap = d.cap !== null && d.cap > 0;
   const capPct = hasCap ? Math.min(100, (d.value / (d.cap as number)) * 100) : 0;
@@ -307,6 +310,29 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub }: RowProp
       )}
     >
       <div className="flex items-center gap-2.5">
+        {!isSub && hasSubs && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExpand?.();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+                onToggleExpand?.();
+              }
+            }}
+            className="shrink-0 -ml-1 p-0.5 rounded-full hover:bg-secondary/60 transition-colors cursor-pointer"
+          >
+            {isExpanded ? (
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            )}
+          </span>
+        )}
         <span
           className={cn('rounded-full shrink-0', isSub ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5')}
           style={{ backgroundColor: d.color, boxShadow: isSub ? undefined : `0 0 6px ${d.color}88` }}
