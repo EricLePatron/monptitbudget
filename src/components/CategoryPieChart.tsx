@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CategorySpending } from '@/hooks/useCategoryBudgets';
 import { formatCurrencyCompact } from '@/lib/budget';
 import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface CategoryPieChartProps {
   categorySpending: CategorySpending[];
