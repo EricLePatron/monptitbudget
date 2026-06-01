@@ -20,7 +20,7 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // Visible rows: categories/subs with a cap, and parents of capped subs.
+  // Capped rows for the LIST below
   const visible = useMemo(() => {
     const hasCap = (s: CategorySpending) =>
       !!(s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount);
@@ -33,7 +33,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
   }, [categorySpending]);
 
 
-  const toRow = (s: typeof visible[number], i: number) => ({
+  const toRow = (s: CategorySpending, i: number) => ({
     name: s.categoryName,
     value: s.spent,
     color: s.config?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
@@ -43,13 +43,13 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     parentName: s.parentName,
   });
 
-  // Names that appear as a subcategory — they must never also be rendered as a top-level row
+  // Names that appear as a subcategory in the capped list — must not also be top-level
   const subNames = useMemo(
     () => new Set(visible.filter((s) => !!s.parentName).map((s) => s.categoryName)),
     [visible],
   );
 
-  // Parent rows only (for pie + top-level list ordering)
+  // Parent rows for the LIST (capped only)
   const parentRows = useMemo(() => {
     return visible
       .filter((s) => !s.parentName && !subNames.has(s.categoryName))
@@ -59,7 +59,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
 
 
-  // Subcategory rows grouped by parent name
+  // Subcategory rows grouped by parent name (capped only)
   const subsByParent = useMemo(() => {
     const map: Record<string, ReturnType<typeof toRow>[]> = {};
     visible
@@ -70,14 +70,12 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
         if (!map[p]) map[p] = [];
         map[p].push(row);
       });
-    // Sort each parent's subs by spend desc
     for (const k of Object.keys(map)) {
       map[k].sort((a, b) => b.value - a.value);
     }
     return map;
   }, [visible, emojiMap]);
 
-  // Subs with cap are always visible; others are collapsible (collapsed by default)
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
   const toggleParent = (name: string) => {
@@ -89,8 +87,31 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     });
   };
 
-  // Pie only shows parents with spend
-  const data = useMemo(() => parentRows.filter((d) => d.value > 0), [parentRows]);
+  // CHART: show ALL top-level categories with spend (aggregating subcategory spend into their parent)
+  const data = useMemo(() => {
+    const subParentNames = new Set(
+      categorySpending.filter((s) => !!s.parentName).map((s) => s.parentName as string),
+    );
+    const topLevel = categorySpending.filter((s) => !s.parentName && !subParentNames.has(s.categoryName));
+    const parentsWithSubs = Array.from(subParentNames).map((parentName) => {
+      const parent = categorySpending.find((s) => !s.parentName && s.categoryName === parentName);
+      const subsSpend = categorySpending
+        .filter((s) => s.parentName === parentName)
+        .reduce((acc, s) => acc + s.spent, 0);
+      const ownSpend = parent?.spent ?? 0;
+      return {
+        categoryName: parentName,
+        spent: ownSpend + subsSpend,
+        config: parent?.config,
+        status: parent?.status ?? 'ok',
+        parentName: null as string | null,
+      } as CategorySpending;
+    });
+    return [...topLevel, ...parentsWithSubs]
+      .filter((s) => s.spent > 0)
+      .sort((a, b) => b.spent - a.spent)
+      .map(toRow);
+  }, [categorySpending, emojiMap]);
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
