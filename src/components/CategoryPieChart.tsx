@@ -218,7 +218,10 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
       <div className="mt-3 space-y-1.5">
         {parentRows.map((d) => {
           const subs = subsByParent[d.name] ?? [];
+          const cappedSubs = subs.filter((s) => s.cap !== null && (s.cap as number) > 0);
+          const otherSubs = subs.filter((s) => !(s.cap !== null && (s.cap as number) > 0));
           const isExpanded = expandedParents.has(d.name);
+          const visibleSubs = isExpanded ? [...cappedSubs, ...otherSubs] : cappedSubs;
           return (
             <div key={d.name} className="space-y-1">
               <Row
@@ -228,13 +231,13 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
                 setActiveIdx={setActiveIdx}
                 onCategoryClick={onCategoryClick}
                 isSub={false}
-                hasSubs={subs.length > 0}
+                hasSubs={otherSubs.length > 0}
                 isExpanded={isExpanded}
                 onToggleExpand={() => toggleParent(d.name)}
               />
-              {isExpanded && subs.length > 0 && (
+              {visibleSubs.length > 0 && (
                 <div className="ml-5 pl-2 border-l border-border/50 space-y-1">
-                  {subs.map((sd) => (
+                  {visibleSubs.map((sd) => (
                     <Row
                       key={sd.name}
                       d={sd}
@@ -251,6 +254,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
           );
         })}
       </div>
+
     </div>
   );
 }
