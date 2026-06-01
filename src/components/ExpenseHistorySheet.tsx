@@ -218,7 +218,26 @@ export function ExpenseHistorySheet({
                         isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : ''
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {subs.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpanded(category);
+                            }}
+                            className="shrink-0 ml-1 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-muted/70 hover:bg-muted active:bg-muted/50 transition-colors"
+                            aria-label={isExpanded ? 'Replier les sous-catégories' : 'Déplier les sous-catégories'}
+                          >
+                            <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{subs.length}</span>
+                            <ChevronDown
+                              className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
+                                isExpanded ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => handleCategoryClick(category)}
@@ -247,25 +266,6 @@ export function ExpenseHistorySheet({
                             />
                           </div>
                         </button>
-
-                        {subs.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleExpanded(category);
-                            }}
-                            className="shrink-0 mr-1 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-muted/70 hover:bg-muted active:bg-muted/50 transition-colors"
-                            aria-label={isExpanded ? 'Replier les sous-catégories' : 'Déplier les sous-catégories'}
-                          >
-                            <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{subs.length}</span>
-                            <ChevronDown
-                              className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                                isExpanded ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
-                        )}
                       </div>
 
                       {subs.length > 0 && isExpanded && (
