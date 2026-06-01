@@ -209,6 +209,8 @@ export function ExpenseHistorySheet({
                     ? Object.entries(subcategoryTotalsByCategory[category]).sort((a, b) => b[1] - a[1])
                     : [];
 
+                  const isExpanded = expandedCategories.has(category);
+
                   return (
                     <div
                       key={category}
@@ -216,36 +218,56 @@ export function ExpenseHistorySheet({
                         isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : ''
                       }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => handleCategoryClick(category)}
-                        className={`w-full text-left space-y-1.5 p-2.5 rounded-xl transition-colors ${
-                          isSelected ? '' : 'hover:bg-secondary/60'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-base shrink-0">{getCategoryEmoji(category)}</span>
-                            <span className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                              {category}
-                            </span>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => handleCategoryClick(category)}
+                          className={`w-full text-left space-y-1.5 p-2.5 pr-11 rounded-xl transition-colors ${
+                            isSelected ? '' : 'hover:bg-secondary/60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base shrink-0">{getCategoryEmoji(category)}</span>
+                              <span className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                {category}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs text-muted-foreground tabular-nums">{percentage}%</span>
+                              <span className={`font-display font-semibold tabular-nums text-sm ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                {formatCurrencyCompact(total)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-muted-foreground tabular-nums">{percentage}%</span>
-                            <span className={`font-display font-semibold tabular-nums text-sm ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                              {formatCurrencyCompact(total)}
-                            </span>
+                          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/70'}`}
+                              style={{ width: `${barWidth}%` }}
+                            />
                           </div>
-                        </div>
-                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/70'}`}
-                            style={{ width: `${barWidth}%` }}
-                          />
-                        </div>
-                      </button>
+                        </button>
 
-                      {subs.length > 0 && (
+                        {subs.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpanded(category);
+                            }}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/80 active:bg-secondary transition-colors"
+                            aria-label={isExpanded ? 'Replier les sous-catégories' : 'Déplier les sous-catégories'}
+                          >
+                            <ChevronDown
+                              className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
+                                isExpanded ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {subs.length > 0 && isExpanded && (
                         <div className="flex flex-wrap gap-1.5 px-2.5 pb-2.5 pt-0.5">
                           {subs.map(([sub, subTotal]) => {
                             const isSubSel = selectedSubcategory === sub && selectedCategory === category;
