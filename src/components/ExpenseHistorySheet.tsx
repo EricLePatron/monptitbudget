@@ -122,7 +122,11 @@ export function ExpenseHistorySheet({
   };
 
   const handleCategoryClick = (category: string) => {
-    setSelectedCategory(prev => prev === category ? null : category);
+    setSelectedCategory(prev => {
+      const next = prev === category ? null : category;
+      setSelectedSubcategory(null);
+      return next;
+    });
   };
 
 
