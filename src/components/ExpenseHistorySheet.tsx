@@ -29,12 +29,14 @@ export function ExpenseHistorySheet({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [directDebitFilter, setDirectDebitFilter] = useState<'all' | 'only' | 'none'>('all');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (open) {
       setSelectedCategory(initialCategory ?? null);
       setSelectedSubcategory(null);
       setDirectDebitFilter('all');
+      setExpandedCategories(initialCategory ? new Set([initialCategory]) : new Set());
     }
   }, [open, initialCategory]);
 
