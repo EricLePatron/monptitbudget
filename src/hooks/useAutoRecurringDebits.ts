@@ -106,7 +106,7 @@ export function useAutoRecurringDebits(
             date: dateKey,
             user_email: user.email ?? null,
             is_direct_debit: true,
-            validation_status: 'confirmed',
+            validation_status: 'validated',
             suggested_category: d.category,
             suggested_subcategory: d.subcategory,
           };
