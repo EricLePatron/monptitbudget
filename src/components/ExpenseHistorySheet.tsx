@@ -68,9 +68,17 @@ export function ExpenseHistorySheet({
     return acc;
   }, {} as Record<string, number>);
 
+  // Ensure every configured parent category appears, even with 0 spend
+  categories
+    .filter((c) => !c.parentId)
+    .forEach((c) => {
+      if (categoryTotals[c.name] === undefined) categoryTotals[c.name] = 0;
+    });
+
   const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const maxCategoryTotal = Math.max(...Object.values(categoryTotals), 1);
+
 
   const getCategoryEmoji = (categoryName: string) => {
     const cat = categories.find(c => c.name === categoryName);
