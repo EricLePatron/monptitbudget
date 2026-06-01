@@ -43,6 +43,15 @@ export function RecurringDebitsCalendarSheet({
 
   const daysInTarget = getDaysInMonth(targetMonth, targetYear);
 
+  // Today, relative to the displayed month
+  const now = new Date();
+  const isCurrentMonth =
+    now.getFullYear() === targetYear && now.getMonth() === targetMonth;
+  const isFutureMonth =
+    targetYear > now.getFullYear() ||
+    (targetYear === now.getFullYear() && targetMonth > now.getMonth());
+  const todayDay = isCurrentMonth ? now.getDate() : 0;
+
   const byDay = useMemo(() => {
     const map = new Map<number, typeof debits>();
     for (const d of debits) {
@@ -59,6 +68,18 @@ export function RecurringDebitsCalendarSheet({
     () => Array.from(byDay.keys()).sort((a, b) => a - b),
     [byDay],
   );
+
+  // Upcoming total = debits whose day is strictly after today (current month)
+  // or every debit (future month). Past month → 0.
+  const upcomingTotal = useMemo(() => {
+    if (isFutureMonth) return total;
+    if (!isCurrentMonth) return 0;
+    return debits.reduce(
+      (s, d) => (Math.min(d.day, daysInTarget) > todayDay ? s + d.amount : s),
+      0,
+    );
+  }, [debits, daysInTarget, isCurrentMonth, isFutureMonth, todayDay, total]);
+  const pastTotal = total - upcomingTotal;
 
   const usingFallback =
     debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== 4);
