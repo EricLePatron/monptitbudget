@@ -115,7 +115,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
 
   const total = useMemo(() => data.reduce((acc, d) => acc + d.value, 0), [data]);
 
-  if (visible.length === 0) {
+  if (visible.length === 0 && data.length === 0) {
     return (
       <div className="w-full rounded-3xl glass-card shadow-lg p-8 text-center">
         <p className="text-4xl mb-2">📊</p>
