@@ -8,7 +8,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 interface CategoryPieChartProps {
   categorySpending: CategorySpending[];
   emojiMap: Record<string, string>;
-  onCategoryClick?: (categoryName: string) => void;
+  onCategoryClick?: (categoryName: string, subcategoryName?: string) => void;
   onManageCaps?: () => void;
 }
 
