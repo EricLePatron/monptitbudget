@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { CategorySpending } from '@/hooks/useCategoryBudgets';
 import { formatCurrencyCompact } from '@/lib/budget';
 import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface CategoryPieChartProps {
   categorySpending: CategorySpending[];
@@ -68,6 +69,30 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     }
     return map;
   }, [visible, emojiMap]);
+
+  // Collapsible subcategories: expanded by default only when a sub has a cap
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setExpandedParents((prev) => {
+      const next = new Set(prev);
+      for (const [parent, subs] of Object.entries(subsByParent)) {
+        if (subs.some((s) => s.cap !== null && s.cap > 0)) {
+          next.add(parent);
+        }
+      }
+      return next;
+    });
+  }, [subsByParent]);
+
+  const toggleParent = (name: string) => {
+    setExpandedParents((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
 
   // Pie only shows parents with spend
   const data = useMemo(() => parentRows.filter((d) => d.value > 0), [parentRows]);
@@ -205,6 +230,7 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
       <div className="mt-3 space-y-1.5">
         {parentRows.map((d) => {
           const subs = subsByParent[d.name] ?? [];
+          const isExpanded = expandedParents.has(d.name);
           return (
             <div key={d.name} className="space-y-1">
               <Row
@@ -214,8 +240,11 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
                 setActiveIdx={setActiveIdx}
                 onCategoryClick={onCategoryClick}
                 isSub={false}
+                hasSubs={subs.length > 0}
+                isExpanded={isExpanded}
+                onToggleExpand={() => toggleParent(d.name)}
               />
-              {subs.length > 0 && (
+              {isExpanded && subs.length > 0 && (
                 <div className="ml-5 pl-2 border-l border-border/50 space-y-1">
                   {subs.map((sd) => (
                     <Row
@@ -252,9 +281,12 @@ interface RowProps {
   setActiveIdx: (i: number | null) => void;
   onCategoryClick?: (name: string) => void;
   isSub: boolean;
+  hasSubs?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub }: RowProps) {
+function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, isExpanded, onToggleExpand }: RowProps) {
   const pct = total > 0 ? (d.value / total) * 100 : 0;
   const hasCap = d.cap !== null && d.cap > 0;
   const capPct = hasCap ? Math.min(100, (d.value / (d.cap as number)) * 100) : 0;
@@ -278,6 +310,29 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub }: RowProp
       )}
     >
       <div className="flex items-center gap-2.5">
+        {!isSub && hasSubs && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExpand?.();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+                onToggleExpand?.();
+              }
+            }}
+            className="shrink-0 -ml-1 p-0.5 rounded-full hover:bg-secondary/60 transition-colors cursor-pointer"
+          >
+            {isExpanded ? (
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            )}
+          </span>
+        )}
         <span
           className={cn('rounded-full shrink-0', isSub ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5')}
           style={{ backgroundColor: d.color, boxShadow: isSub ? undefined : `0 0 6px ${d.color}88` }}
