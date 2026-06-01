@@ -205,104 +205,82 @@ export function ExpenseHistorySheet({
                   const percentage = totalExpenses > 0 ? Math.round((total / totalExpenses) * 100) : 0;
                   const barWidth = (total / maxCategoryTotal) * 100;
                   const isSelected = selectedCategory === category;
-                  const subs = subcategoryTotalsByCategory[category]
-                    ? Object.entries(subcategoryTotalsByCategory[category]).sort((a, b) => b[1] - a[1])
-                    : [];
-
-                  const isExpanded = expandedCategories.has(category);
 
                   return (
-                    <div
+                    <button
                       key={category}
-                      className={`rounded-xl transition-all duration-200 ${
-                        isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : ''
+                      type="button"
+                      onClick={() => handleCategoryClick(category)}
+                      className={`w-full text-left space-y-1.5 p-2.5 rounded-xl transition-all duration-200 ${
+                        isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : 'hover:bg-secondary/60'
                       }`}
                     >
-                      <div className="flex items-center gap-1">
-                        {subs.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleExpanded(category);
-                            }}
-                            className="shrink-0 ml-1 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-muted/70 hover:bg-muted active:bg-muted/50 transition-colors"
-                            aria-label={isExpanded ? 'Replier les sous-catégories' : 'Déplier les sous-catégories'}
-                          >
-                            <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{subs.length}</span>
-                            <ChevronDown
-                              className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                                isExpanded ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleCategoryClick(category)}
-                          className={`flex-1 text-left space-y-1.5 p-2.5 rounded-xl transition-colors ${
-                            isSelected ? '' : 'hover:bg-secondary/60'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-base shrink-0">{getCategoryEmoji(category)}</span>
-                              <span className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                                {category}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xs text-muted-foreground tabular-nums">{percentage}%</span>
-                              <span className={`font-display font-semibold tabular-nums text-sm ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                                {formatCurrencyCompact(total)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/70'}`}
-                              style={{ width: `${barWidth}%` }}
-                            />
-                          </div>
-                        </button>
-                      </div>
-
-                      {subs.length > 0 && isExpanded && (
-                        <div className="flex flex-wrap gap-1.5 px-2.5 pb-2.5 pt-0.5">
-                          {subs.map(([sub, subTotal]) => {
-                            const isSubSel = selectedSubcategory === sub && selectedCategory === category;
-                            return (
-                              <button
-                                key={sub}
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (isSubSel) {
-                                    setSelectedSubcategory(null);
-                                  } else {
-                                    setSelectedCategory(category);
-                                    setSelectedSubcategory(sub);
-                                  }
-                                }}
-                                className={`h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1 ${
-                                  isSubSel
-                                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                                    : 'bg-background/70 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
-                                }`}
-                              >
-                                <span>{getSubcategoryEmoji(sub)}</span>
-                                <span>{sub}</span>
-                                <span className="opacity-70 tabular-nums">· {formatCurrencyCompact(subTotal)}</span>
-                              </button>
-                            );
-                          })}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base shrink-0">{getCategoryEmoji(category)}</span>
+                          <span className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                            {category}
+                          </span>
                         </div>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs text-muted-foreground tabular-nums">{percentage}%</span>
+                          <span className={`font-display font-semibold tabular-nums text-sm ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                            {formatCurrencyCompact(total)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/70'}`}
+                          style={{ width: `${barWidth}%` }}
+                        />
+                      </div>
+                    </button>
                   );
                 })}
               </div>
+
+              {selectedCategory && subcategoryTotalsByCategory[selectedCategory] && Object.keys(subcategoryTotalsByCategory[selectedCategory]).length > 0 && (
+                <div className="pt-3 mt-1 border-t border-border/60 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Sous-catégories · {selectedCategory}
+                    </h4>
+                    {selectedSubcategory && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSubcategory(null)}
+                        className="text-[11px] text-primary hover:underline"
+                      >
+                        Tout afficher
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(subcategoryTotalsByCategory[selectedCategory])
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([sub, subTotal]) => {
+                        const isSubSel = selectedSubcategory === sub;
+                        return (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => setSelectedSubcategory(isSubSel ? null : sub)}
+                            className={`h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1 ${
+                              isSubSel
+                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                : 'bg-background/70 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+                            }`}
+                          >
+                            <span>{getSubcategoryEmoji(sub)}</span>
+                            <span>{sub}</span>
+                            <span className="opacity-70 tabular-nums">· {formatCurrencyCompact(subTotal)}</span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
