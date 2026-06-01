@@ -44,13 +44,20 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     parentName: s.parentName,
   });
 
+  // Names that appear as a subcategory — they must never also be rendered as a top-level row
+  const subNames = useMemo(
+    () => new Set(visible.filter((s) => !!s.parentName).map((s) => s.categoryName)),
+    [visible],
+  );
+
   // Parent rows only (for pie + top-level list ordering)
   const parentRows = useMemo(() => {
     return visible
-      .filter((s) => !s.parentName)
+      .filter((s) => !s.parentName && !subNames.has(s.categoryName))
       .sort((a, b) => b.spent - a.spent)
       .map(toRow);
-  }, [visible, emojiMap]);
+  }, [visible, emojiMap, subNames]);
+
 
 
   // Subcategory rows grouped by parent name
