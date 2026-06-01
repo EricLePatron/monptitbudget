@@ -168,99 +168,110 @@ export function ExpenseHistorySheet({
             <div className="space-y-3 pb-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-muted-foreground">Par catégorie</h3>
-                <span className="text-xs text-muted-foreground">
-                  Total: {formatCurrencyCompact(totalExpenses)}
-                </span>
-              </div>
-
-              {selectedCategory && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
-                    <span className="text-sm text-primary flex-1">
-                      Filtre: {getCategoryEmoji(selectedCategory)} {selectedCategory}
-                      {selectedSubcategory && (
-                        <> · {getSubcategoryEmoji(selectedSubcategory)} {selectedSubcategory}</>
-                      )}
-                    </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    Total: {formatCurrencyCompact(totalExpenses)}
+                  </span>
+                  {(selectedCategory || selectedSubcategory) && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0 text-primary hover:text-primary hover:bg-primary/20"
-                      onClick={() => setSelectedCategory(null)}
+                      className="h-6 px-2 text-[11px] text-primary hover:bg-primary/10"
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setSelectedSubcategory(null);
+                      }}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3 mr-1" />
+                      Effacer filtre
                     </Button>
-                  </div>
-
-                  {sortedSubcategories.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 px-1">
-                      {sortedSubcategories.map(([sub, total]) => {
-                        const isSubSel = selectedSubcategory === sub;
-                        return (
-                          <button
-                            key={sub}
-                            type="button"
-                            onClick={() => setSelectedSubcategory(prev => prev === sub ? null : sub)}
-                            className={`h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1 ${
-                              isSubSel
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-muted/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground'
-                            }`}
-                          >
-                            <span>{getSubcategoryEmoji(sub)}</span>
-                            <span>{sub}</span>
-                            <span className="opacity-70 tabular-nums">· {formatCurrencyCompact(total)}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
                   )}
                 </div>
-              )}
+              </div>
 
-
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {sortedCategories.map(([category, total]) => {
                   const percentage = totalExpenses > 0 ? Math.round((total / totalExpenses) * 100) : 0;
                   const barWidth = (total / maxCategoryTotal) * 100;
                   const isSelected = selectedCategory === category;
+                  const subs = subcategoryTotalsByCategory[category]
+                    ? Object.entries(subcategoryTotalsByCategory[category]).sort((a, b) => b[1] - a[1])
+                    : [];
 
                   return (
-                    <button
+                    <div
                       key={category}
-                      onClick={() => handleCategoryClick(category)}
-                      className={`w-full text-left space-y-1.5 p-2 -mx-2 rounded-lg transition-all duration-200
-                        ${isSelected
-                          ? 'bg-primary/15 ring-1 ring-primary/30'
-                          : 'hover:bg-secondary/80 cursor-pointer'
-                        }`}
+                      className={`rounded-xl transition-all duration-200 ${
+                        isSelected ? 'bg-primary/10 ring-1 ring-primary/30' : ''
+                      }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{getCategoryEmoji(category)}</span>
-                          <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                            {category}
-                          </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCategoryClick(category)}
+                        className={`w-full text-left space-y-1.5 p-2.5 rounded-xl transition-colors ${
+                          isSelected ? '' : 'hover:bg-secondary/60'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-base shrink-0">{getCategoryEmoji(category)}</span>
+                            <span className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                              {category}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-muted-foreground tabular-nums">{percentage}%</span>
+                            <span className={`font-display font-semibold tabular-nums text-sm ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                              {formatCurrencyCompact(total)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{percentage}%</span>
-                          <span className={`font-display font-semibold tabular-nums ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                            {formatCurrencyCompact(total)}
-                          </span>
+                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/70'}`}
+                            style={{ width: `${barWidth}%` }}
+                          />
                         </div>
-                      </div>
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ease-out ${isSelected ? 'bg-primary' : 'bg-primary/80'}`}
-                          style={{ width: `${barWidth}%` }}
-                        />
-                      </div>
-                    </button>
+                      </button>
+
+                      {subs.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 px-2.5 pb-2.5 pt-0.5">
+                          {subs.map(([sub, subTotal]) => {
+                            const isSubSel = selectedSubcategory === sub && selectedCategory === category;
+                            return (
+                              <button
+                                key={sub}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isSubSel) {
+                                    setSelectedSubcategory(null);
+                                  } else {
+                                    setSelectedCategory(category);
+                                    setSelectedSubcategory(sub);
+                                  }
+                                }}
+                                className={`h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-1 ${
+                                  isSubSel
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                    : 'bg-background/70 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+                                }`}
+                              >
+                                <span>{getSubcategoryEmoji(sub)}</span>
+                                <span>{sub}</span>
+                                <span className="opacity-70 tabular-nums">· {formatCurrencyCompact(subTotal)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
           )}
+
 
           {sortedDates.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
