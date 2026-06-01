@@ -20,14 +20,19 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // Visible rows: any spent, or any cap defined
-  const visible = useMemo(
-    () =>
-      categorySpending.filter(
-        (s) => s.spent > 0 || (s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount),
-      ),
-    [categorySpending],
-  );
+  // Visible rows: any spent, or any cap defined.
+  // Also keep parents whose children have a cap (so capped subs are reachable).
+  const visible = useMemo(() => {
+    const hasCap = (s: CategorySpending) =>
+      !!(s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount);
+    const parentsWithCappedSubs = new Set(
+      categorySpending.filter((s) => s.parentName && hasCap(s)).map((s) => s.parentName as string),
+    );
+    return categorySpending.filter(
+      (s) => s.spent > 0 || hasCap(s) || (!s.parentName && parentsWithCappedSubs.has(s.categoryName)),
+    );
+  }, [categorySpending]);
+
 
   const toRow = (s: typeof visible[number], i: number) => ({
     name: s.categoryName,
