@@ -20,18 +20,14 @@ const FALLBACK_COLORS = [
 export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, onManageCaps }: CategoryPieChartProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // Capped rows for the LIST below
-  const visible = useMemo(() => {
-    const hasCap = (s: CategorySpending) =>
-      !!(s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount);
-    const parentsWithCappedSubs = new Set(
-      categorySpending.filter((s) => s.parentName && hasCap(s)).map((s) => s.parentName as string),
-    );
-    return categorySpending.filter(
-      (s) => hasCap(s) || (!s.parentName && parentsWithCappedSubs.has(s.categoryName)),
-    );
-  }, [categorySpending]);
+  const hasCap = (s: CategorySpending) =>
+    !!(s.config && s.config.budgetType !== 'uncapped' && s.config.capAmount);
 
+  // Only show items that actually have a cap. A capped subcategory does NOT
+  // pull its parent into the list — we want to monitor caps, not categories.
+  const visible = useMemo(() => {
+    return categorySpending.filter(hasCap);
+  }, [categorySpending]);
 
   const toRow = (s: CategorySpending, i: number) => ({
     name: s.categoryName,
@@ -43,27 +39,28 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
     parentName: s.parentName,
   });
 
-  // Names that appear as a subcategory in the capped list — must not also be top-level
-  const subNames = useMemo(
-    () => new Set(visible.filter((s) => !!s.parentName).map((s) => s.categoryName)),
+  // Top-level rows: capped parents, AND capped subs whose parent has no cap
+  // (rendered standalone so they don't disappear).
+  const cappedParentNames = useMemo(
+    () => new Set(visible.filter((s) => !s.parentName).map((s) => s.categoryName)),
     [visible],
   );
 
-  // Parent rows for the LIST (capped only)
   const parentRows = useMemo(() => {
-    return visible
-      .filter((s) => !s.parentName && !subNames.has(s.categoryName))
+    const cappedParents = visible.filter((s) => !s.parentName);
+    const orphanCappedSubs = visible.filter(
+      (s) => !!s.parentName && !cappedParentNames.has(s.parentName as string),
+    );
+    return [...cappedParents, ...orphanCappedSubs]
       .sort((a, b) => b.spent - a.spent)
       .map(toRow);
-  }, [visible, emojiMap, subNames]);
+  }, [visible, emojiMap, cappedParentNames]);
 
-
-
-  // Subcategory rows grouped by parent name (capped only)
+  // Subcategories grouped under their (capped) parent only
   const subsByParent = useMemo(() => {
     const map: Record<string, ReturnType<typeof toRow>[]> = {};
     visible
-      .filter((s) => !!s.parentName)
+      .filter((s) => !!s.parentName && cappedParentNames.has(s.parentName as string))
       .forEach((s, i) => {
         const row = toRow(s, i);
         const p = s.parentName as string;
@@ -74,7 +71,8 @@ export function CategoryPieChart({ categorySpending, emojiMap, onCategoryClick, 
       map[k].sort((a, b) => b.value - a.value);
     }
     return map;
-  }, [visible, emojiMap]);
+  }, [visible, emojiMap, cappedParentNames]);
+
 
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
