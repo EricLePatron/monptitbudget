@@ -108,9 +108,15 @@ const Index = () => {
     );
   }
 
+  // For past months without a saved budget, render a read-only dashboard
+  // with a zero-budget placeholder so users can still browse and navigate.
+  const effectiveConfig = config ?? (!isCurrentMonth
+    ? { monthlyBudget: 0, month: selectedMonth.month, year: selectedMonth.year }
+    : null);
+
   return (
     <>
-      {!config ? (
+      {!effectiveConfig ? (
         <BudgetSetup 
           onComplete={saveBudget} 
           previousBudgetSuggestion={previousBudgetSuggestion}
@@ -120,7 +126,7 @@ const Index = () => {
         />
       ) : (
         <BudgetDashboard
-          config={config}
+          config={effectiveConfig}
           expenses={expenses}
           onAddExpense={addExpense}
           onDeleteExpense={deleteExpense}
