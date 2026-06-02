@@ -372,8 +372,10 @@ Deno.serve(async (req) => {
               .update({
                 date,
                 name: `🏦 ${desc}`,
-                category: categories[i],
-                validation_status: 'validated',
+                suggested_category: categories[i],
+                category: null,
+                subcategory: null,
+                validation_status: 'pending',
               })
               .eq('id', projectedDebit.id)
               .select('id')
