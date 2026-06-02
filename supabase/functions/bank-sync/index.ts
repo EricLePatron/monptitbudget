@@ -125,10 +125,25 @@ Deno.serve(async (req) => {
     // Récupère catégories de l'account
     const { data: catsData } = await supabase
       .from('expense_categories')
-      .select('name')
+      .select('id, name, parent_id')
       .eq('account_id', account_id);
-    const categoryNames = (catsData || []).map((c: { name: string }) => c.name);
+    const categoryRows = (catsData || []) as { id: string; name: string; parent_id: string | null }[];
+    const categoryById = new Map(categoryRows.map((c) => [c.id, c.name]));
+    const subcategoryToParent = new Map<string, string>();
+    for (const c of categoryRows) {
+      if (c.parent_id && categoryById.has(c.parent_id)) {
+        subcategoryToParent.set(c.name, categoryById.get(c.parent_id)!);
+      }
+    }
+    const categoryNames = categoryRows.filter((c) => !c.parent_id).map((c) => c.name);
     if (categoryNames.length === 0) categoryNames.push('Autre');
+
+    const normalizeSuggestion = (suggestion: string) => {
+      const parent = subcategoryToParent.get(suggestion);
+      return parent
+        ? { category: parent, subcategory: suggestion }
+        : { category: categoryNames.includes(suggestion) ? suggestion : 'Autre', subcategory: null as string | null };
+    };
 
     // Pré-charge TOUS les budgets du compte pour répartir les tx dans le bon mois
     const { data: allBudgets } = await supabase
@@ -280,9 +295,10 @@ Deno.serve(async (req) => {
         if (budgetIdsForDedup.length > 0) {
           const { data: existingExpenses } = await supabase
             .from('expenses')
-            .select('name, amount, date')
+            .select('name, amount, date, is_direct_debit')
             .in('budget_id', budgetIdsForDedup);
-          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null }[]) {
+          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null; is_direct_debit: boolean | null }[]) {
+            if (e.is_direct_debit) continue;
             const amt = Math.abs(Number(e.amount || 0));
             const cleanName = (e.name || '').replace(/^🏦\s*/, '');
             existingSignatures.add(getTxSignature(cleanName, amt, e.date));
@@ -332,6 +348,7 @@ Deno.serve(async (req) => {
           if (!date) continue;
           const targetBudgetId = budgetIdForDate(date);
           if (!targetBudgetId) continue;
+          const suggestion = normalizeSuggestion(categories[i]);
 
           const amountDateKey = `${amount.toFixed(2)}|${date}`;
           const signature = getTxSignature(desc, amount, date);
@@ -346,6 +363,7 @@ Deno.serve(async (req) => {
             .eq('budget_id', targetBudgetId)
             .eq('date', date)
             .eq('amount', amount)
+            .eq('is_direct_debit', false)
             .maybeSingle();
 
           if (conflictingExpense) {
@@ -360,7 +378,6 @@ Deno.serve(async (req) => {
             .eq('budget_id', targetBudgetId)
             .eq('amount', amount)
             .eq('is_direct_debit', true)
-            .neq('date', date)
             .limit(1)
             .maybeSingle();
 
@@ -372,8 +389,11 @@ Deno.serve(async (req) => {
               .update({
                 date,
                 name: `🏦 ${desc}`,
-                category: categories[i],
-                validation_status: 'validated',
+                suggested_category: suggestion.category,
+                suggested_subcategory: suggestion.subcategory,
+                category: null,
+                subcategory: null,
+                validation_status: 'pending',
               })
               .eq('id', projectedDebit.id)
               .select('id')
@@ -393,7 +413,8 @@ Deno.serve(async (req) => {
                 budget_id: targetBudgetId,
                 amount,
                 name: `🏦 ${desc}`,
-                suggested_category: categories[i],
+                suggested_category: suggestion.category,
+                suggested_subcategory: suggestion.subcategory,
                 validation_status: 'pending',
                 date,
               })

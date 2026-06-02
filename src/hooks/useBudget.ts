@@ -90,6 +90,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           .from('expenses')
           .select('*')
           .eq('budget_id', budgetData.id)
+          .or('validation_status.is.null,validation_status.eq.validated')
           .order('created_at', { ascending: false });
 
         if (expensesError) throw expensesError;
@@ -256,19 +257,6 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
       if (error) throw error;
 
-      const newExpense: Expense = {
-        id: data.id,
-        amount: Number(data.amount),
-        name: data.name ?? undefined,
-        category: (data as { category?: string }).category ?? undefined,
-        subcategory: (data as { subcategory?: string }).subcategory ?? undefined,
-        date: data.date,
-        createdAt: new Date(data.created_at).getTime(),
-        userEmail: (data as { user_email?: string }).user_email ?? undefined,
-        isDirectDebit: (data as { is_direct_debit?: boolean }).is_direct_debit ?? false,
-      };
-
-      setExpenses((prev) => [newExpense, ...prev]);
       window.dispatchEvent(new CustomEvent('expense-added', { detail: { accountId } }));
       toast.success('Dépense ajoutée — à valider dans l’inbox');
     } catch {
