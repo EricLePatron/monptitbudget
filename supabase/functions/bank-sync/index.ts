@@ -362,6 +362,7 @@ Deno.serve(async (req) => {
             .eq('budget_id', targetBudgetId)
             .eq('date', date)
             .eq('amount', amount)
+            .eq('is_direct_debit', false)
             .maybeSingle();
 
           if (conflictingExpense) {
@@ -376,7 +377,6 @@ Deno.serve(async (req) => {
             .eq('budget_id', targetBudgetId)
             .eq('amount', amount)
             .eq('is_direct_debit', true)
-            .neq('date', date)
             .limit(1)
             .maybeSingle();
 
