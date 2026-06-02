@@ -347,6 +347,7 @@ Deno.serve(async (req) => {
           if (!date) continue;
           const targetBudgetId = budgetIdForDate(date);
           if (!targetBudgetId) continue;
+          const suggestion = normalizeSuggestion(categories[i]);
 
           const amountDateKey = `${amount.toFixed(2)}|${date}`;
           const signature = getTxSignature(desc, amount, date);
@@ -387,7 +388,8 @@ Deno.serve(async (req) => {
               .update({
                 date,
                 name: `🏦 ${desc}`,
-                suggested_category: categories[i],
+                suggested_category: suggestion.category,
+                suggested_subcategory: suggestion.subcategory,
                 category: null,
                 subcategory: null,
                 validation_status: 'pending',
@@ -410,7 +412,8 @@ Deno.serve(async (req) => {
                 budget_id: targetBudgetId,
                 amount,
                 name: `🏦 ${desc}`,
-                suggested_category: categories[i],
+                suggested_category: suggestion.category,
+                suggested_subcategory: suggestion.subcategory,
                 validation_status: 'pending',
                 date,
               })
