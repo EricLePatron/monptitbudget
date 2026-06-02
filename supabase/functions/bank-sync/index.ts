@@ -290,18 +290,18 @@ Deno.serve(async (req) => {
             existingAmountDateKeys.add(`${amt.toFixed(2)}|${String(e.date || '').slice(0, 10)}`);
           }
         }
-        // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
         const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
           if (!id || existingIds.has(id) || seenIds.has(id)) return false;
           const desc = getTxDescription(t);
           const date = getPurchaseDate(t, desc);
+          if (!date) return false;
+          // On n'accepte que les dates pour lesquelles un budget existe
+          if (!budgetIdForDate(date)) return false;
           const amount = Math.abs(parseFloat((t as { transaction_amount?: { amount: string } }).transaction_amount?.amount || '0'));
           if (existingSignatures.has(getTxSignature(desc, amount, date))) return false;
-          // Renommage manuel : si une dépense au même montant ET même date existe déjà → doublon
           if (existingAmountDateKeys.has(`${amount.toFixed(2)}|${String(date || '').slice(0, 10)}`)) return false;
-          if (!isAllowedCardExpense(desc, date)) return false;
           seenIds.add(id);
           return true;
         });
@@ -329,7 +329,9 @@ Deno.serve(async (req) => {
           const desc = txForAI[i].description;
 
           const date = getPurchaseDate(t, desc);
-          if (!date || !isAllowedCardExpense(desc, date)) continue;
+          if (!date) continue;
+          const targetBudgetId = budgetIdForDate(date);
+          if (!targetBudgetId) continue;
 
           const amountDateKey = `${amount.toFixed(2)}|${date}`;
           const signature = getTxSignature(desc, amount, date);
@@ -337,11 +339,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Dernier garde-fou juste avant insertion : évite les courses entre 2 synchros/reconnexions.
+          // Garde-fou anti-doublon (course entre 2 syncs)
           const { data: conflictingExpense } = await supabase
             .from('expenses')
             .select('id')
-            .eq('budget_id', budget.id)
+            .eq('budget_id', targetBudgetId)
             .eq('date', date)
             .eq('amount', amount)
             .maybeSingle();
@@ -351,13 +353,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Si une projection de prélèvement récurrent (même budget, même montant,
-          // is_direct_debit=true) existe à une autre date, on l'adapte à la réalité
-          // au lieu de créer un doublon.
+          // Projection de prélèvement récurrent → on l'aligne au lieu de doublonner
           const { data: projectedDebit } = await supabase
             .from('expenses')
             .select('id, date, name')
-            .eq('budget_id', budget.id)
+            .eq('budget_id', targetBudgetId)
             .eq('amount', amount)
             .eq('is_direct_debit', true)
             .neq('date', date)
@@ -384,14 +384,17 @@ Deno.serve(async (req) => {
             }
             expense = updated;
           } else {
+            // Nouvelle dépense bancaire → toujours en "à catégoriser" (pending),
+            // avec catégorie suggérée par l'IA (pas appliquée tant que non validée)
             const { data: inserted, error: expErr } = await supabase
               .from('expenses')
               .insert({
                 user_id: userId,
-                budget_id: budget.id,
+                budget_id: targetBudgetId,
                 amount,
                 name: `🏦 ${desc}`,
-                category: categories[i],
+                suggested_category: categories[i],
+                validation_status: 'pending',
                 date,
               })
               .select('id')
