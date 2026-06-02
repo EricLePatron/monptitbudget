@@ -125,10 +125,25 @@ Deno.serve(async (req) => {
     // Récupère catégories de l'account
     const { data: catsData } = await supabase
       .from('expense_categories')
-      .select('name')
+      .select('id, name, parent_id')
       .eq('account_id', account_id);
-    const categoryNames = (catsData || []).map((c: { name: string }) => c.name);
+    const categoryRows = (catsData || []) as { id: string; name: string; parent_id: string | null }[];
+    const categoryById = new Map(categoryRows.map((c) => [c.id, c.name]));
+    const subcategoryToParent = new Map<string, string>();
+    for (const c of categoryRows) {
+      if (c.parent_id && categoryById.has(c.parent_id)) {
+        subcategoryToParent.set(c.name, categoryById.get(c.parent_id)!);
+      }
+    }
+    const categoryNames = categoryRows.filter((c) => !c.parent_id).map((c) => c.name);
     if (categoryNames.length === 0) categoryNames.push('Autre');
+
+    const normalizeSuggestion = (suggestion: string) => {
+      const parent = subcategoryToParent.get(suggestion);
+      return parent
+        ? { category: parent, subcategory: suggestion }
+        : { category: categoryNames.includes(suggestion) ? suggestion : 'Autre', subcategory: null as string | null };
+    };
 
     // Pré-charge TOUS les budgets du compte pour répartir les tx dans le bon mois
     const { data: allBudgets } = await supabase
