@@ -130,23 +130,19 @@ Deno.serve(async (req) => {
     const categoryNames = (catsData || []).map((c: { name: string }) => c.name);
     if (categoryNames.length === 0) categoryNames.push('Autre');
 
-    // Trouve le budget du mois demandé (mois courant par défaut)
-    const today = new Date();
-    const requestedMonth = Number.isInteger(body?.target_month) ? Number(body.target_month) : today.getMonth();
-    const requestedYear = Number.isInteger(body?.target_year) ? Number(body.target_year) : today.getFullYear();
-    const month = Math.min(11, Math.max(0, requestedMonth));
-    const year = Math.max(2000, Math.min(2100, requestedYear));
-
-    const { data: budget } = await supabase
+    // Pré-charge TOUS les budgets du compte pour répartir les tx dans le bon mois
+    const { data: allBudgets } = await supabase
       .from('budgets')
-      .select('id')
-      .eq('account_id', account_id)
-      .eq('month', month)
-      .eq('year', year)
-      .maybeSingle();
+      .select('id, month, year')
+      .eq('account_id', account_id);
 
-    if (!budget) {
-      return new Response(JSON.stringify({ success: true, imported: 0, message: 'No budget for current month' }), {
+    const budgetByKey = new Map<string, string>();
+    for (const b of (allBudgets || []) as { id: string; month: number; year: number }[]) {
+      budgetByKey.set(`${b.year}-${b.month}`, b.id);
+    }
+
+    if (budgetByKey.size === 0) {
+      return new Response(JSON.stringify({ success: true, imported: 0, message: 'No budget configured' }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -157,11 +153,7 @@ Deno.serve(async (req) => {
 
     let totalImported = 0;
     const errors: string[] = [];
-
-    let totalDeleted = 0;
-
-    // Plus aucune exclusion : on veut TOUT voir (virements, chèques, prélèvements, CB, etc.)
-    const isExcludedDesc = (_desc: string) => false;
+    const totalDeleted = 0;
 
     const extractFactDate = (desc: string): string | null => {
       const match = (desc || '').match(/\bFACT\s*(\d{2})[\/\.\-\s]?(\d{2})[\/\.\-\s]?(\d{2,4})\b/i);
@@ -174,15 +166,12 @@ Deno.serve(async (req) => {
       return `${factYear}-${String(factMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     };
 
-    const dateMatchesCurrentBudget = (date?: string | null) => {
-      const match = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (!match) return false;
-      return parseInt(match[1], 10) === year && parseInt(match[2], 10) - 1 === month;
-    };
-
-    const isAllowedCardExpense = (desc: string, fallbackDate?: string | null) => {
-      const dateFromLabel = extractFactDate(desc);
-      return dateMatchesCurrentBudget(dateFromLabel || fallbackDate);
+    const budgetIdForDate = (date?: string | null): string | null => {
+      const m = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!m) return null;
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      return budgetByKey.get(`${y}-${mo}`) || null;
     };
 
     const normalizeDescription = (desc: string) => (desc || '').replace(/\s+/g, ' ').trim();
@@ -213,57 +202,11 @@ Deno.serve(async (req) => {
         continue;
       }
 
-        // Nettoyage : ne touche qu'au budget du mois synchronisé.
-        // Important : ne jamais supprimer les dépenses des mois passés quand on sync le mois courant.
       try {
-          const { data: importedExpenses } = await supabase
-            .from('expenses')
-            .select('id, name, date')
-            .eq('budget_id', budget.id)
-            .like('name', '🏦%');
-
-          const staleExpenseIds = (importedExpenses || [])
-            .filter((e: { id: string; name: string | null; date: string }) => {
-              return !isAllowedCardExpense(e.name || '', e.date);
-            })
-            .map((e: { id: string }) => e.id);
-
-          if (staleExpenseIds.length > 0) {
-            await supabase.from('expenses').delete().in('id', staleExpenseIds);
-            totalDeleted += staleExpenseIds.length;
-          }
-
-        const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
-        const endOfMonth = new Date(year, month + 1, 0).toISOString().split('T')[0];
-
-        const { data: alreadySynced } = await supabase
-          .from('bank_synced_transactions')
-          .select('id, expense_id, description, transaction_date')
-          .eq('bank_connection_id', conn.id)
-          .gte('transaction_date', startOfMonth)
-          .lte('transaction_date', endOfMonth);
-
-        const toDelete = (alreadySynced || []).filter((s: { description: string | null; transaction_date: string }) => {
-          return !isAllowedCardExpense(s.description || '', s.transaction_date);
-        });
-
-        if (toDelete.length > 0) {
-          const expenseIds = toDelete.map(s => s.expense_id).filter(Boolean) as string[];
-          const syncedIds = toDelete.map(s => s.id);
-          if (expenseIds.length > 0) {
-            await supabase.from('expenses').delete().in('id', expenseIds);
-          }
-          await supabase.from('bank_synced_transactions').delete().in('id', syncedIds);
-          totalDeleted += toDelete.length;
-        }
-      } catch (e) {
-        console.error('Cleanup error:', e);
-      }
-
-      try {
-        // On ne récupère que le mois budget courant (encours carte inclus)
-        const startOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
-        const sinceDate = startOfMonth;
+        // 60 jours de recul pour rattraper les fins de mois précédentes
+        const lookback = new Date();
+        lookback.setDate(lookback.getDate() - 60);
+        const sinceDate = lookback.toISOString().split('T')[0];
 
         // Récupère les statuts valides pouvant contenir l'encours carte
         const fetchTx = async (status: 'BOOK' | 'PDNG' | 'HOLD' | 'OTHR') => {
@@ -347,18 +290,18 @@ Deno.serve(async (req) => {
             existingAmountDateKeys.add(`${amt.toFixed(2)}|${String(e.date || '').slice(0, 10)}`);
           }
         }
-        // Dédup intra-fetch (un débit différé peut apparaître en pending puis booked)
         const seenIds = new Set<string>();
         const newTx = debits.filter((t: { entry_reference?: string; transaction_id?: string }) => {
           const id = t.entry_reference || t.transaction_id;
           if (!id || existingIds.has(id) || seenIds.has(id)) return false;
           const desc = getTxDescription(t);
           const date = getPurchaseDate(t, desc);
+          if (!date) return false;
+          // On n'accepte que les dates pour lesquelles un budget existe
+          if (!budgetIdForDate(date)) return false;
           const amount = Math.abs(parseFloat((t as { transaction_amount?: { amount: string } }).transaction_amount?.amount || '0'));
           if (existingSignatures.has(getTxSignature(desc, amount, date))) return false;
-          // Renommage manuel : si une dépense au même montant ET même date existe déjà → doublon
           if (existingAmountDateKeys.has(`${amount.toFixed(2)}|${String(date || '').slice(0, 10)}`)) return false;
-          if (!isAllowedCardExpense(desc, date)) return false;
           seenIds.add(id);
           return true;
         });
@@ -386,7 +329,9 @@ Deno.serve(async (req) => {
           const desc = txForAI[i].description;
 
           const date = getPurchaseDate(t, desc);
-          if (!date || !isAllowedCardExpense(desc, date)) continue;
+          if (!date) continue;
+          const targetBudgetId = budgetIdForDate(date);
+          if (!targetBudgetId) continue;
 
           const amountDateKey = `${amount.toFixed(2)}|${date}`;
           const signature = getTxSignature(desc, amount, date);
@@ -394,11 +339,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Dernier garde-fou juste avant insertion : évite les courses entre 2 synchros/reconnexions.
+          // Garde-fou anti-doublon (course entre 2 syncs)
           const { data: conflictingExpense } = await supabase
             .from('expenses')
             .select('id')
-            .eq('budget_id', budget.id)
+            .eq('budget_id', targetBudgetId)
             .eq('date', date)
             .eq('amount', amount)
             .maybeSingle();
@@ -408,13 +353,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Si une projection de prélèvement récurrent (même budget, même montant,
-          // is_direct_debit=true) existe à une autre date, on l'adapte à la réalité
-          // au lieu de créer un doublon.
+          // Projection de prélèvement récurrent → on l'aligne au lieu de doublonner
           const { data: projectedDebit } = await supabase
             .from('expenses')
             .select('id, date, name')
-            .eq('budget_id', budget.id)
+            .eq('budget_id', targetBudgetId)
             .eq('amount', amount)
             .eq('is_direct_debit', true)
             .neq('date', date)
@@ -441,14 +384,17 @@ Deno.serve(async (req) => {
             }
             expense = updated;
           } else {
+            // Nouvelle dépense bancaire → toujours en "à catégoriser" (pending),
+            // avec catégorie suggérée par l'IA (pas appliquée tant que non validée)
             const { data: inserted, error: expErr } = await supabase
               .from('expenses')
               .insert({
                 user_id: userId,
-                budget_id: budget.id,
+                budget_id: targetBudgetId,
                 amount,
                 name: `🏦 ${desc}`,
-                category: categories[i],
+                suggested_category: categories[i],
+                validation_status: 'pending',
                 date,
               })
               .select('id')
