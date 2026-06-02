@@ -295,9 +295,10 @@ Deno.serve(async (req) => {
         if (budgetIdsForDedup.length > 0) {
           const { data: existingExpenses } = await supabase
             .from('expenses')
-            .select('name, amount, date')
+            .select('name, amount, date, is_direct_debit')
             .in('budget_id', budgetIdsForDedup);
-          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null }[]) {
+          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null; is_direct_debit: boolean | null }[]) {
+            if (e.is_direct_debit) continue;
             const amt = Math.abs(Number(e.amount || 0));
             const cleanName = (e.name || '').replace(/^🏦\s*/, '');
             existingSignatures.add(getTxSignature(cleanName, amt, e.date));
