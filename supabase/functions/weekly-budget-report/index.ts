@@ -7,10 +7,12 @@ const SUPABASE_URL     = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CRON_SECRET      = Deno.env.get("CRON_SECRET") ?? "";
 
-const RECIPIENTS = [
-  "Chollet.eric@gmail.com",
-  "Mathilde.Curien@gmail.com",
-];
+// Recipients — configure via REPORT_RECIPIENTS env var (comma-separated)
+// e.g. "alice@example.com,bob@example.com"
+const RECIPIENTS = (Deno.env.get("REPORT_RECIPIENTS") ?? "")
+  .split(",")
+  .map((e) => e.trim())
+  .filter(Boolean);
 
 // Timezone offset for Paris (UTC+1 in winter, UTC+2 in summer)
 function getParisOffset(): number {

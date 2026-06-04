@@ -2,9 +2,7 @@
 
 ## Ce que ça fait
 
-Chaque **lundi à 8h** (Paris), un email est envoyé automatiquement à :
-- Chollet.eric@gmail.com
-- Mathilde.Curien@gmail.com
+Chaque **lundi à 8h** (Paris), un email est envoyé automatiquement aux adresses configurées dans le secret `REPORT_RECIPIENTS`.
 
 L'email contient :
 - Total dépensé la semaine passée + comparaison avec les 3 semaines précédentes
@@ -18,25 +16,22 @@ L'email contient :
 
 ### Étape 1 — Déployer la Edge Function
 
-Ouvre [supabase.com/dashboard/project/qqpmmehdowmsprkfhfle/functions](https://supabase.com/dashboard/project/qqpmmehdowmsprkfhfle/functions) et déploie via CLI :
-
 ```bash
-cd /Users/ericchollet/Documents/monptitbudget
-npx supabase functions deploy weekly-budget-report --project-ref qqpmmehdowmsprkfhfle
+supabase functions deploy weekly-budget-report --project-ref <project-ref>
 ```
 
-Ou en déposant le fichier `supabase/functions/weekly-budget-report/index.ts` dans l'éditeur de la dashboard.
+### Étape 2 — Configurer les secrets
 
-### Étape 2 — Vérifier que RESEND_API_KEY est déjà configuré
+Dans [Settings > Edge Functions > Secrets](https://supabase.com/dashboard/project/_/settings/functions) :
 
-La clé est déjà utilisée par `send-invitation-email`. Si besoin, vérifie dans :
-[Settings > Edge Functions > Secrets](https://supabase.com/dashboard/project/qqpmmehdowmsprkfhfle/settings/functions)
-
-Clé requise : `RESEND_API_KEY`
+| Secret | Valeur |
+|--------|--------|
+| `RESEND_API_KEY` | Clé API Resend (déjà configurée) |
+| `REPORT_RECIPIENTS` | `alice@example.com,bob@example.com` |
 
 ### Étape 3 — Appliquer la migration pg_cron
 
-Dans le SQL Editor Supabase ([lien direct](https://supabase.com/dashboard/project/qqpmmehdowmsprkfhfle/sql/new)), colle et exécute :
+Dans le SQL Editor Supabase :
 
 ```sql
 -- Activer les extensions
@@ -57,8 +52,8 @@ SELECT cron.schedule(
   '0 7 * * 1',
   $$
   SELECT net.http_post(
-    url     := 'https://qqpmmehdowmsprkfhfle.supabase.co/functions/v1/weekly-budget-report',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxcG1tZWhkb3dtc3Bya2ZoZmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDg0OTYsImV4cCI6MjA4MjQyNDQ5Nn0.QdRleCAv0GDCsqStlt3kxizkngGaz5OP0F9C8zlcVGs"}'::jsonb,
+    url     := 'https://<project-ref>.supabase.co/functions/v1/weekly-budget-report',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon-key>"}'::jsonb,
     body    := '{}'::jsonb
   ) AS request_id;
   $$
@@ -67,11 +62,9 @@ SELECT cron.schedule(
 
 ### Étape 4 — Tester manuellement
 
-Pour recevoir un email de test maintenant :
-
 ```bash
-curl -X POST https://qqpmmehdowmsprkfhfle.supabase.co/functions/v1/weekly-budget-report \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxcG1tZWhkb3dtc3Bya2ZoZmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDg0OTYsImV4cCI6MjA4MjQyNDQ5Nn0.QdRleCAv0GDCsqStlt3kxizkngGaz5OP0F9C8zlcVGs" \
+curl -X POST https://<project-ref>.supabase.co/functions/v1/weekly-budget-report \
+  -H "Authorization: Bearer <anon-key>" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -98,19 +91,15 @@ LIMIT 10;
 
 ## Modifier les destinataires
 
-Dans `supabase/functions/weekly-budget-report/index.ts`, ligne ~12 :
-```typescript
-const RECIPIENTS = [
-  "Chollet.eric@gmail.com",
-  "Mathilde.Curien@gmail.com",
-];
+Dans les secrets Edge Functions, modifier `REPORT_RECIPIENTS` :
+```
+alice@example.com,bob@example.com
 ```
 
 ---
 
 ## Modifier l'heure d'envoi
 
-Dans la migration ou via SQL :
 ```sql
 SELECT cron.alter_job(
   job_id := (SELECT jobid FROM cron.job WHERE jobname = 'weekly-budget-report'),
