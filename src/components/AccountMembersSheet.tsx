@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AccountMember } from '@/hooks/useAccountMembers';
-import { UserPlus, Trash2, Crown, User, Loader2 } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AccountMembersSheetProps {
@@ -15,6 +15,7 @@ interface AccountMembersSheetProps {
   loading: boolean;
   onInvite: (email: string) => Promise<boolean>;
   onRemove: (memberId: string) => Promise<void>;
+  onResend: (email: string) => Promise<boolean>;
 }
 
 export function AccountMembersSheet({
@@ -26,10 +27,12 @@ export function AccountMembersSheet({
   loading,
   onInvite,
   onRemove,
+  onResend,
 }: AccountMembersSheetProps) {
   const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +44,13 @@ export function AccountMembersSheet({
       setEmail('');
     }
     setIsInviting(false);
+  };
+
+  const handleResend = async (member: AccountMember) => {
+    if (!member.email || member.email === 'Utilisateur') return;
+    setResendingId(member.id);
+    await onResend(member.email);
+    setResendingId(null);
   };
 
   return (
@@ -84,15 +94,33 @@ export function AccountMembersSheet({
                       </p>
                     </div>
                     {isOwner && member.role !== 'owner' && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onRemove(member.id)}
-                        className="h-10 w-10 text-muted-foreground hover:text-budget-danger"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleResend(member)}
+                          disabled={resendingId === member.id}
+                          className="h-10 w-10 text-muted-foreground hover:text-primary"
+                          title="Renvoyer l'invitation"
+                          aria-label="Renvoyer l'invitation"
+                        >
+                          {resendingId === member.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Mail className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onRemove(member.id)}
+                          className="h-10 w-10 text-muted-foreground hover:text-budget-danger"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}

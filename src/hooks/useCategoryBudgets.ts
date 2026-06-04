@@ -28,6 +28,8 @@ export interface CategorySpending {
   status: CategoryStatus;
   remaining?: number;         // remaining before cap (negative = exceeded)
   isOverCap: boolean;
+  /** If this entry represents a subcategory, the name of its parent category */
+  parentName?: string;
 }
 
 export interface CategoryAlert {
@@ -225,73 +227,78 @@ export function useCategoryBudgets(
     }
   };
 
-  /** Compute spending per category using the resolved (month-aware) config */
+  /** Compute spending per category (and subcategory) using the resolved (month-aware) config.
+   *  Pass `subToParent` to also emit subcategory rows (with `parentName` set).
+   */
   const getCategorySpending = useCallback(
-    (categoryEmojis?: Record<string, string>): CategorySpending[] => {
-      const spendingMap: Record<string, number> = {};
+    (
+      categoryEmojis?: Record<string, string>,
+      subToParent?: Record<string, string>,
+    ): CategorySpending[] => {
+      // Aggregate spending by parent category and by subcategory
+      const parentSpend: Record<string, number> = {};
+      const subSpend: Record<string, number> = {};
       for (const expense of expenses) {
         const cat = expense.category || 'Autre';
-        spendingMap[cat] = (spendingMap[cat] || 0) + expense.amount;
+        parentSpend[cat] = (parentSpend[cat] || 0) + expense.amount;
+        if (expense.subcategory) {
+          subSpend[expense.subcategory] = (subSpend[expense.subcategory] || 0) + expense.amount;
+        }
       }
 
-      // All unique categories (spending + configured caps)
-      const allCategories = new Set([
-        ...Object.keys(spendingMap),
-        ...configs
-          .filter((c) => c.budgetType !== 'uncapped' && c.capAmount)
-          .map((c) => c.categoryName),
+      const buildRow = (name: string, spent: number, parentName?: string): CategorySpending => {
+        const config = resolveConfig(name);
+        if (!config || config.budgetType === 'uncapped' || !config.capAmount) {
+          return { categoryName: name, spent, config, status: 'uncapped', isOverCap: false, parentName };
+        }
+        const percentage = (spent / config.capAmount) * 100;
+        const remaining = config.capAmount - spent;
+        const isOverCap = spent > config.capAmount;
+        const status: CategoryStatus = isOverCap
+          ? 'exceeded'
+          : percentage >= config.warningThreshold
+            ? 'warning'
+            : 'ok';
+        return { categoryName: name, spent, config, percentage, status, remaining, isOverCap, parentName };
+      };
+
+      const cappedConfigNames = configs
+        .filter((c) => c.budgetType !== 'uncapped' && c.capAmount)
+        .map((c) => c.categoryName);
+
+      // Parent rows: any parent with spend or with a capped config (and not a known sub)
+      const parentNames = new Set<string>([
+        ...Object.keys(parentSpend),
+        ...cappedConfigNames.filter((n) => !subToParent || !subToParent[n]),
       ]);
 
-      return Array.from(allCategories)
-        .map((categoryName): CategorySpending => {
-          const spent = spendingMap[categoryName] || 0;
-          const config = resolveConfig(categoryName);   // ← month-aware resolution
+      // Subcategory rows: only emit if subToParent is provided
+      const subNames = new Set<string>();
+      if (subToParent) {
+        for (const n of Object.keys(subSpend)) subNames.add(n);
+        for (const n of cappedConfigNames) {
+          if (subToParent[n]) subNames.add(n);
+        }
+        // Ensure parents of visible subcategories are included so they can be displayed
+        for (const n of subNames) {
+          const parent = subToParent[n];
+          if (parent) parentNames.add(parent);
+        }
+      }
 
-          if (!config || config.budgetType === 'uncapped' || !config.capAmount) {
-            return {
-              categoryName,
-              spent,
-              config,
-              status: 'uncapped',
-              isOverCap: false,
-            };
-          }
 
-          const percentage = (spent / config.capAmount) * 100;
-          const remaining = config.capAmount - spent;
-          const isOverCap = spent > config.capAmount;
+      const rows: CategorySpending[] = [];
+      for (const n of parentNames) rows.push(buildRow(n, parentSpend[n] || 0));
+      for (const n of subNames) {
+        rows.push(buildRow(n, subSpend[n] || 0, subToParent![n]));
+      }
 
-          let status: CategoryStatus;
-          if (isOverCap) {
-            status = 'exceeded';
-          } else if (percentage >= config.warningThreshold) {
-            status = 'warning';
-          } else {
-            status = 'ok';
-          }
-
-          return {
-            categoryName,
-            spent,
-            config,
-            percentage,
-            status,
-            remaining,
-            isOverCap,
-          };
-        })
-        .sort((a, b) => {
-          // Exceeded first, then warning, then ok, then uncapped
-          const order: Record<CategoryStatus, number> = {
-            exceeded: 0,
-            warning: 1,
-            ok: 2,
-            uncapped: 3,
-          };
-          return order[a.status] - order[b.status];
-        });
+      // Sort: exceeded → warning → ok → uncapped
+      const order: Record<CategoryStatus, number> = { exceeded: 0, warning: 1, ok: 2, uncapped: 3 };
+      rows.sort((a, b) => order[a.status] - order[b.status]);
+      return rows;
     },
-    [expenses, configs]
+    [expenses, configs, resolveConfig]
   );
 
   /** Categories that need attention */

@@ -90,6 +90,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           .from('expenses')
           .select('*')
           .eq('budget_id', budgetData.id)
+          .or('validation_status.is.null,validation_status.eq.validated')
           .order('created_at', { ascending: false });
 
         if (expensesError) throw expensesError;
@@ -100,9 +101,11 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             amount: Number(e.amount),
             name: e.name ?? undefined,
             category: (e as { category?: string }).category ?? undefined,
+            subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
             date: e.date,
             createdAt: new Date(e.created_at).getTime(),
             userEmail: (e as { user_email?: string }).user_email ?? undefined,
+            isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
           }))
         );
       } else {
@@ -129,7 +132,11 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     };
 
     window.addEventListener('bank-sync-completed', refreshAfterBankSync);
-    return () => window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+    window.addEventListener('expense-validated', refreshAfterBankSync);
+    return () => {
+      window.removeEventListener('bank-sync-completed', refreshAfterBankSync);
+      window.removeEventListener('expense-validated', refreshAfterBankSync);
+    };
   }, [accountId, loadBudget]);
 
   // Create or update budget
@@ -222,7 +229,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   };
 
   // Add expense with optional date
-  const addExpense = async (amount: number, name?: string, category?: string, date?: string) => {
+  const addExpense = async (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => {
     if (!user || !budgetId) return;
 
     try {
@@ -236,26 +243,22 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           amount,
           name: name || null,
           category: category || null,
+          subcategory: subcategory || null,
           date: expenseDate,
           user_email: user.email,
+          is_direct_debit: isDirectDebit ?? false,
+          // New expenses must be confirmed in the "à catégoriser" inbox
+          validation_status: 'pending',
+          suggested_category: category || null,
+          suggested_subcategory: subcategory || null,
         } as never)
         .select()
         .single();
 
       if (error) throw error;
 
-      const newExpense: Expense = {
-        id: data.id,
-        amount: Number(data.amount),
-        name: data.name ?? undefined,
-        category: (data as { category?: string }).category ?? undefined,
-        date: data.date,
-        createdAt: new Date(data.created_at).getTime(),
-        userEmail: (data as { user_email?: string }).user_email ?? undefined,
-      };
-
-      setExpenses((prev) => [newExpense, ...prev]);
-      toast.success('Dépense ajoutée');
+      window.dispatchEvent(new CustomEvent('expense-added', { detail: { accountId } }));
+      toast.success('Dépense ajoutée — à valider dans l’inbox');
     } catch {
       toast.error("Erreur lors de l'ajout de la dépense");
     }
@@ -264,14 +267,16 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   // Update expense
   const updateExpense = async (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string; isDirectDebit?: boolean }
   ) => {
     try {
       const updatePayload: Record<string, unknown> = {};
       if (updates.amount !== undefined) updatePayload.amount = updates.amount;
       if (updates.name !== undefined) updatePayload.name = updates.name || null;
       if (updates.category !== undefined) updatePayload.category = updates.category || null;
+      if (updates.subcategory !== undefined) updatePayload.subcategory = updates.subcategory || null;
       if (updates.date !== undefined) updatePayload.date = updates.date;
+      if (updates.isDirectDebit !== undefined) updatePayload.is_direct_debit = updates.isDirectDebit;
 
       const { error } = await supabase
         .from('expenses')
@@ -288,7 +293,9 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
                 amount: updates.amount ?? e.amount,
                 name: updates.name !== undefined ? (updates.name || undefined) : e.name,
                 category: updates.category !== undefined ? (updates.category || undefined) : e.category,
+                subcategory: updates.subcategory !== undefined ? (updates.subcategory || undefined) : e.subcategory,
                 date: updates.date ?? e.date,
+                isDirectDebit: updates.isDirectDebit ?? e.isDirectDebit,
               }
             : e
         )

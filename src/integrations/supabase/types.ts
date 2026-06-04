@@ -139,8 +139,11 @@ export type Database = {
           description: string | null
           expense_id: string | null
           id: string
+          suggested_category: string | null
+          suggested_subcategory: string | null
           transaction_date: string
           transaction_id: string
+          validation_status: string
         }
         Insert: {
           account_id: string
@@ -150,8 +153,11 @@ export type Database = {
           description?: string | null
           expense_id?: string | null
           id?: string
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
           transaction_date: string
           transaction_id: string
+          validation_status?: string
         }
         Update: {
           account_id?: string
@@ -161,8 +167,11 @@ export type Database = {
           description?: string | null
           expense_id?: string | null
           id?: string
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
           transaction_date?: string
           transaction_id?: string
+          validation_status?: string
         }
         Relationships: [
           {
@@ -231,6 +240,51 @@ export type Database = {
           },
         ]
       }
+      category_budget_configs: {
+        Row: {
+          account_id: string
+          budget_type: string
+          cap_amount: number | null
+          category_name: string
+          color: string
+          created_at: string
+          group_name: string | null
+          id: string
+          month: number | null
+          updated_at: string
+          warning_threshold: number
+          year: number | null
+        }
+        Insert: {
+          account_id: string
+          budget_type?: string
+          cap_amount?: number | null
+          category_name: string
+          color?: string
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          month?: number | null
+          updated_at?: string
+          warning_threshold?: number
+          year?: number | null
+        }
+        Update: {
+          account_id?: string
+          budget_type?: string
+          cap_amount?: number | null
+          category_name?: string
+          color?: string
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          month?: number | null
+          updated_at?: string
+          warning_threshold?: number
+          year?: number | null
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           account_id: string
@@ -238,6 +292,8 @@ export type Database = {
           emoji: string | null
           id: string
           name: string
+          parent_id: string | null
+          sort_order: number
         }
         Insert: {
           account_id: string
@@ -245,6 +301,8 @@ export type Database = {
           emoji?: string | null
           id?: string
           name: string
+          parent_id?: string | null
+          sort_order?: number
         }
         Update: {
           account_id?: string
@@ -252,6 +310,8 @@ export type Database = {
           emoji?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
+          sort_order?: number
         }
         Relationships: [
           {
@@ -259,6 +319,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -271,8 +338,14 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          is_direct_debit: boolean
           name: string | null
+          subcategory: string | null
+          suggested_category: string | null
+          suggested_subcategory: string | null
+          user_email: string | null
           user_id: string
+          validation_status: string
         }
         Insert: {
           amount: number
@@ -281,8 +354,14 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          is_direct_debit?: boolean
           name?: string | null
+          subcategory?: string | null
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
+          user_email?: string | null
           user_id: string
+          validation_status?: string
         }
         Update: {
           amount?: number
@@ -291,8 +370,14 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          is_direct_debit?: boolean
           name?: string | null
+          subcategory?: string | null
+          suggested_category?: string | null
+          suggested_subcategory?: string | null
+          user_email?: string | null
           user_id?: string
+          validation_status?: string
         }
         Relationships: [
           {

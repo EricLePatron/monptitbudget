@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 import { cn } from '@/lib/utils';
@@ -25,17 +24,12 @@ export function CategorySelector({
   selectedSubcategory,
   onSelectCategory,
 }: CategorySelectorProps) {
-  const [expandedParentId, setExpandedParentId] = useState<string | null>(null);
+  // Subcategories panel is auto-expanded for whichever parent is currently selected.
+  const expandedParent = parentCategories.find((p) => p.name === selectedCategory);
+  const expandedParentId = expandedParent?.id ?? null;
 
-  const handleSelectParent = (name: string, id: string) => {
-    if (selectedCategory === name) {
-      onSelectCategory(undefined, undefined);
-      setExpandedParentId(null);
-      return;
-    }
-    const subs = subcategoriesOf(id);
+  const handleSelectParent = (name: string) => {
     onSelectCategory(name, undefined);
-    setExpandedParentId(subs.length > 0 ? id : null);
   };
 
   return (
@@ -44,7 +38,7 @@ export function CategorySelector({
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => { onSelectCategory(undefined, undefined); setExpandedParentId(null); }}
+          onClick={() => onSelectCategory(undefined, undefined)}
           className={cn(
             'h-8 px-3 rounded-full text-xs font-semibold border transition-all',
             !selectedCategory
@@ -62,7 +56,7 @@ export function CategorySelector({
             <button
               key={cat.id}
               type="button"
-              onClick={() => handleSelectParent(cat.name, cat.id)}
+              onClick={() => handleSelectParent(cat.name)}
               className={cn(
                 'h-8 pl-2 pr-2.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1',
                 isSelected
@@ -100,7 +94,9 @@ export function CategorySelector({
                   <button
                     key={sub.id}
                     type="button"
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
                       if (parent) {
                         onSelectCategory(
                           parent.name,

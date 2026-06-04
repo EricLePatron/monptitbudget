@@ -1,115 +1,139 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Settings, Users, Landmark, LogOut, ChevronRight, ListTodo } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Settings as SettingsIcon,
+  Users,
+  Landmark,
+  LogOut,
+  FolderTree,
+  ChevronRight,
+  CalendarClock,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingsSheetProps {
   open: boolean;
-  onOpenChange: (o: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   pendingCount: number;
-  onOpenPending: () => void;
-  onOpenBudgetConfig: () => void;
-  onOpenAccounts: () => void;
+  alertsCount: number;
+  onOpenBudgetSetup: () => void;
+  onOpenManageAccounts: () => void;
   onOpenBank: () => void;
+  onOpenSavings?: () => void;
+  onOpenOverview?: () => void;
+  onOpenCategoryTree: () => void;
+  onOpenPending: () => void;
+  onOpenRecurringDebits?: () => void;
   onSignOut: () => void;
 }
 
-interface MenuRowProps {
-  icon: React.ReactNode;
-  label: string;
-  sublabel?: string;
-  badge?: number;
-  danger?: boolean;
+interface Row {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle: string;
   onClick: () => void;
-}
-
-function MenuRow({ icon, label, sublabel, badge, danger, onClick }: MenuRowProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all active:scale-[0.98]',
-        danger
-          ? 'text-red-400 hover:bg-red-500/10'
-          : 'text-foreground hover:bg-muted/60',
-      )}
-    >
-      <span className={cn(
-        'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
-        danger ? 'bg-red-500/10' : 'bg-muted',
-      )}>
-        {icon}
-      </span>
-      <div className="flex-1 text-left min-w-0">
-        <p className="text-sm font-semibold leading-tight">{label}</p>
-        {sublabel && <p className="text-[11px] text-muted-foreground mt-0.5">{sublabel}</p>}
-      </div>
-      {badge != null && badge > 0 && (
-        <span className="h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(245,158,11,0.5)] shrink-0">
-          {badge > 9 ? '9+' : badge}
-        </span>
-      )}
-      {!danger && <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
-    </button>
-  );
+  badge?: number;
+  destructive?: boolean;
 }
 
 export function SettingsSheet({
   open,
   onOpenChange,
-  pendingCount,
-  onOpenPending,
-  onOpenBudgetConfig,
-  onOpenAccounts,
+  pendingCount: _pendingCount,
+  alertsCount,
+  onOpenBudgetSetup,
+  onOpenManageAccounts,
   onOpenBank,
+  onOpenSavings: _onOpenSavings,
+  onOpenOverview: _onOpenOverview,
+  onOpenCategoryTree,
+  onOpenPending: _onOpenPending,
+  onOpenRecurringDebits,
   onSignOut,
 }: SettingsSheetProps) {
-  const close = () => onOpenChange(false);
+  const handle = (fn: () => void) => () => {
+    onOpenChange(false);
+    setTimeout(fn, 150);
+  };
+
+  const main: Row[] = [
+    {
+      icon: SettingsIcon,
+      title: 'Configuration du mois',
+      subtitle: 'Salaire, budget, déductions',
+      onClick: handle(onOpenBudgetSetup),
+    },
+    {
+      icon: FolderTree,
+      title: 'Catégories & plafonds',
+      subtitle: 'Arborescence et limites mensuelles',
+      onClick: handle(onOpenCategoryTree),
+      badge: alertsCount,
+    },
+    {
+      icon: Users,
+      title: 'Gérer les comptes',
+      subtitle: 'Comptes partagés et membres',
+      onClick: handle(onOpenManageAccounts),
+    },
+    {
+      icon: Landmark,
+      title: 'Connexion bancaire',
+      subtitle: 'Synchroniser mes relevés',
+      onClick: handle(onOpenBank),
+    },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-3xl pb-[env(safe-area-inset-bottom)]">
+      <SheetContent side="bottom" className="rounded-t-3xl pb-[max(env(safe-area-inset-bottom),20px)] max-h-[85vh] overflow-y-auto">
         <SheetHeader className="pb-4">
-          <SheetTitle className="font-display text-xl">Paramètres</SheetTitle>
+          <SheetTitle className="text-center font-display text-xl">Paramètres</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-1 pb-4">
-          {pendingCount > 0 && (
-            <MenuRow
-              icon={<ListTodo className="w-5 h-5 text-amber-400" />}
-              label="Transactions à catégoriser"
-              sublabel="Valider les dépenses importées"
-              badge={pendingCount}
-              onClick={() => { close(); onOpenPending(); }}
-            />
-          )}
-          <MenuRow
-            icon={<Settings className="w-5 h-5 text-muted-foreground" />}
-            label="Configuration du mois"
-            sublabel="Salaire, budget, déductions"
-            onClick={() => { close(); onOpenBudgetConfig(); }}
-          />
-          <MenuRow
-            icon={<Users className="w-5 h-5 text-muted-foreground" />}
-            label="Gérer les comptes"
-            sublabel="Comptes partagés et membres"
-            onClick={() => { close(); onOpenAccounts(); }}
-          />
-          <MenuRow
-            icon={<Landmark className="w-5 h-5 text-muted-foreground" />}
-            label="Connexion bancaire"
-            sublabel="Synchroniser mes relevés"
-            onClick={() => { close(); onOpenBank(); }}
-          />
+        <div className="space-y-2">
+          {main.map((row) => {
+            const Icon = row.icon;
+            return (
+              <button
+                key={row.title}
+                type="button"
+                onClick={row.onClick}
+                className="w-full flex items-center gap-3 p-3 rounded-2xl bg-card/60 border border-border/60 hover:bg-card hover:border-primary/30 active:scale-[0.99] transition-all text-left"
+              >
+                <div className="relative w-11 h-11 shrink-0 rounded-xl bg-secondary/60 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-foreground" />
+                  {row.badge && row.badge > 0 ? (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+                      {row.badge > 9 ? '9+' : row.badge}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-foreground truncate">{row.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">{row.subtitle}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+              </button>
+            );
+          })}
 
-          <div className="h-px bg-border/50 mx-4 my-2" />
-
-          <MenuRow
-            icon={<LogOut className="w-5 h-5 text-red-400" />}
-            label="Déconnexion"
-            danger
-            onClick={() => { close(); onSignOut(); }}
-          />
+          <div className="pt-2 border-t border-border/40 mt-3">
+            <button
+              type="button"
+              onClick={handle(onSignOut)}
+              className={cn(
+                'w-full flex items-center gap-3 p-3 rounded-2xl bg-destructive/10 border border-destructive/30 hover:bg-destructive/15 active:scale-[0.99] transition-all text-left'
+              )}
+            >
+              <div className="w-11 h-11 shrink-0 rounded-xl bg-destructive/15 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-destructive">Déconnexion</p>
+              </div>
+            </button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

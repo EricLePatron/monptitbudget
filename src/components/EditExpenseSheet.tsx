@@ -19,7 +19,7 @@ interface EditExpenseSheetProps {
   expense: Expense | null;
   onUpdateExpense: (
     expenseId: string,
-    updates: { amount?: number; name?: string; category?: string; date?: string }
+    updates: { amount?: number; name?: string; category?: string; subcategory?: string; date?: string; isDirectDebit?: boolean }
   ) => Promise<void>;
   categories: ExpenseCategory[];
   onAddCategory: (name: string, emoji: string) => Promise<ExpenseCategory | null>;
@@ -40,7 +40,9 @@ export function EditExpenseSheet({
   const [amount, setAmount] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(undefined);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isDirectDebit, setIsDirectDebit] = useState(false);
   const initializedExpenseIdRef = useRef<string | null>(null);
 
   const cleanExpenseName = (value: string) => value.replace(/\s+/g, ' ').trim();
@@ -56,6 +58,8 @@ export function EditExpenseSheet({
       setAmount(expense.amount.toString());
       setName(cleanExpenseName(expense.name || ''));
       setSelectedCategory(expense.category);
+      setSelectedSubcategory(expense.subcategory);
+      setIsDirectDebit(!!expense.isDirectDebit);
       // Parse the date string to Date object
       const [year, month, day] = expense.date.split('-').map(Number);
       setSelectedDate(new Date(year, month - 1, day));
@@ -77,7 +81,9 @@ export function EditExpenseSheet({
         amount: value,
         name: cleanExpenseName(name),
         category: selectedCategory,
+        subcategory: selectedSubcategory,
         date: dateStr,
+        isDirectDebit,
       });
       onOpenChange(false);
     }
@@ -97,7 +103,7 @@ export function EditExpenseSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-3xl pb-8">
+      <SheetContent side="bottom" className="rounded-t-3xl pb-8 max-h-[90vh] overflow-y-auto overscroll-contain">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-center font-display text-xl">
             Modifier la dépense
@@ -110,8 +116,14 @@ export function EditExpenseSheet({
             <Label className="text-sm font-medium">Catégorie</Label>
             <CategorySelector
               categories={categories}
+              parentCategories={categories.filter((c) => !c.parentId)}
+              subcategoriesOf={(parentId) => categories.filter((c) => c.parentId === parentId)}
               selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              onSelectCategory={(cat, sub) => {
+                setSelectedCategory(cat);
+                setSelectedSubcategory(sub);
+              }}
               onAddCategory={onAddCategory}
               onDeleteCategory={onDeleteCategory}
             />
@@ -207,6 +219,37 @@ export function EditExpenseSheet({
               </Button>
             ))}
           </div>
+
+          {/* Prélèvement toggle */}
+          <button
+            type="button"
+            onClick={() => setIsDirectDebit((v) => !v)}
+            className={cn(
+              'w-full flex items-center justify-between gap-3 rounded-xl border px-4 h-12 transition-all',
+              isDirectDebit
+                ? 'border-primary/50 bg-primary/10'
+                : 'border-border bg-secondary/40 hover:bg-secondary/60'
+            )}
+            aria-pressed={isDirectDebit}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔁</span>
+              <span className="text-sm font-medium">Prélèvement</span>
+            </div>
+            <span
+              className={cn(
+                'h-6 w-11 rounded-full relative transition-colors',
+                isDirectDebit ? 'bg-primary' : 'bg-muted'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all',
+                  isDirectDebit ? 'left-[22px]' : 'left-0.5'
+                )}
+              />
+            </span>
+          </button>
 
           {/* Submit */}
           <Button

@@ -4,12 +4,12 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export interface PendingTransaction {
-  id: string;                // bank_synced_transactions.id
-  transactionId: string;
+  id: string;                // expense id
+  transactionId: string;     // same as id (kept for compat)
   amount: number;
   description: string | null;
   transactionDate: string;   // YYYY-MM-DD
-  expenseId: string | null;  // already-created expense, if any
+  expenseId: string | null;  // same as id
   suggestedCategory?: string;
   suggestedSubcategory?: string;
 }
@@ -23,30 +23,29 @@ export function usePendingTransactions(accountId: string | null) {
     if (!accountId) { setPending([]); return; }
     setLoading(true);
     try {
-      // Fetch bank_synced_transactions with validation_status = 'pending'
+      // Pending = expenses awaiting category confirmation, scoped by account via budgets
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('bank_synced_transactions')
-        .select('id, transaction_id, amount, description, transaction_date, expense_id, suggested_category, suggested_subcategory')
-        .eq('account_id', accountId)
+        .from('expenses')
+        .select('id, amount, name, date, category, subcategory, suggested_category, suggested_subcategory, budgets!inner(account_id)')
+        .eq('budgets.account_id', accountId)
         .eq('validation_status', 'pending')
-        .order('transaction_date', { ascending: false });
+        .order('date', { ascending: false });
 
       if (error) throw error;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setPending((data || []).map((t: any) => ({
-        id: t.id,
-        transactionId: t.transaction_id,
-        amount: Math.abs(Number(t.amount)),
-        description: t.description,
-        transactionDate: t.transaction_date,
-        expenseId: t.expense_id,
-        suggestedCategory: t.suggested_category ?? undefined,
-        suggestedSubcategory: t.suggested_subcategory ?? undefined,
+      setPending((data || []).map((e: any) => ({
+        id: e.id,
+        transactionId: e.id,
+        amount: Math.abs(Number(e.amount)),
+        description: e.name,
+        transactionDate: e.date,
+        expenseId: e.id,
+        suggestedCategory: e.suggested_category ?? e.category ?? undefined,
+        suggestedSubcategory: e.suggested_subcategory ?? e.subcategory ?? undefined,
       })));
     } catch {
-      // Table columns may not exist yet (before migration)
       setPending([]);
     } finally {
       setLoading(false);
@@ -55,59 +54,61 @@ export function usePendingTransactions(accountId: string | null) {
 
   useEffect(() => { load(); }, [load]);
 
-  /** Validate: assign category (+ optional subcategory) to the transaction's expense */
+  // Refresh when a new expense is added elsewhere
+  useEffect(() => {
+    const onChange = (e: Event) => {
+      const detail = (e as CustomEvent<{ accountId?: string }>).detail;
+      if (!detail || detail.accountId === accountId) load();
+    };
+    window.addEventListener('expense-added', onChange);
+    window.addEventListener('bank-sync-completed', onChange);
+    return () => {
+      window.removeEventListener('expense-added', onChange);
+      window.removeEventListener('bank-sync-completed', onChange);
+    };
+  }, [accountId, load]);
+
+  /** Validate: confirm the expense category (or override it) and mark as validated */
   const validate = async (
-    txId: string,
+    expenseId: string,
     category: string,
     subcategory?: string
   ) => {
     if (!user) return;
-    const tx = pending.find((t) => t.id === txId);
-    if (!tx) return;
-
     try {
-      // 1. Update the expense's category/subcategory
-      if (tx.expenseId) {
-        const { error: expErr } = await supabase
-          .from('expenses')
-          .update({
-            category: category || null,
-            subcategory: subcategory || null,
-          } as never)
-          .eq('id', tx.expenseId);
-        if (expErr) throw expErr;
-      }
-
-      // 2. Mark transaction as validated
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: txErr } = await (supabase as any)
-        .from('bank_synced_transactions')
-        .update({ validation_status: 'validated' })
-        .eq('id', txId);
-      if (txErr) throw txErr;
+      const { error } = await (supabase as any)
+        .from('expenses')
+        .update({
+          category: category || null,
+          subcategory: subcategory || null,
+          validation_status: 'validated',
+        })
+        .eq('id', expenseId);
+      if (error) throw error;
 
-      setPending((prev) => prev.filter((t) => t.id !== txId));
+      setPending((prev) => prev.filter((t) => t.id !== expenseId));
+      window.dispatchEvent(new CustomEvent('expense-validated', { detail: { accountId } }));
     } catch {
       toast.error('Erreur lors de la validation');
     }
   };
 
-  /** Ignore: skip this transaction (won't appear again) */
-  const ignore = async (txId: string) => {
+  /** Ignore: hide from pending (keep expense, just mark ignored) */
+  const ignore = async (expenseId: string) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('bank_synced_transactions')
+        .from('expenses')
         .update({ validation_status: 'ignored' })
-        .eq('id', txId);
+        .eq('id', expenseId);
       if (error) throw error;
-      setPending((prev) => prev.filter((t) => t.id !== txId));
+      setPending((prev) => prev.filter((t) => t.id !== expenseId));
     } catch {
       toast.error('Erreur lors de la suppression');
     }
   };
 
-  /** Validate all at once with the same category */
   const validateAll = async (category: string, subcategory?: string) => {
     for (const tx of [...pending]) {
       await validate(tx.id, category, subcategory);
