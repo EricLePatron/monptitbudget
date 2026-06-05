@@ -106,7 +106,9 @@ export function useAutoRecurringDebits(
             date: dateKey,
             user_email: user.email ?? null,
             is_direct_debit: true,
-            validation_status: 'validated',
+            // 'projected' = prélèvement prévu (pas encore confirmé par la banque)
+            // → exclu du solde et de l'historique tant qu'il n'a pas été matché.
+            validation_status: 'projected',
             suggested_category: d.category,
             suggested_subcategory: d.subcategory,
           };
