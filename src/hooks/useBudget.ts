@@ -33,7 +33,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       setLoading(false);
       setConfig(null);
       setBudgetId(null);
-      setExpenses([]);
+      setExpenses([]); setProjectedExpenses([]);
       setPreviousBudgetSuggestion(null);
       return;
     }
@@ -134,7 +134,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
         // No budget for this month - create a placeholder config to show the setup
         setConfig(null);
         setBudgetId(null);
-        setExpenses([]);
+        setExpenses([]); setProjectedExpenses([]);
       }
     } catch {
       toast.error('Erreur lors du chargement du budget');
@@ -221,7 +221,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
         if (error) throw error;
         setBudgetId(data.id);
-        setExpenses([]);
+        setExpenses([]); setProjectedExpenses([]);
       }
 
       setConfig(newConfig);
@@ -349,7 +349,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const resetBudget = () => {
     setConfig(null);
     setBudgetId(null);
-    setExpenses([]);
+    setExpenses([]); setProjectedExpenses([]);
   };
 
   return {
