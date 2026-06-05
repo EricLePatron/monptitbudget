@@ -91,7 +91,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           .from('expenses')
           .select('*')
           .eq('budget_id', budgetData.id)
-          .or('validation_status.is.null,validation_status.eq.validated')
+          .or('validation_status.is.null,validation_status.eq.validated,validation_status.eq.projected')
           .order('created_at', { ascending: false });
 
         if (expensesError) throw expensesError;
@@ -109,27 +109,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
           }))
         );
-
-        // Load projected direct debits (future, not impacting balance but visible in history)
-        const { data: projectedData } = await supabase
-          .from('expenses')
-          .select('*')
-          .eq('budget_id', budgetData.id)
-          .eq('validation_status', 'projected');
-
-        setProjectedExpenses(
-          (projectedData || []).map((e) => ({
-            id: e.id,
-            amount: Number(e.amount),
-            name: e.name ?? undefined,
-            category: (e as { category?: string }).category ?? undefined,
-            subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
-            date: e.date,
-            createdAt: new Date(e.created_at).getTime(),
-            userEmail: (e as { user_email?: string }).user_email ?? undefined,
-            isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
-          }))
-        );
+        setProjectedExpenses([]);
       } else {
         // No budget for this month - create a placeholder config to show the setup
         setConfig(null);

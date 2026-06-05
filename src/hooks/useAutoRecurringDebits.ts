@@ -90,12 +90,11 @@ export function useAutoRecurringDebits(
         }
         if (cancelled || !refDebits || refDebits.length === 0) return;
 
-        // 4) Project onto target month, clamping day to month length
+        // 4) Project onto target month. Date is NOT fixed (real debits
+        //    fluctuate) → use last day of month as a neutral placeholder.
         const daysInTarget = getDaysInMonth(month, year);
+        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(daysInTarget).padStart(2, '0')}`;
         const rowsToInsert = refDebits.map((d) => {
-          const srcDay = Number(d.date.split('-')[2]);
-          const day = Math.min(Math.max(1, srcDay), daysInTarget);
-          const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           return {
             user_id: user.id,
             budget_id: targetBudget.id,
@@ -106,8 +105,9 @@ export function useAutoRecurringDebits(
             date: dateKey,
             user_email: user.email ?? null,
             is_direct_debit: true,
-            // 'projected' = prélèvement prévu (pas encore confirmé par la banque)
-            // → exclu du solde et de l'historique tant qu'il n'a pas été matché.
+            // 'projected' = prélèvement prévu, impacte le solde pour aider
+            // à se projeter mais sera remplacé par le vrai prélèvement lors
+            // de la synchro bancaire.
             validation_status: 'projected',
             suggested_category: d.category,
             suggested_subcategory: d.subcategory,
