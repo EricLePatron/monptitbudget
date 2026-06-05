@@ -39,6 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
+  projectedExpenses?: Expense[];
   onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateExpense: (
