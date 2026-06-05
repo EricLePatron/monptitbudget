@@ -14,6 +14,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const [config, setConfig] = useState<BudgetConfig | null>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [projectedExpenses, setProjectedExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
