@@ -70,6 +70,7 @@ interface BudgetDashboardProps {
 export function BudgetDashboard({
   config,
   expenses,
+  projectedExpenses = [],
   onAddExpense,
   onDeleteExpense,
   onUpdateExpense,
