@@ -14,6 +14,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const [config, setConfig] = useState<BudgetConfig | null>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [projectedExpenses, setProjectedExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
@@ -32,7 +33,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       setLoading(false);
       setConfig(null);
       setBudgetId(null);
-      setExpenses([]);
+      setExpenses([]); setProjectedExpenses([]);
       setPreviousBudgetSuggestion(null);
       return;
     }
@@ -108,11 +109,32 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
             isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
           }))
         );
+
+        // Load projected direct debits (future, not impacting balance but visible in history)
+        const { data: projectedData } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('budget_id', budgetData.id)
+          .eq('validation_status', 'projected');
+
+        setProjectedExpenses(
+          (projectedData || []).map((e) => ({
+            id: e.id,
+            amount: Number(e.amount),
+            name: e.name ?? undefined,
+            category: (e as { category?: string }).category ?? undefined,
+            subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
+            date: e.date,
+            createdAt: new Date(e.created_at).getTime(),
+            userEmail: (e as { user_email?: string }).user_email ?? undefined,
+            isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
+          }))
+        );
       } else {
         // No budget for this month - create a placeholder config to show the setup
         setConfig(null);
         setBudgetId(null);
-        setExpenses([]);
+        setExpenses([]); setProjectedExpenses([]);
       }
     } catch {
       toast.error('Erreur lors du chargement du budget');
@@ -199,7 +221,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
 
         if (error) throw error;
         setBudgetId(data.id);
-        setExpenses([]);
+        setExpenses([]); setProjectedExpenses([]);
       }
 
       setConfig(newConfig);
@@ -327,12 +349,13 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const resetBudget = () => {
     setConfig(null);
     setBudgetId(null);
-    setExpenses([]);
+    setExpenses([]); setProjectedExpenses([]);
   };
 
   return {
     config,
     expenses,
+    projectedExpenses,
     loading,
     previousBudgetSuggestion,
     targetMonth,

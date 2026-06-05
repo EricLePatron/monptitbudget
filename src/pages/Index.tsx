@@ -30,6 +30,7 @@ const Index = () => {
   const {
     config,
     expenses,
+    projectedExpenses,
     loading: budgetLoading,
     previousBudgetSuggestion,
     targetMonth,
@@ -129,6 +130,7 @@ const Index = () => {
         <BudgetDashboard
           config={effectiveConfig}
           expenses={expenses}
+          projectedExpenses={projectedExpenses}
           onAddExpense={addExpense}
           onDeleteExpense={deleteExpense}
           onUpdateExpense={updateExpense}

@@ -39,6 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface BudgetDashboardProps {
   config: BudgetConfig;
   expenses: Expense[];
+  projectedExpenses?: Expense[];
   onAddExpense: (amount: number, name?: string, category?: string, date?: string, subcategory?: string, isDirectDebit?: boolean) => void;
   onDeleteExpense: (id: string) => void;
   onUpdateExpense: (
@@ -69,6 +70,7 @@ interface BudgetDashboardProps {
 export function BudgetDashboard({
   config,
   expenses,
+  projectedExpenses = [],
   onAddExpense,
   onDeleteExpense,
   onUpdateExpense,
@@ -422,7 +424,7 @@ export function BudgetDashboard({
             setHistoryInitialSubcategory(null);
           }
         }}
-        expenses={expenses}
+        expenses={[...expenses, ...projectedExpenses]}
         onDeleteExpense={onDeleteExpense}
         onEditExpense={(exp) => {
           setHistoryOpen(false);
