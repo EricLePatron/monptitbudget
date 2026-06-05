@@ -355,6 +355,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   return {
     config,
     expenses,
+    projectedExpenses,
     loading,
     previousBudgetSuggestion,
     targetMonth,
