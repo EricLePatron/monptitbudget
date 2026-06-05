@@ -424,7 +424,7 @@ export function BudgetDashboard({
             setHistoryInitialSubcategory(null);
           }
         }}
-        expenses={expenses}
+        expenses={[...expenses, ...projectedExpenses]}
         onDeleteExpense={onDeleteExpense}
         onEditExpense={(exp) => {
           setHistoryOpen(false);
