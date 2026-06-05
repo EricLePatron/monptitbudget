@@ -91,7 +91,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
           .from('expenses')
           .select('*')
           .eq('budget_id', budgetData.id)
-          .or('validation_status.is.null,validation_status.eq.validated')
+          .or('validation_status.is.null,validation_status.eq.validated,validation_status.eq.projected')
           .order('created_at', { ascending: false });
 
         if (expensesError) throw expensesError;
