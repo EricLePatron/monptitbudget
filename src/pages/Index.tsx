@@ -30,6 +30,7 @@ const Index = () => {
   const {
     config,
     expenses,
+    projectedExpenses,
     loading: budgetLoading,
     previousBudgetSuggestion,
     targetMonth,
