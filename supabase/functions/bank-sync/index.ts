@@ -371,13 +371,16 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Projection de prélèvement récurrent → on l'aligne au lieu de doublonner
+          // Projection de prélèvement récurrent → on l'aligne au lieu de doublonner.
+          // On ne matche QUE les projections (validation_status='projected'), jamais
+          // un prélèvement déjà validé par la banque, pour éviter d'écraser un vrai.
           const { data: projectedDebit } = await supabase
             .from('expenses')
             .select('id, date, name')
             .eq('budget_id', targetBudgetId)
             .eq('amount', amount)
             .eq('is_direct_debit', true)
+            .eq('validation_status', 'projected')
             .limit(1)
             .maybeSingle();
 
@@ -393,6 +396,10 @@ Deno.serve(async (req) => {
                 suggested_subcategory: suggestion.subcategory,
                 category: null,
                 subcategory: null,
+                // Le vrai prélèvement remplace la projection :
+                // - is_direct_debit=false (ce n'est plus une projection)
+                // - validation_status='pending' (à catégoriser comme toute dépense bancaire)
+                is_direct_debit: false,
                 validation_status: 'pending',
               })
               .eq('id', projectedDebit.id)
