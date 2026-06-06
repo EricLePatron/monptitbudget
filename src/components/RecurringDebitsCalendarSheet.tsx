@@ -82,7 +82,7 @@ export function RecurringDebitsCalendarSheet({
   const pastTotal = total - upcomingTotal;
 
   const usingFallback =
-    debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== 4);
+    debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== targetMonth);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
