@@ -290,13 +290,14 @@ export function ExpenseHistorySheet({
           ) : (
             sortedDates.map((date) => {
               const dayItems = groupedExpenses[date];
-              const allUpcoming = dayItems.every(isUpcoming);
-              const someUpcoming = dayItems.some(isUpcoming);
+              const isUpcomingGroup = date === UPCOMING_KEY;
+              const allUpcoming = isUpcomingGroup || dayItems.every(isUpcoming);
+              const someUpcoming = isUpcomingGroup || dayItems.some(isUpcoming);
               return (
               <div key={date} className="space-y-2">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize flex items-center gap-2">
-                  <span>{formatDate(date)}</span>
-                  {(allUpcoming || (someUpcoming && date > todayStr)) && (
+                  {!isUpcomingGroup && <span>{formatDate(date)}</span>}
+                  {(isUpcomingGroup || allUpcoming || (someUpcoming && date > todayStr)) && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-bold normal-case tracking-normal">
                       <Clock className="w-2.5 h-2.5" />
                       À venir
