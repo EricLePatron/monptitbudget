@@ -34,11 +34,11 @@ export function RecurringDebitsCalendarSheet({
   targetYear,
   monthlyBudget,
 }: RecurringDebitsCalendarSheetProps) {
-  // Reference: May of the displayed year (month index 4)
+  // Source = displayed month directly (same data as history "À venir")
   const { debits, loading, resolvedYear, resolvedMonth } = useRecurringDebits(
     open ? accountId : null,
     targetYear,
-    4,
+    targetMonth,
   );
 
   const daysInTarget = getDaysInMonth(targetMonth, targetYear);
@@ -82,7 +82,7 @@ export function RecurringDebitsCalendarSheet({
   const pastTotal = total - upcomingTotal;
 
   const usingFallback =
-    debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== 4);
+    debits.length > 0 && (resolvedYear !== targetYear || resolvedMonth !== targetMonth);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
