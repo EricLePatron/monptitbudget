@@ -295,10 +295,13 @@ Deno.serve(async (req) => {
         if (budgetIdsForDedup.length > 0) {
           const { data: existingExpenses } = await supabase
             .from('expenses')
-            .select('name, amount, date, is_direct_debit')
+            .select('name, amount, date, is_direct_debit, validation_status')
             .in('budget_id', budgetIdsForDedup);
-          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null; is_direct_debit: boolean | null }[]) {
-            if (e.is_direct_debit) continue;
+          for (const e of (existingExpenses || []) as { name: string | null; amount: number | string | null; date: string | null; is_direct_debit: boolean | null; validation_status: string | null }[]) {
+            // On exclut uniquement les projections (date placeholder fin de mois)
+            // du dédoublonnage : les vrais prélèvements déjà importés doivent
+            // bien servir de signature pour ne pas être réinsérés.
+            if (e.is_direct_debit && e.validation_status === 'projected') continue;
             const amt = Math.abs(Number(e.amount || 0));
             const cleanName = (e.name || '').replace(/^🏦\s*/, '');
             existingSignatures.add(getTxSignature(cleanName, amt, e.date));
