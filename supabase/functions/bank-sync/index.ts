@@ -397,9 +397,9 @@ Deno.serve(async (req) => {
                 category: null,
                 subcategory: null,
                 // Le vrai prélèvement remplace la projection :
-                // - is_direct_debit=false (ce n'est plus une projection)
+                // - is_direct_debit=true (on garde le tag pour filtrer dans l'historique)
                 // - validation_status='pending' (à catégoriser comme toute dépense bancaire)
-                is_direct_debit: false,
+                is_direct_debit: true,
                 validation_status: 'pending',
               })
               .eq('id', projectedDebit.id)
