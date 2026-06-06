@@ -51,13 +51,20 @@ export function ExpenseHistorySheet({
   const directDebitCount = expenses.filter(e => e.isDirectDebit).length;
   const directDebitTotal = expenses.filter(e => e.isDirectDebit).reduce((s, e) => s + e.amount, 0);
 
+  const todayStrEarly = new Date().toISOString().slice(0, 10);
+  const UPCOMING_KEY = '__upcoming__';
   const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
-    if (!acc[expense.date]) acc[expense.date] = [];
-    acc[expense.date].push(expense);
+    const key = expense.isDirectDebit && expense.date > todayStrEarly ? UPCOMING_KEY : expense.date;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(expense);
     return acc;
   }, {} as Record<string, Expense[]>);
 
-  const sortedDates = Object.keys(groupedExpenses).sort((a, b) => b.localeCompare(a));
+  const sortedDates = Object.keys(groupedExpenses).sort((a, b) => {
+    if (a === UPCOMING_KEY) return -1;
+    if (b === UPCOMING_KEY) return 1;
+    return b.localeCompare(a);
+  });
 
   const categoryTotals = expenses.reduce((acc, expense) => {
     const category = expense.category || 'Sans catégorie';
