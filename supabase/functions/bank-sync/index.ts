@@ -9,6 +9,28 @@ const corsHeaders = {
 
 const ENABLE_BANKING_BASE = 'https://api.enablebanking.com';
 
+/**
+ * Détecte si une transaction bancaire est un prélèvement / abonnement récurrent
+ * à partir de son libellé. Permet d'afficher tous les prélèvements (passés et
+ * à venir) dans le calendrier et le filtre "Prélèvements" de l'historique,
+ * indépendamment du statut de validation.
+ */
+function looksLikeDirectDebit(desc: string): boolean {
+  const d = desc.toUpperCase();
+  // SEPA direct debit (PRLV ...), échéance de prêt, cotisation assurance
+  if (/^\s*PRLV\b/.test(d)) return true;
+  if (/\bECH\s+PRET\b/.test(d)) return true;
+  if (/\*?\s*COTIS\b/.test(d)) return true;
+  // Abonnements récurrents fréquents (carte bancaire)
+  const subscriptions = [
+    'NETFLIX', 'SPOTIFY', 'APPLE.COM/BILL', 'CLAUDE.AI', 'OPENAI',
+    'LOVABLE', 'AMAZON PRIME', 'OVHCLOUD', 'DISNEY', 'YOUTUBE',
+    'ICLOUD', 'GOOGLE STORAGE', 'DEEZER', 'CANAL+', 'CANALPLUS',
+    'PRIME VIDEO', 'MICROSOFT', 'ADOBE', 'DROPBOX', 'NOTION',
+  ];
+  return subscriptions.some((s) => d.includes(s));
+}
+
 async function generateJWT(appId: string, privateKeyPem: string): Promise<string> {
   const header = { typ: 'JWT', alg: 'RS256', kid: appId };
   const now = Math.floor(Date.now() / 1000);
