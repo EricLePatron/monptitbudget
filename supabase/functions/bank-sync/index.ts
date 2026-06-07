@@ -449,6 +449,10 @@ Deno.serve(async (req) => {
                 suggested_subcategory: suggestion.subcategory,
                 validation_status: 'pending',
                 date,
+                // Marquer comme prélèvement si le libellé correspond à un
+                // pattern de prélèvement / abonnement récurrent → visible
+                // dans le calendrier des prélèvements et le filtre dédié.
+                is_direct_debit: looksLikeDirectDebit(desc),
               })
               .select('id')
               .single();
