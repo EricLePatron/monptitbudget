@@ -170,12 +170,14 @@ Deno.serve(async (req) => {
     // Pré-charge TOUS les budgets du compte pour répartir les tx dans le bon mois
     const { data: allBudgets } = await supabase
       .from('budgets')
-      .select('id, month, year')
+      .select('id, month, year, salary')
       .eq('account_id', account_id);
 
     const budgetByKey = new Map<string, string>();
-    for (const b of (allBudgets || []) as { id: string; month: number; year: number }[]) {
+    const budgetSalaryById = new Map<string, number>();
+    for (const b of (allBudgets || []) as { id: string; month: number; year: number; salary: number | string | null }[]) {
       budgetByKey.set(`${b.year}-${b.month}`, b.id);
+      budgetSalaryById.set(b.id, Number(b.salary || 0));
     }
 
     if (budgetByKey.size === 0) {
@@ -489,6 +491,62 @@ Deno.serve(async (req) => {
           totalImported++;
         }
 
+
+        // ===== Entrées d'argent (crédits) → ajoutées au salaire du mois =====
+        const credits = transactions.filter((t: { credit_debit_indicator?: string; transaction_amount?: { amount: string } }) => {
+          return t.credit_debit_indicator === 'CRDT' || (t.transaction_amount && parseFloat(t.transaction_amount.amount) > 0);
+        });
+
+        const salaryDeltaByBudget = new Map<string, number>();
+        const seenCreditIds = new Set<string>();
+
+        for (const t of credits) {
+          const txId = (t as { entry_reference?: string; transaction_id?: string }).entry_reference
+            || (t as { transaction_id?: string }).transaction_id;
+          if (!txId || existingIds.has(txId) || seenCreditIds.has(txId)) continue;
+          const desc = getTxDescription(t);
+          const date = getPurchaseDate(t, desc);
+          if (!date) continue;
+          const targetBudgetId = budgetIdForDate(date);
+          if (!targetBudgetId) continue;
+          const amount = Math.abs(parseFloat((t as { transaction_amount?: { amount: string } }).transaction_amount?.amount || '0'));
+          if (amount <= 0) continue;
+
+          const { error: syncErr } = await supabase.from('bank_synced_transactions').insert({
+            bank_connection_id: conn.id,
+            account_id,
+            transaction_id: txId,
+            amount,
+            transaction_date: date,
+            description: desc,
+            validation_status: 'validated',
+          });
+          if (syncErr) {
+            // doublon ou collision unique → on saute
+            console.error('Credit sync insert error:', syncErr);
+            continue;
+          }
+
+          seenCreditIds.add(txId);
+          existingIds.add(txId);
+          salaryDeltaByBudget.set(targetBudgetId, (salaryDeltaByBudget.get(targetBudgetId) || 0) + amount);
+          totalImported++;
+        }
+
+        // Met à jour le salaire des budgets concernés
+        for (const [budgetId, delta] of salaryDeltaByBudget.entries()) {
+          const current = budgetSalaryById.get(budgetId) || 0;
+          const next = current + delta;
+          const { error: updErr } = await supabase
+            .from('budgets')
+            .update({ salary: next })
+            .eq('id', budgetId);
+          if (updErr) {
+            console.error('Budget salary update error:', updErr);
+          } else {
+            budgetSalaryById.set(budgetId, next);
+          }
+        }
 
         await supabase.from('bank_connections').update({ last_synced_at: new Date().toISOString() }).eq('id', conn.id);
       } catch (e) {
