@@ -170,12 +170,14 @@ Deno.serve(async (req) => {
     // Pré-charge TOUS les budgets du compte pour répartir les tx dans le bon mois
     const { data: allBudgets } = await supabase
       .from('budgets')
-      .select('id, month, year')
+      .select('id, month, year, salary')
       .eq('account_id', account_id);
 
     const budgetByKey = new Map<string, string>();
-    for (const b of (allBudgets || []) as { id: string; month: number; year: number }[]) {
+    const budgetSalaryById = new Map<string, number>();
+    for (const b of (allBudgets || []) as { id: string; month: number; year: number; salary: number | string | null }[]) {
       budgetByKey.set(`${b.year}-${b.month}`, b.id);
+      budgetSalaryById.set(b.id, Number(b.salary || 0));
     }
 
     if (budgetByKey.size === 0) {
