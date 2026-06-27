@@ -187,25 +187,24 @@
   }
 
   .status-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border;
-    backdrop-filter: blur(8px);
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border-2;
   }
 
   .status-ok {
-    @apply bg-budget-ok-soft text-budget-ok border-budget-ok/40;
+    @apply bg-budget-ok-soft text-budget-ok border-budget-ok;
   }
 
   .status-warning {
-    @apply bg-budget-warning-soft text-budget-warning border-budget-warning/40;
+    @apply bg-budget-warning-soft text-budget-warning border-budget-warning;
   }
 
   .status-danger {
-    @apply bg-budget-danger-soft text-budget-danger border-budget-danger/40;
+    @apply bg-budget-danger-soft text-budget-danger border-budget-danger;
   }
 
-  /* Donald Duck speech bubble - kept playful */
+  /* Donald speech bubble flat */
   .speech-bubble {
-    @apply relative bg-card rounded-2xl p-4 border-2 border-primary/40 shadow-lg;
+    @apply relative bg-card rounded-2xl p-4 border-2 border-primary shadow-flat;
   }
 
   .speech-bubble::after {
