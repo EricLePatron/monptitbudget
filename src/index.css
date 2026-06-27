@@ -57,12 +57,13 @@
     --gradient-mint: hsl(165 100% 57%);
 
     /* Ombres offset solides */
-    --shadow-sm: 2px 2px 0 0 hsl(224 70% 4%);
-    --shadow-md: 4px 4px 0 0 hsl(224 70% 4%);
-    --shadow-lg: 6px 6px 0 0 hsl(224 70% 4%);
-    --shadow-glow-ok: 4px 4px 0 0 hsl(165 70% 28%);
-    --shadow-glow-warning: 4px 4px 0 0 hsl(50 80% 32%);
-    --shadow-glow-danger: 4px 4px 0 0 hsl(0 60% 38%);
+    /* Ombres offset solides — accent yellow pour pop visuel sur fond navy */
+    --shadow-sm: 3px 3px 0 0 hsl(65 100% 50%);
+    --shadow-md: 5px 5px 0 0 hsl(65 100% 50%);
+    --shadow-lg: 7px 7px 0 0 hsl(65 100% 50%);
+    --shadow-glow-ok: 4px 4px 0 0 hsl(165 100% 57%);
+    --shadow-glow-warning: 4px 4px 0 0 hsl(65 100% 50%);
+    --shadow-glow-danger: 4px 4px 0 0 hsl(0 84% 65%);
 
     --sidebar-background: 224 56% 9%;
     --sidebar-foreground: 0 0% 100%;
@@ -169,10 +170,28 @@
 
   /* Ombre offset solide réutilisable */
   .shadow-flat {
-    box-shadow: 4px 4px 0 0 hsl(224 70% 4%);
+    box-shadow: 5px 5px 0 0 hsl(65 100% 50%);
   }
   .shadow-flat-sm {
-    box-shadow: 2px 2px 0 0 hsl(224 70% 4%);
+    box-shadow: 3px 3px 0 0 hsl(65 100% 50%);
+  }
+
+  /* Kill all backdrop blurs — incompatible avec flat design */
+  .backdrop-blur,
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Kill blur halos décoratifs */
+  .blur-3xl, .blur-2xl, .blur-xl {
+    filter: none !important;
+    opacity: 0 !important;
   }
 }
 
