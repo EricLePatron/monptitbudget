@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Fredoka', 'Comic Sans MS', 'cursive'],
-        body: ['Comic Neue', 'Comic Sans MS', 'cursive'],
+        display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        body: ['DM Sans', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
