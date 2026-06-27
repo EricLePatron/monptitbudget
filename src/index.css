@@ -4,77 +4,72 @@
 
 @layer base {
   :root {
-    /* Fintech Navy & Néon palette - Dark fintech with playful neon accents */
-    --background: 230 55% 8%;
-    --foreground: 210 40% 96%;
+    /* Flat design — Navy / Yellow / Mint, aplats francs, ombres offset solides */
+    --background: 224 56% 9%;
+    --foreground: 0 0% 100%;
 
-    --card: 230 45% 14%;
-    --card-foreground: 210 40% 96%;
+    --card: 222 33% 14%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 230 45% 14%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 222 33% 14%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Neon yellow - main brand pop (Donald spirit) */
-    --primary: 50 100% 62%;
-    --primary-foreground: 230 55% 10%;
+    --primary: 65 100% 50%;
+    --primary-foreground: 224 56% 9%;
 
-    /* Deep elevated surface */
-    --secondary: 230 40% 20%;
-    --secondary-foreground: 210 40% 96%;
+    --secondary: 222 28% 20%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 230 30% 18%;
-    --muted-foreground: 220 15% 68%;
+    --muted: 222 25% 18%;
+    --muted-foreground: 220 14% 65%;
 
-    /* Neon mint accent */
-    --accent: 142 69% 58%;
-    --accent-foreground: 230 55% 10%;
+    --accent: 165 100% 57%;
+    --accent-foreground: 224 56% 9%;
 
-    /* Semantic budget colors - neon fintech */
-    --budget-ok: 142 69% 58%;
-    --budget-ok-foreground: 230 55% 10%;
-    --budget-ok-soft: 142 50% 18%;
+    --budget-ok: 165 100% 57%;
+    --budget-ok-foreground: 224 56% 9%;
+    --budget-ok-soft: 165 60% 18%;
 
-    --budget-warning: 50 100% 62%;
-    --budget-warning-foreground: 230 55% 10%;
-    --budget-warning-soft: 50 60% 18%;
+    --budget-warning: 65 100% 50%;
+    --budget-warning-foreground: 224 56% 9%;
+    --budget-warning-soft: 65 60% 18%;
 
-    --budget-danger: 350 90% 65%;
+    --budget-danger: 0 84% 65%;
     --budget-danger-foreground: 0 0% 100%;
-    --budget-danger-soft: 350 50% 22%;
+    --budget-danger-soft: 0 50% 22%;
 
-    --destructive: 350 90% 65%;
+    --destructive: 0 84% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 35% 22%;
-    --input: 230 35% 22%;
-    --ring: 50 100% 62%;
+    --border: 222 30% 24%;
+    --input: 222 30% 24%;
+    --ring: 65 100% 50%;
 
-    --radius: 1.25rem;
+    --radius: 1rem;
 
-    /* Typography - Cartoon fonts kept for fun spirit */
     --font-display: 'Fredoka', 'Comic Sans MS', cursive;
-    --font-body: 'Comic Neue', 'Comic Sans MS', cursive;
+    --font-body: 'Fredoka', 'Comic Neue', 'Comic Sans MS', cursive;
 
-    /* Fintech glassy gradients */
-    --gradient-hero: radial-gradient(ellipse at top, hsl(230 50% 18% / 0.9), hsl(230 55% 8% / 0.3));
-    --gradient-card: linear-gradient(145deg, hsl(230 45% 16%), hsl(230 50% 12%));
-    --gradient-primary: linear-gradient(135deg, hsl(50 100% 62%), hsl(38 100% 58%));
-    --gradient-mint: linear-gradient(135deg, hsl(142 69% 58%), hsl(160 70% 50%));
+    /* Aplats — pas de dégradés */
+    --gradient-hero: hsl(224 56% 9%);
+    --gradient-card: hsl(222 33% 14%);
+    --gradient-primary: hsl(65 100% 50%);
+    --gradient-mint: hsl(165 100% 57%);
 
-    /* Premium shadows + neon glows */
-    --shadow-sm: 0 1px 2px hsl(230 60% 4% / 0.4);
-    --shadow-md: 0 8px 24px hsl(230 60% 4% / 0.5), 0 2px 6px hsl(230 60% 4% / 0.3);
-    --shadow-lg: 0 20px 50px hsl(230 60% 4% / 0.6), 0 8px 16px hsl(230 60% 4% / 0.4);
-    --shadow-glow-ok: 0 0 40px hsl(142 69% 58% / 0.45), 0 0 12px hsl(142 69% 58% / 0.3);
-    --shadow-glow-warning: 0 0 40px hsl(50 100% 62% / 0.5), 0 0 12px hsl(50 100% 62% / 0.35);
-    --shadow-glow-danger: 0 0 40px hsl(350 90% 65% / 0.45), 0 0 12px hsl(350 90% 65% / 0.3);
+    /* Ombres offset solides */
+    --shadow-sm: 2px 2px 0 0 hsl(224 70% 4%);
+    --shadow-md: 4px 4px 0 0 hsl(224 70% 4%);
+    --shadow-lg: 6px 6px 0 0 hsl(224 70% 4%);
+    --shadow-glow-ok: 4px 4px 0 0 hsl(165 70% 28%);
+    --shadow-glow-warning: 4px 4px 0 0 hsl(50 80% 32%);
+    --shadow-glow-danger: 4px 4px 0 0 hsl(0 60% 38%);
 
-    --sidebar-background: 230 50% 10%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 50 100% 62%;
-    --sidebar-primary-foreground: 230 55% 10%;
-    --sidebar-accent: 142 69% 58%;
-    --sidebar-accent-foreground: 230 55% 10%;
+    --sidebar-background: 224 56% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 65 100% 50%;
+    --sidebar-primary-foreground: 224 56% 9%;
+    --sidebar-accent: 165 100% 57%;
+    --sidebar-accent-foreground: 224 56% 9%;
     --sidebar-border: 230 35% 22%;
     --sidebar-ring: 50 100% 62%;
   }
