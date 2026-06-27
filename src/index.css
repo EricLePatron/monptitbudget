@@ -75,39 +75,39 @@
   }
 
   .dark {
-    --background: 230 60% 6%;
-    --foreground: 210 40% 96%;
-    --card: 230 50% 12%;
-    --card-foreground: 210 40% 96%;
-    --popover: 230 50% 12%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 50 100% 62%;
-    --primary-foreground: 230 60% 6%;
-    --secondary: 230 40% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 230 30% 16%;
-    --muted-foreground: 220 15% 68%;
-    --accent: 142 69% 58%;
-    --accent-foreground: 230 60% 6%;
-    --budget-ok: 142 69% 58%;
-    --budget-ok-soft: 142 50% 16%;
-    --budget-warning: 50 100% 62%;
-    --budget-warning-soft: 50 60% 16%;
-    --budget-danger: 350 90% 65%;
-    --budget-danger-soft: 350 50% 20%;
-    --destructive: 350 90% 65%;
+    --background: 224 56% 9%;
+    --foreground: 0 0% 100%;
+    --card: 222 33% 14%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 33% 14%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 65 100% 50%;
+    --primary-foreground: 224 56% 9%;
+    --secondary: 222 28% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 25% 18%;
+    --muted-foreground: 220 14% 65%;
+    --accent: 165 100% 57%;
+    --accent-foreground: 224 56% 9%;
+    --budget-ok: 165 100% 57%;
+    --budget-ok-soft: 165 60% 16%;
+    --budget-warning: 65 100% 50%;
+    --budget-warning-soft: 65 60% 16%;
+    --budget-danger: 0 84% 65%;
+    --budget-danger-soft: 0 50% 20%;
+    --destructive: 0 84% 65%;
     --destructive-foreground: 0 0% 100%;
-    --border: 230 35% 20%;
-    --input: 230 35% 20%;
-    --ring: 50 100% 62%;
-    --sidebar-background: 230 60% 6%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 50 100% 62%;
-    --sidebar-primary-foreground: 230 60% 6%;
-    --sidebar-accent: 142 69% 58%;
-    --sidebar-accent-foreground: 230 60% 6%;
-    --sidebar-border: 230 35% 20%;
-    --sidebar-ring: 50 100% 62%;
+    --border: 222 30% 24%;
+    --input: 222 30% 24%;
+    --ring: 65 100% 50%;
+    --sidebar-background: 224 56% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 65 100% 50%;
+    --sidebar-primary-foreground: 224 56% 9%;
+    --sidebar-accent: 165 100% 57%;
+    --sidebar-accent-foreground: 224 56% 9%;
+    --sidebar-border: 222 30% 24%;
+    --sidebar-ring: 65 100% 50%;
   }
 }
 
@@ -119,18 +119,14 @@
   html, body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
-    /* PWA safe areas for notch/home indicator */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    background-image:
-      radial-gradient(circle at 15% 0%, hsl(50 100% 62% / 0.10), transparent 45%),
-      radial-gradient(circle at 90% 10%, hsl(142 69% 58% / 0.08), transparent 40%),
-      radial-gradient(circle at 50% 100%, hsl(230 80% 30% / 0.18), transparent 55%);
-    background-attachment: fixed;
+    background-color: hsl(var(--background));
+    background-image: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -155,31 +151,36 @@
   .shadow-glow-warning { box-shadow: var(--shadow-glow-warning); }
   .shadow-glow-danger { box-shadow: var(--shadow-glow-danger); }
 
-  .bg-gradient-primary { background-image: var(--gradient-primary); }
-  .bg-gradient-mint { background-image: var(--gradient-mint); }
-  .bg-gradient-card { background-image: var(--gradient-card); }
+  .bg-gradient-primary { background-color: hsl(var(--primary)); background-image: none; }
+  .bg-gradient-mint { background-color: hsl(var(--accent)); background-image: none; }
+  .bg-gradient-card { background-color: hsl(var(--card)); background-image: none; }
 
-  /* Glassmorphism fintech cards */
+  /* Flat card — aplat + bordure nette + ombre offset */
   .glass-card {
-    background: linear-gradient(145deg, hsl(230 45% 16% / 0.85), hsl(230 50% 12% / 0.85));
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid hsl(220 30% 35% / 0.25);
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
-  /* Subtle grid texture for fintech feel */
   .bg-grid {
-    background-image:
-      linear-gradient(hsl(220 30% 50% / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(220 30% 50% / 0.06) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: none;
+  }
+
+  /* Ombre offset solide réutilisable */
+  .shadow-flat {
+    box-shadow: 4px 4px 0 0 hsl(224 70% 4%);
+  }
+  .shadow-flat-sm {
+    box-shadow: 2px 2px 0 0 hsl(224 70% 4%);
   }
 }
 
 @layer components {
   .budget-card {
-    @apply glass-card rounded-3xl p-6 shadow-lg;
+    @apply glass-card rounded-2xl p-6 shadow-flat;
   }
+
 
   .hero-amount {
     @apply text-6xl md:text-7xl lg:text-8xl font-display font-bold tracking-tight;
