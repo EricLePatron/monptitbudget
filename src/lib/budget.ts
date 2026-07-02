@@ -256,6 +256,128 @@ export function calculateDailyForecasts(config: BudgetConfig, expenses: Expense[
   return forecasts;
 }
 
+// ── Weekly overview (calendar week, Monday → Sunday) ──────────────────────
+
+const WEEKDAY_SHORT_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+/**
+ * Returns the 7 date keys (YYYY-MM-DD) of the calendar week (Monday → Sunday)
+ * containing `referenceDate` (defaults to today). Mirrors the lastMonday/
+ * lastSunday convention already used in supabase/functions/weekly-budget-report.
+ */
+export function getCurrentWeekDates(referenceDate: Date = new Date()): string[] {
+  const dayOfWeek = referenceDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(referenceDate);
+  monday.setDate(referenceDate.getDate() + diffToMonday);
+
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  }
+  return dates;
+}
+
+/** 'Lun'…'Dim' label for a given YYYY-MM-DD date key. */
+export function getWeekdayShortLabel(dateKey: string): string {
+  const { year, month, day } = parseDateKey(dateKey);
+  const jsDay = new Date(year, month, day).getDay(); // 0 = Sunday
+  const idx = jsDay === 0 ? 6 : jsDay - 1; // remap to Monday = 0
+  return WEEKDAY_SHORT_LABELS[idx];
+}
+
+export interface WeekDayPoint {
+  date: string;
+  label: string;
+  isPast: boolean;
+  isToday: boolean;
+  isFuture: boolean;
+  /** Actual amount spent that day. `null` for future days (no actual data yet). */
+  spent: number | null;
+  /** Rollover-aware budget allocated/projected for that day. */
+  projectedBudget: number;
+}
+
+export interface WeeklyOverview {
+  days: WeekDayPoint[];
+  weekSpent: number;
+  weekProjected: number;
+  theoreticalDailyBudget: number;
+}
+
+/**
+ * Builds the 7-day calendar-week overview used by the "Courbe" tab.
+ *
+ * `monthsData` holds one entry per distinct month actually touched by the
+ * current week that has a budget configured (usually just one; two when the
+ * week straddles a month boundary). The first entry is treated as the
+ * "primary" month (the one matching today) and its theoretical daily budget
+ * is used as the flat reference line and as a fallback projection for any
+ * day whose month has no budget configured at all (which, since expenses
+ * always require a budget_id, also means 0€ actually spent that day).
+ */
+export function calculateWeeklyOverview(
+  monthsData: { config: BudgetConfig; expenses: Expense[] }[]
+): WeeklyOverview {
+  const weekDates = getCurrentWeekDates();
+  const todayKey = getTodayKey();
+
+  const primary = monthsData[0];
+  const theoreticalDailyBudget = primary
+    ? primary.config.monthlyBudget / getDaysInMonth(primary.config.month, primary.config.year)
+    : 0;
+
+  // Pre-compute daily forecasts once per distinct month touched by the week.
+  const forecastsByMonth = new Map<string, ReturnType<typeof calculateDailyForecasts>>();
+  for (const entry of monthsData) {
+    const key = `${entry.config.year}-${entry.config.month}`;
+    if (!forecastsByMonth.has(key)) {
+      forecastsByMonth.set(key, calculateDailyForecasts(entry.config, entry.expenses));
+    }
+  }
+
+  const days: WeekDayPoint[] = weekDates.map((date) => {
+    const { year, month, day } = parseDateKey(date);
+    const isPast = date < todayKey;
+    const isToday = date === todayKey;
+    const isFuture = date > todayKey;
+
+    const monthKey = `${year}-${month}`;
+    const monthEntry = monthsData.find((m) => m.config.year === year && m.config.month === month);
+
+    let projectedBudget: number;
+    let spent: number | null;
+
+    if (monthEntry) {
+      const forecasts = forecastsByMonth.get(monthKey)!;
+      const forecast = forecasts.find((f) => f.day === day);
+      projectedBudget = forecast ? forecast.estimatedBudget : theoreticalDailyBudget;
+      spent = isFuture ? null : getTotalExpensesForDay(monthEntry.expenses, date);
+    } else {
+      // No budget configured for that month → no expenses can exist for it either.
+      projectedBudget = theoreticalDailyBudget;
+      spent = isFuture ? null : 0;
+    }
+
+    return {
+      date,
+      label: getWeekdayShortLabel(date),
+      isPast,
+      isToday,
+      isFuture,
+      spent,
+      projectedBudget,
+    };
+  });
+
+  const weekSpent = days.reduce((sum, d) => sum + (d.spent ?? 0), 0);
+  const weekProjected = days.reduce((sum, d) => sum + d.projectedBudget, 0);
+
+  return { days, weekSpent, weekProjected, theoreticalDailyBudget };
+}
+
 export function getBudgetStatus(remainingToday: number, dailyBudget: number): BudgetStatus {
   const ratio = remainingToday / dailyBudget;
   if (remainingToday <= 0) return 'danger';

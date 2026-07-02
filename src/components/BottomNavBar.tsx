@@ -1,7 +1,7 @@
-import { Home, History, Settings } from 'lucide-react';
+import { Home, History, Settings, LineChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type NavTab = 'home' | 'history' | 'settings';
+export type NavTab = 'home' | 'curve' | 'history' | 'settings';
 
 interface NavItem {
   key: NavTab;
@@ -11,6 +11,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: 'Accueil', icon: Home },
+  { key: 'curve', label: 'Courbe', icon: LineChart },
   { key: 'history', label: 'Historique', icon: History },
   { key: 'settings', label: 'Réglages', icon: Settings },
 ];
@@ -38,7 +39,7 @@ export function BottomNavBar({ activeTab, onNavigate, alertsCount = 0 }: BottomN
       role="navigation"
       aria-label="Navigation principale"
     >
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-4">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.key;
