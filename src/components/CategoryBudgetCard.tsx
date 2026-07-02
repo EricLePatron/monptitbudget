@@ -33,16 +33,16 @@ export function CategoryBudgetCard({ spending, emoji = '📦', onClick }: Catego
       className={cn(
         'relative w-full text-left rounded-2xl p-3.5 border transition-all active:scale-[0.98]',
         isExceeded
-          ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_12px_-4px_rgba(239,68,68,0.4)]'
+          ? 'border-budget-danger/50 bg-budget-danger-soft shadow-glow-danger'
           : isWarning
-          ? 'border-amber-500/40 bg-amber-500/5 shadow-[0_0_12px_-4px_rgba(245,158,11,0.3)]'
+          ? 'border-budget-warning/40 bg-budget-warning-soft shadow-glow-warning'
           : 'border-border/50 bg-card hover:border-primary/30 hover:bg-card/80'
       )}
     >
       {/* Exceeded badge */}
       {isExceeded && (
-        <span className="absolute top-2.5 right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]">
-          <AlertTriangle className="w-3 h-3 text-white" />
+        <span className="absolute top-2.5 right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-budget-danger shadow-glow-danger">
+          <AlertTriangle className="w-3 h-3 text-budget-danger-foreground" />
         </span>
       )}
 
@@ -75,7 +75,7 @@ export function CategoryBudgetCard({ spending, emoji = '📦', onClick }: Catego
           <p className="text-xs text-muted-foreground tabular-nums">
             <span className={cn(
               'font-medium',
-              isExceeded ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-foreground'
+              isExceeded ? 'text-budget-danger' : isWarning ? 'text-budget-warning' : 'text-foreground'
             )}>
               {formatCurrencyCompact(spent)}
             </span>
@@ -94,10 +94,10 @@ export function CategoryBudgetCard({ spending, emoji = '📦', onClick }: Catego
                   className={cn(
                     'h-full rounded-full transition-all duration-500',
                     isExceeded
-                      ? 'bg-red-500'
+                      ? 'bg-budget-danger'
                       : isWarning
-                      ? 'bg-amber-500'
-                      : 'bg-emerald-500'
+                      ? 'bg-budget-warning'
+                      : 'bg-budget-ok'
                   )}
                   style={{ width: `${Math.min(100, percentage)}%` }}
                 />
@@ -105,9 +105,9 @@ export function CategoryBudgetCard({ spending, emoji = '📦', onClick }: Catego
               <p className={cn(
                 'text-[10px] font-medium tabular-nums',
                 isExceeded
-                  ? 'text-red-400'
+                  ? 'text-budget-danger'
                   : isWarning
-                  ? 'text-amber-400'
+                  ? 'text-budget-warning'
                   : 'text-muted-foreground'
               )}>
                 {isExceeded

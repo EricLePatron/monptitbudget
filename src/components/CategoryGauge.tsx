@@ -10,9 +10,17 @@ interface CategoryGaugeProps {
 
 const STATUS_COLOR: Record<CategoryStatus, string | null> = {
   ok: null,         // use the category's own color
-  warning: '#f59e0b',
-  exceeded: '#ef4444',
-  uncapped: '#6b7280',
+  warning: 'hsl(var(--budget-warning))',
+  exceeded: 'hsl(var(--budget-danger))',
+  uncapped: 'hsl(var(--muted-foreground))',
+};
+
+// Soft glow tint per status — same hue as the ring, low alpha (no neon effect)
+const STATUS_GLOW: Record<CategoryStatus, string | null> = {
+  ok: null,          // use the category's own color
+  warning: 'hsl(var(--budget-warning) / 0.35)',
+  exceeded: 'hsl(var(--budget-danger) / 0.35)',
+  uncapped: 'hsl(var(--muted-foreground) / 0.35)',
 };
 
 export function CategoryGauge({
@@ -31,6 +39,7 @@ export function CategoryGauge({
   const offset = circumference - (visualPct / 100) * circumference;
 
   const strokeColor = STATUS_COLOR[status] ?? color;
+  const glowColor = STATUS_GLOW[status] ?? `${color}59`;
   const isExceeded = status === 'exceeded';
 
   return (
@@ -64,7 +73,7 @@ export function CategoryGauge({
         strokeDashoffset={offset}
         style={{
           transition: 'stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1)',
-          filter: `drop-shadow(0 0 5px ${strokeColor}88)`,
+          filter: `drop-shadow(0 0 4px ${glowColor})`,
         }}
       />
 
@@ -75,7 +84,7 @@ export function CategoryGauge({
           cy={center}
           r={radius + strokeWidth * 0.7}
           fill="none"
-          stroke="#ef444444"
+          stroke="hsl(var(--budget-danger) / 0.3)"
           strokeWidth={strokeWidth * 0.6}
           strokeLinecap="round"
           strokeDasharray={circumference * 1.2}

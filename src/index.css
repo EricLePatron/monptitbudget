@@ -164,14 +164,6 @@
   .bg-grid {
     background-image: none;
   }
-
-  /* Ombres discrètes réutilisables (alias des tokens d'élévation) */
-  .shadow-flat {
-    box-shadow: var(--shadow-md);
-  }
-  .shadow-flat-sm {
-    box-shadow: var(--shadow-sm);
-  }
 }
 
 @layer components {

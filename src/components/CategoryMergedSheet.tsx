@@ -234,30 +234,30 @@ export function CategoryMergedSheet({
           {spending && status !== 'uncapped' && config?.capAmount && (
             <div className={cn(
               'rounded-2xl px-4 py-3 border',
-              isExceeded ? 'bg-red-500/8 border-red-500/30' : isWarning ? 'bg-amber-500/8 border-amber-500/30' : 'bg-emerald-500/5 border-emerald-500/20',
+              isExceeded ? 'bg-budget-danger-soft border-budget-danger/30' : isWarning ? 'bg-budget-warning-soft border-budget-warning/30' : 'bg-budget-ok-soft border-budget-ok/20',
             )}>
               <div className="flex items-center justify-between mb-2 text-sm">
                 <span className={cn(
                   'font-bold tabular-nums font-display',
-                  isExceeded ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-emerald-400',
+                  isExceeded ? 'text-budget-danger' : isWarning ? 'text-budget-warning' : 'text-budget-ok',
                 )}>
                   {formatCurrencyCompact(spending.spent)}
                 </span>
                 <span className="text-muted-foreground text-xs">/ {formatCurrencyCompact(config.capAmount)}</span>
                 <span className={cn(
                   'font-bold tabular-nums text-xs',
-                  isExceeded ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-emerald-400',
+                  isExceeded ? 'text-budget-danger' : isWarning ? 'text-budget-warning' : 'text-budget-ok',
                 )}>
                   {Math.round(pct)}%
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
                 <div
-                  className={cn('h-full rounded-full transition-all', isExceeded ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500')}
+                  className={cn('h-full rounded-full transition-all', isExceeded ? 'bg-budget-danger' : isWarning ? 'bg-budget-warning' : 'bg-budget-ok')}
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className={cn('text-[11px] mt-1.5 font-medium', isExceeded ? 'text-red-400' : 'text-muted-foreground')}>
+              <p className={cn('text-[11px] mt-1.5 font-medium', isExceeded ? 'text-budget-danger' : 'text-muted-foreground')}>
                 {isExceeded
                   ? `🚨 Dépassé de ${formatCurrencyCompact(Math.abs(spending.remaining ?? 0))}`
                   : spending.remaining !== undefined
@@ -328,7 +328,7 @@ export function CategoryMergedSheet({
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Alerte à</span>
-                    <span className="text-xs font-bold text-amber-400">{warningThreshold}%</span>
+                    <span className="text-xs font-bold text-budget-warning">{warningThreshold}%</span>
                   </div>
                   <Slider
                     value={[warningThreshold]}
@@ -407,7 +407,7 @@ export function CategoryMergedSheet({
                     <button
                       type="button"
                       onClick={() => onDeleteCategory(sub.id)}
-                      className="h-5 w-5 flex items-center justify-center rounded-full hover:bg-red-500/20 text-muted-foreground hover:text-red-400"
+                      className="h-5 w-5 flex items-center justify-center rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
                     >
                       <X className="w-2.5 h-2.5" />
                     </button>
@@ -459,7 +459,7 @@ export function CategoryMergedSheet({
             <button
               type="button"
               onClick={handleDeleteCategory}
-              className="w-full h-11 rounded-2xl border border-red-500/20 text-red-400 text-sm font-semibold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-2xl border border-destructive/20 text-destructive text-sm font-semibold hover:bg-destructive/10 transition-colors flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
               Supprimer cette catégorie

@@ -86,8 +86,6 @@ export default {
         lg: "var(--shadow-lg)",
         xl: "var(--shadow-lg)",
         "2xl": "var(--shadow-lg)",
-        flat: "var(--shadow-md)",
-        "flat-sm": "var(--shadow-sm)",
         "glow-ok": "var(--shadow-glow-ok)",
         "glow-warning": "var(--shadow-glow-warning)",
         "glow-danger": "var(--shadow-glow-danger)",
