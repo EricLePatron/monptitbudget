@@ -64,6 +64,18 @@ export function getExpensesForDay(expenses: Expense[], dateKey: string): Expense
   return expenses.filter(e => e.date === dateKey);
 }
 
+/**
+ * "Pure spending" excludes direct debits and bank transfers: they weigh on
+ * the monthly budget but aren't day-to-day discretionary spending. Used by
+ * the "Courbe" tab only — calculateBudgetMetrics/calculateDailyForecasts and
+ * the Accueil/DailyForecastSheet views keep using every expense as before.
+ */
+export function isPureSpendingExpense(expense: Expense): boolean {
+  if (expense.isDirectDebit) return false;
+  if (expense.name && /VIR\s*SEPA/i.test(expense.name)) return false;
+  return true;
+}
+
 export function getTotalExpensesForDay(expenses: Expense[], dateKey: string): number {
   return getExpensesForDay(expenses, dateKey).reduce((sum, e) => sum + e.amount, 0);
 }

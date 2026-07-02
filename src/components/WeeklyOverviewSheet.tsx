@@ -16,6 +16,7 @@ import {
   calculateBudgetMetrics,
   getBudgetStatus,
   formatCurrencyCompact,
+  isPureSpendingExpense,
 } from '@/lib/budget';
 import { useWeeklyOverview } from '@/hooks/useWeeklyOverview';
 import { cn } from '@/lib/utils';
@@ -58,13 +59,18 @@ export function WeeklyOverviewSheet({
   isCurrentMonth,
   onGoToCurrentMonth,
 }: WeeklyOverviewSheetProps) {
-  const metrics = calculateBudgetMetrics(config, expenses);
+  // "Courbe" only cares about pure discretionary spending — direct debits
+  // and bank transfers weigh on the monthly budget (Accueil, DailyForecastSheet)
+  // but aren't day-to-day spending, so they're excluded here only.
+  const pureExpenses = useMemo(() => expenses.filter(isPureSpendingExpense), [expenses]);
+
+  const metrics = calculateBudgetMetrics(config, pureExpenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
 
   const { overview, loading } = useWeeklyOverview(
     isCurrentMonth ? accountId : null,
     isCurrentMonth ? config : null,
-    expenses,
+    pureExpenses,
     open
   );
 
