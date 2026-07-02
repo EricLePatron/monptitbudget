@@ -1,7 +1,7 @@
-import { Home, History, CalendarClock, Settings } from 'lucide-react';
+import { Home, History, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type NavTab = 'home' | 'history' | 'calendar' | 'settings';
+export type NavTab = 'home' | 'history' | 'settings';
 
 interface NavItem {
   key: NavTab;
@@ -12,7 +12,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: 'Accueil', icon: Home },
   { key: 'history', label: 'Historique', icon: History },
-  { key: 'calendar', label: 'Prélèvements', icon: CalendarClock },
   { key: 'settings', label: 'Réglages', icon: Settings },
 ];
 
@@ -39,7 +38,7 @@ export function BottomNavBar({ activeTab, onNavigate, alertsCount = 0 }: BottomN
       role="navigation"
       aria-label="Navigation principale"
     >
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-3">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.key;

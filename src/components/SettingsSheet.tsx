@@ -23,7 +23,7 @@ interface SettingsSheetProps {
   onOpenOverview?: () => void;
   onOpenCategoryTree: () => void;
   onOpenPending: () => void;
-  onOpenRecurringDebits?: () => void;
+  onOpenRecurringDebits: () => void;
   onSignOut: () => void;
 }
 
@@ -81,6 +81,12 @@ export function SettingsSheet({
       title: 'Connexion bancaire',
       subtitle: 'Synchroniser mes relevés',
       onClick: handle(onOpenBank),
+    },
+    {
+      icon: CalendarClock,
+      title: 'Prélèvements',
+      subtitle: 'Calendrier des prélèvements récurrents projetés',
+      onClick: handle(onOpenRecurringDebits),
     },
   ];
 

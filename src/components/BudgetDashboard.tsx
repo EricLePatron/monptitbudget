@@ -119,11 +119,6 @@ export function BudgetDashboard({
     }
   };
 
-  const handleRecurringDebitsOpenChange = (open: boolean) => {
-    setRecurringDebitsOpen(open);
-    if (!open) setActiveTab('home');
-  };
-
   // Whether one of the sub-sheets reachable from the "Réglages" hub is
   // currently open.
   const settingsChildOpen =
@@ -133,7 +128,8 @@ export function BudgetDashboard({
     savingsOpen ||
     overviewOpen ||
     treeManagerOpen ||
-    pendingSheetOpen;
+    pendingSheetOpen ||
+    recurringDebitsOpen;
 
   // SettingsSheet closes itself (open=false) then, 150ms later, opens the
   // chosen sub-sheet (see handle() in SettingsSheet.tsx) — this delay avoids
@@ -154,7 +150,6 @@ export function BudgetDashboard({
   const handleNavigate = (tab: NavTab) => {
     setActiveTab(tab);
     if (tab === 'history') setHistoryOpen(true);
-    if (tab === 'calendar') setRecurringDebitsOpen(true);
     if (tab === 'settings') setSettingsOpen(true);
     // 'home' has no Sheet to open — it just resets the visual state.
   };
@@ -587,7 +582,7 @@ export function BudgetDashboard({
       {/* Recurring direct-debits calendar */}
       <RecurringDebitsCalendarSheet
         open={recurringDebitsOpen}
-        onOpenChange={handleRecurringDebitsOpenChange}
+        onOpenChange={setRecurringDebitsOpen}
         accountId={currentAccount?.id ?? null}
         accountName={currentAccount?.name}
         targetMonth={config.month}
