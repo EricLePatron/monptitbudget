@@ -256,6 +256,82 @@ export function calculateDailyForecasts(config: BudgetConfig, expenses: Expense[
   return forecasts;
 }
 
+// ── Flat daily allowance (Courbe tab only) ─────────────────────────────────
+// Unlike calculateBudgetMetrics/calculateDailyForecasts (used by Accueil and
+// DailyForecastSheet, which stay untouched), this is a simple flat split of
+// what's left this month across the days remaining — no day-by-day
+// rollover. It also excludes bank transfers, but deliberately keeps direct
+// debits (those are real spending).
+
+export function isTransferExpense(expense: Expense): boolean {
+  // Bank transfers only — does NOT check `isDirectDebit`, unlike the
+  // "pure spending" filter this replaces: direct debits are real spending
+  // and must stay in the calculation here.
+  return !!(expense.name && /\bVIR(?:EMENT)?\s*SEPA\b/i.test(expense.name));
+}
+
+export interface FlatDailyMetrics {
+  totalSpentThisMonth: number;
+  budgetRemaining: number;
+  daysRemaining: number;
+  dailyAllowance: number;
+  spentToday: number;
+  remainingToday: number;
+  isCurrentMonth: boolean;
+  isFutureMonth: boolean;
+  isPastMonth: boolean;
+}
+
+export function calculateFlatDailyMetrics(config: BudgetConfig, expenses: Expense[]): FlatDailyMetrics {
+  const totalDays = getDaysInMonth(config.month, config.year);
+  const { year: currentYear, month: currentMonth, day: currentDay } = getLocalDateComponents();
+
+  const isThisMonth = config.year === currentYear && config.month === currentMonth;
+  const isFuture = isFutureMonth(config);
+  const isPast = isPastMonth(config);
+
+  // Same day-counting rules as calculateBudgetMetrics (duplicated
+  // intentionally — that function is left untouched, it still drives
+  // Accueil/DailyForecastSheet).
+  let effectiveDay: number;
+  if (isThisMonth) {
+    effectiveDay = currentDay;
+  } else if (isFuture) {
+    effectiveDay = 0;
+  } else {
+    effectiveDay = totalDays;
+  }
+  const daysRemaining = Math.max(0, totalDays - effectiveDay + (isThisMonth ? 1 : 0));
+
+  const spendingExpenses = expenses.filter((e) => !isTransferExpense(e));
+
+  const totalSpentThisMonth = spendingExpenses
+    .filter((e) => {
+      const { year, month } = parseDateKey(e.date);
+      return year === config.year && month === config.month;
+    })
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const budgetRemaining = config.monthlyBudget - totalSpentThisMonth;
+  const dailyAllowance = daysRemaining > 0 ? budgetRemaining / daysRemaining : 0;
+
+  const todayKey = getTodayKey();
+  const spentToday = isThisMonth ? getTotalExpensesForDay(spendingExpenses, todayKey) : 0;
+  const remainingToday = dailyAllowance - spentToday;
+
+  return {
+    totalSpentThisMonth,
+    budgetRemaining,
+    daysRemaining,
+    dailyAllowance,
+    spentToday,
+    remainingToday,
+    isCurrentMonth: isThisMonth,
+    isFutureMonth: isFuture,
+    isPastMonth: isPast,
+  };
+}
+
 // ── Weekly overview (calendar week, Monday → Sunday) ──────────────────────
 
 const WEEKDAY_SHORT_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -294,9 +370,9 @@ export interface WeekDayPoint {
   isPast: boolean;
   isToday: boolean;
   isFuture: boolean;
-  /** Actual amount spent that day. `null` for future days (no actual data yet). */
+  /** Actual amount spent that day, transfers excluded. `null` for future days (no actual data yet). */
   spent: number | null;
-  /** Rollover-aware budget allocated/projected for that day. */
+  /** Flat daily allowance (see calculateFlatDailyMetrics) — the same constant value for every day. */
   projectedBudget: number;
 }
 
@@ -304,19 +380,22 @@ export interface WeeklyOverview {
   days: WeekDayPoint[];
   weekSpent: number;
   weekProjected: number;
-  theoreticalDailyBudget: number;
+  dailyAllowance: number;
 }
 
 /**
  * Builds the 7-day calendar-week overview used by the "Courbe" tab.
  *
+ * Flat model: `dailyAllowance` (see calculateFlatDailyMetrics) is computed
+ * once from the primary month (today's month) and used as a constant
+ * reference/projection for today and every future day of the week — no
+ * day-by-day rollover, unlike calculateDailyForecasts. Past days show
+ * actual spending, transfers excluded.
+ *
  * `monthsData` holds one entry per distinct month actually touched by the
  * current week that has a budget configured (usually just one; two when the
- * week straddles a month boundary). The first entry is treated as the
- * "primary" month (the one matching today) and its theoretical daily budget
- * is used as the flat reference line and as a fallback projection for any
- * day whose month has no budget configured at all (which, since expenses
- * always require a budget_id, also means 0€ actually spent that day).
+ * week straddles a month boundary). The first entry is the "primary" month
+ * (the one matching today) and is what `dailyAllowance` is derived from.
  */
 export function calculateWeeklyOverview(
   monthsData: { config: BudgetConfig; expenses: Expense[] }[]
@@ -325,41 +404,23 @@ export function calculateWeeklyOverview(
   const todayKey = getTodayKey();
 
   const primary = monthsData[0];
-  const theoreticalDailyBudget = primary
-    ? primary.config.monthlyBudget / getDaysInMonth(primary.config.month, primary.config.year)
+  const dailyAllowance = primary
+    ? calculateFlatDailyMetrics(primary.config, primary.expenses).dailyAllowance
     : 0;
 
-  // Pre-compute daily forecasts once per distinct month touched by the week.
-  const forecastsByMonth = new Map<string, ReturnType<typeof calculateDailyForecasts>>();
-  for (const entry of monthsData) {
-    const key = `${entry.config.year}-${entry.config.month}`;
-    if (!forecastsByMonth.has(key)) {
-      forecastsByMonth.set(key, calculateDailyForecasts(entry.config, entry.expenses));
-    }
-  }
-
   const days: WeekDayPoint[] = weekDates.map((date) => {
-    const { year, month, day } = parseDateKey(date);
+    const { year, month } = parseDateKey(date);
     const isPast = date < todayKey;
     const isToday = date === todayKey;
     const isFuture = date > todayKey;
 
-    const monthKey = `${year}-${month}`;
     const monthEntry = monthsData.find((m) => m.config.year === year && m.config.month === month);
-
-    let projectedBudget: number;
-    let spent: number | null;
-
-    if (monthEntry) {
-      const forecasts = forecastsByMonth.get(monthKey)!;
-      const forecast = forecasts.find((f) => f.day === day);
-      projectedBudget = forecast ? forecast.estimatedBudget : theoreticalDailyBudget;
-      spent = isFuture ? null : getTotalExpensesForDay(monthEntry.expenses, date);
-    } else {
-      // No budget configured for that month → no expenses can exist for it either.
-      projectedBudget = theoreticalDailyBudget;
-      spent = isFuture ? null : 0;
-    }
+    const spent = isFuture
+      ? null
+      : monthEntry
+        ? getTotalExpensesForDay(monthEntry.expenses.filter((e) => !isTransferExpense(e)), date)
+        // No budget configured for that month → no expenses can exist for it either.
+        : 0;
 
     return {
       date,
@@ -368,14 +429,14 @@ export function calculateWeeklyOverview(
       isToday,
       isFuture,
       spent,
-      projectedBudget,
+      projectedBudget: dailyAllowance,
     };
   });
 
   const weekSpent = days.reduce((sum, d) => sum + (d.spent ?? 0), 0);
   const weekProjected = days.reduce((sum, d) => sum + d.projectedBudget, 0);
 
-  return { days, weekSpent, weekProjected, theoreticalDailyBudget };
+  return { days, weekSpent, weekProjected, dailyAllowance };
 }
 
 export function getBudgetStatus(remainingToday: number, dailyBudget: number): BudgetStatus {
