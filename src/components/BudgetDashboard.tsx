@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
@@ -30,9 +30,10 @@ import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { useCategoryBudgets } from '@/hooks/useCategoryBudgets';
 import { usePendingTransactions } from '@/hooks/usePendingTransactions';
 import { useAutoRecurringDebits } from '@/hooks/useAutoRecurringDebits';
-import { Plus, History, Settings, ChevronLeft, ChevronRight, Calendar, Inbox, CalendarClock } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Calendar, Inbox } from 'lucide-react';
 import { BankConnectionSheet } from './BankConnectionSheet';
 import { SettingsSheet } from './SettingsSheet';
+import { BottomNavBar, NavTab } from './BottomNavBar';
 import { CategoryPieChart } from './CategoryPieChart';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -104,6 +105,54 @@ export function BudgetDashboard({
   const [treeManagerOpen, setTreeManagerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [recurringDebitsOpen, setRecurringDebitsOpen] = useState(false);
+
+  // Bottom nav "active tab" — purely visual since destinations are Sheets,
+  // not routes. Defaults back to "home" whenever the corresponding Sheet closes.
+  const [activeTab, setActiveTab] = useState<NavTab>('home');
+
+  const handleHistoryOpenChange = (open: boolean) => {
+    setHistoryOpen(open);
+    if (!open) {
+      setHistoryInitialCategory(null);
+      setHistoryInitialSubcategory(null);
+      setActiveTab('home');
+    }
+  };
+
+  // Whether one of the sub-sheets reachable from the "Réglages" hub is
+  // currently open.
+  const settingsChildOpen =
+    editBudgetOpen ||
+    manageAccountsOpen ||
+    bankSheetOpen ||
+    savingsOpen ||
+    overviewOpen ||
+    treeManagerOpen ||
+    pendingSheetOpen ||
+    recurringDebitsOpen;
+
+  // SettingsSheet closes itself (open=false) then, 150ms later, opens the
+  // chosen sub-sheet (see handle() in SettingsSheet.tsx) — this delay avoids
+  // two Radix Sheets being mounted at the same time. During that gap no
+  // sheet is open at all, so resetting `activeTab` to 'home' synchronously
+  // made the bottom nav flash back to "Accueil" (and briefly show the FAB
+  // again) before the sub-sheet appeared. Instead, wait a bit longer than
+  // that 150ms delay before falling back to "Accueil", and skip the reset
+  // entirely if a sub-sheet did open in the meantime.
+  useEffect(() => {
+    if (settingsOpen || settingsChildOpen) return;
+    const timer = setTimeout(() => {
+      setActiveTab((prev) => (prev === 'settings' ? 'home' : prev));
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [settingsOpen, settingsChildOpen]);
+
+  const handleNavigate = (tab: NavTab) => {
+    setActiveTab(tab);
+    if (tab === 'history') setHistoryOpen(true);
+    if (tab === 'settings') setSettingsOpen(true);
+    // 'home' has no Sheet to open — it just resets the visual state.
+  };
 
   const sharingAccount = accounts.find(a => a.id === sharingAccountId);
 
@@ -194,6 +243,7 @@ export function BudgetDashboard({
     setHistoryInitialCategory(cat);
     setHistoryInitialSubcategory(sub ?? null);
     setHistoryOpen(true);
+    setActiveTab('history');
   };
 
   const { signOut } = useAuth();
@@ -332,65 +382,29 @@ export function BudgetDashboard({
 
 
 
-        {/* Spacer for FAB */}
-        <div className="h-24" />
+        {/* Spacer so content can scroll clear of the fixed nav bar + FAB */}
+        <div className="h-[calc(4rem+max(env(safe-area-inset-bottom),8px)+72px)]" />
       </main>
 
+      {/* PWA-style bottom tab bar — Accueil / Historique / Réglages */}
+      <BottomNavBar activeTab={activeTab} onNavigate={handleNavigate} alertsCount={alerts.length} />
 
-      {/* Bottom action bar — History + Calendar + Add + Settings */}
-      <div className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setHistoryOpen(true)}
-          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all"
-          title="Historique des dépenses"
-          aria-label="Historique des dépenses"
+      {/* Floating "+" — add expense. Home tab only, and only for the current/future month. */}
+      {activeTab === 'home' && (metrics.isCurrentMonth || metrics.isFutureMonth) && (
+        <div
+          className="fixed z-40 inset-x-0 bottom-[calc(4rem+max(env(safe-area-inset-bottom),8px)-4px)] flex justify-center pointer-events-none"
         >
-          <History className="w-5 h-5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setRecurringDebitsOpen(true)}
-          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all"
-          title="Calendrier des prélèvements"
-          aria-label="Calendrier des prélèvements"
-        >
-          <CalendarClock className="w-5 h-5" />
-        </Button>
-        {(metrics.isCurrentMonth || metrics.isFutureMonth) && (
           <Button
             size="icon"
             onClick={() => setSheetOpen(true)}
-            className="h-16 w-16 rounded-full shadow-xl text-2xl font-bold"
+            className="pointer-events-auto h-16 w-16 rounded-full shadow-xl text-2xl font-bold border-4 border-background"
             title="Ajouter une dépense"
             aria-label="Ajouter une dépense"
           >
             <Plus className="w-7 h-7" />
           </Button>
-        )}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setSettingsOpen(true)}
-          className="h-14 w-14 rounded-full bg-card/95 backdrop-blur border border-border shadow-xl text-foreground hover:bg-card hover:scale-105 active:scale-95 transition-all relative"
-          title="Paramètres"
-          aria-label="Paramètres"
-        >
-          <Settings className="w-5 h-5" />
-          {alerts.length > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
-              {alerts.length > 9 ? '9+' : alerts.length}
-            </span>
-          )}
-        </Button>
-      </div>
-
-      {/* placeholder removed: bottom bar replaces FAB */}
+        </div>
+      )}
 
       {/* Add Expense Sheet */}
       <AddExpenseSheet
@@ -417,17 +431,20 @@ export function BudgetDashboard({
       {/* Expense History Sheet */}
       <ExpenseHistorySheet
         open={historyOpen}
-        onOpenChange={(open) => {
-          setHistoryOpen(open);
-          if (!open) {
-            setHistoryInitialCategory(null);
-            setHistoryInitialSubcategory(null);
-          }
-        }}
+        onOpenChange={handleHistoryOpenChange}
         expenses={expenses}
         onDeleteExpense={onDeleteExpense}
         onEditExpense={(exp) => {
           setHistoryOpen(false);
+          // Reset the category/subcategory filter the same way
+          // handleHistoryOpenChange(false) would, so that re-opening the
+          // history from the nav bar later shows the full list again
+          // instead of staying stuck on whatever category was used to open
+          // it here. Don't route through handleHistoryOpenChange itself:
+          // it also resets `activeTab` to 'home', which would change which
+          // nav tab is highlighted while EditExpenseSheet is open.
+          setHistoryInitialCategory(null);
+          setHistoryInitialSubcategory(null);
           setEditingExpense(exp);
         }}
         categories={categories}
@@ -440,7 +457,12 @@ export function BudgetDashboard({
       {/* Edit Expense Sheet — top-level to avoid nested overlay focus issues */}
       <EditExpenseSheet
         open={editingExpense !== null}
-        onOpenChange={(open) => !open && setEditingExpense(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingExpense(null);
+            setActiveTab('home');
+          }
+        }}
         expense={editingExpense}
         onUpdateExpense={onUpdateExpense}
         categories={categories}
