@@ -8,7 +8,6 @@ import {
   WeeklyOverview,
   calculateWeeklyOverview,
   getCurrentWeekDates,
-  isPureSpendingExpense,
   parseDateKey,
 } from '@/lib/budget';
 
@@ -23,9 +22,8 @@ import {
  * there is nothing to fetch: since expenses always require a budget_id, its
  * days simply have 0€ actually spent (handled by calculateWeeklyOverview).
  *
- * `primaryExpenses` is expected to already be scoped to "pure spending" by
- * the caller (see `isPureSpendingExpense`) — the adjacent month fetched
- * internally here is filtered the same way, so both stay consistent.
+ * Uses every expense, exactly like calculateBudgetMetrics on Accueil — the
+ * "reste aujourd'hui"/week totals here must match Accueil's figures exactly.
  */
 export function useWeeklyOverview(
   accountId: string | null,
@@ -125,22 +123,17 @@ export function useWeeklyOverview(
           deductions: budgetData.deductions as unknown as BudgetConfig['deductions'] ?? undefined,
           savings: budgetData.savings ? Number(budgetData.savings) : undefined,
         },
-        expenses: (expensesData || [])
-          .map((e) => ({
-            id: e.id,
-            amount: Number(e.amount),
-            name: e.name ?? undefined,
-            category: (e as { category?: string }).category ?? undefined,
-            subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
-            date: e.date,
-            createdAt: new Date(e.created_at).getTime(),
-            userEmail: (e as { user_email?: string }).user_email ?? undefined,
-            isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
-          }))
-          // Same "pure spending" scoping as the primary month's expenses
-          // (already filtered by the caller) — keeps both months consistent
-          // for calculateWeeklyOverview.
-          .filter(isPureSpendingExpense),
+        expenses: (expensesData || []).map((e) => ({
+          id: e.id,
+          amount: Number(e.amount),
+          name: e.name ?? undefined,
+          category: (e as { category?: string }).category ?? undefined,
+          subcategory: (e as { subcategory?: string }).subcategory ?? undefined,
+          date: e.date,
+          createdAt: new Date(e.created_at).getTime(),
+          userEmail: (e as { user_email?: string }).user_email ?? undefined,
+          isDirectDebit: (e as { is_direct_debit?: boolean }).is_direct_debit ?? false,
+        })),
       });
       setLoadingAdjacent(false);
     })();
