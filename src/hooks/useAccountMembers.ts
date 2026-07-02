@@ -66,7 +66,6 @@ export function useAccountMembers(accountId: string | null, accountName?: string
         body: {
           invitedEmail,
           accountName,
-          inviterEmail: user.email,
           appUrl,
         },
       });
