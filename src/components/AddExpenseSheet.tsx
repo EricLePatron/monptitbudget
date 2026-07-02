@@ -184,17 +184,17 @@ export function AddExpenseSheet({
               <div className={cn(
                 'flex items-center gap-2.5 rounded-xl px-3 py-2.5 border text-sm',
                 selectedCatSpending.status === 'exceeded'
-                  ? 'border-red-500/40 bg-red-500/8'
+                  ? 'border-budget-danger/40 bg-budget-danger-soft'
                   : selectedCatSpending.status === 'warning'
-                  ? 'border-amber-500/40 bg-amber-500/8'
-                  : 'border-emerald-500/30 bg-emerald-500/5'
+                  ? 'border-budget-warning/40 bg-budget-warning-soft'
+                  : 'border-budget-ok/30 bg-budget-ok-soft'
               )}>
                 {selectedCatSpending.status === 'exceeded' ? (
-                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-budget-danger shrink-0" />
                 ) : selectedCatSpending.status === 'warning' ? (
-                  <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
+                  <TrendingUp className="w-4 h-4 text-budget-warning shrink-0" />
                 ) : (
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <Check className="w-4 h-4 text-budget-ok shrink-0" />
                 )}
 
                 <div className="flex-1 min-w-0">
@@ -204,10 +204,10 @@ export function AddExpenseSheet({
                       className={cn(
                         'h-full rounded-full transition-all',
                         selectedCatSpending.status === 'exceeded'
-                          ? 'bg-red-500'
+                          ? 'bg-budget-danger'
                           : selectedCatSpending.status === 'warning'
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
+                          ? 'bg-budget-warning'
+                          : 'bg-budget-ok'
                       )}
                       style={{ width: `${Math.min(100, selectedCatSpending.percentage ?? 0)}%` }}
                     />
@@ -215,10 +215,10 @@ export function AddExpenseSheet({
                   <p className={cn(
                     'text-[11px] font-medium tabular-nums',
                     selectedCatSpending.status === 'exceeded'
-                      ? 'text-red-400'
+                      ? 'text-budget-danger'
                       : selectedCatSpending.status === 'warning'
-                      ? 'text-amber-400'
-                      : 'text-emerald-400'
+                      ? 'text-budget-warning'
+                      : 'text-budget-ok'
                   )}>
                     {selectedCatSpending.status === 'exceeded'
                       ? `Plafond dépassé de ${formatCurrencyCompact(Math.abs(selectedCatSpending.remaining ?? 0))}`
@@ -231,10 +231,10 @@ export function AddExpenseSheet({
                 <span className={cn(
                   'shrink-0 text-[11px] font-bold tabular-nums',
                   selectedCatSpending.status === 'exceeded'
-                    ? 'text-red-400'
+                    ? 'text-budget-danger'
                     : selectedCatSpending.status === 'warning'
-                    ? 'text-amber-400'
-                    : 'text-emerald-400'
+                    ? 'text-budget-warning'
+                    : 'text-budget-ok'
                 )}>
                   {Math.round(selectedCatSpending.percentage ?? 0)}%
                 </span>

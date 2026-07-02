@@ -130,18 +130,18 @@ export function DonaldSticker({ amount, expenseName, onClose }: DonaldStickerPro
         }}
       >
         {/* Speech Bubble */}
-        <div className="speech-bubble max-w-[300px] cursor-pointer animate-bounce-in">
-          <p className="text-foreground font-body font-bold text-sm leading-relaxed">
+        <div className="speech-bubble max-w-[300px] cursor-pointer">
+          <p className="text-foreground font-body font-medium text-sm leading-relaxed">
             {comment}
           </p>
         </div>
-        
+
         {/* Donald Duck Emoji/Avatar */}
         <div className="flex items-center gap-2 mt-3 ml-4">
-          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-3xl border-3 border-foreground/20 shadow-lg animate-wiggle">
+          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-3xl border border-border shadow-sm">
             {emoji}
           </div>
-          <span className="font-display font-bold text-primary text-sm">
+          <span className="font-display font-semibold text-foreground text-sm">
             Donald Duck
           </span>
         </div>

@@ -10,9 +10,9 @@ interface CategoryCapsListProps {
 }
 
 const STATUS_BG: Record<string, string> = {
-  ok: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  exceeded: 'bg-destructive',
+  ok: 'bg-budget-ok',
+  warning: 'bg-budget-warning',
+  exceeded: 'bg-budget-danger',
   uncapped: 'bg-muted-foreground/40',
 };
 
@@ -82,9 +82,9 @@ export function CategoryCapsList({
                       className={cn(
                         'text-xs font-bold',
                         c.status === 'exceeded'
-                          ? 'text-destructive'
+                          ? 'text-budget-danger'
                           : c.status === 'warning'
-                            ? 'text-amber-500'
+                            ? 'text-budget-warning'
                             : 'text-foreground'
                       )}
                     >

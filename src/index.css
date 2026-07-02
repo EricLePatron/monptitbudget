@@ -4,111 +4,110 @@
 
 @layer base {
   :root {
-    /* Flat design — Navy / Yellow / Mint, aplats francs, ombres offset solides */
-    --background: 224 56% 9%;
-    --foreground: 0 0% 100%;
+    /* Design sobre — fond neutre sombre, accent unique indigo, une seule famille typographique */
+    --background: 240 6% 7%;
+    --foreground: 0 0% 97%;
 
-    --card: 222 33% 14%;
-    --card-foreground: 0 0% 100%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 97%;
 
-    --popover: 222 33% 14%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 97%;
 
-    --primary: 65 100% 50%;
-    --primary-foreground: 224 56% 9%;
+    --primary: 243 75% 63%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 28% 20%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 0 0% 97%;
 
-    --muted: 222 25% 18%;
-    --muted-foreground: 220 14% 65%;
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 165 100% 57%;
-    --accent-foreground: 224 56% 9%;
+    --accent: 240 5% 16%;
+    --accent-foreground: 0 0% 97%;
 
-    --budget-ok: 165 100% 57%;
-    --budget-ok-foreground: 224 56% 9%;
-    --budget-ok-soft: 165 60% 18%;
+    --budget-ok: 152 55% 45%;
+    --budget-ok-foreground: 0 0% 100%;
+    --budget-ok-soft: 152 35% 15%;
 
-    --budget-warning: 65 100% 50%;
-    --budget-warning-foreground: 224 56% 9%;
-    --budget-warning-soft: 65 60% 18%;
+    --budget-warning: 38 92% 50%;
+    --budget-warning-foreground: 0 0% 10%;
+    --budget-warning-soft: 38 55% 16%;
 
-    --budget-danger: 0 84% 65%;
+    --budget-danger: 0 72% 55%;
     --budget-danger-foreground: 0 0% 100%;
-    --budget-danger-soft: 0 50% 22%;
+    --budget-danger-soft: 0 45% 18%;
 
-    --destructive: 0 84% 65%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 30% 24%;
-    --input: 222 30% 24%;
-    --ring: 65 100% 50%;
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 243 75% 63%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --font-display: 'Fredoka', 'Comic Sans MS', cursive;
-    --font-body: 'Fredoka', 'Comic Neue', 'Comic Sans MS', cursive;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
     /* Aplats — pas de dégradés */
-    --gradient-hero: hsl(224 56% 9%);
-    --gradient-card: hsl(222 33% 14%);
-    --gradient-primary: hsl(65 100% 50%);
-    --gradient-mint: hsl(165 100% 57%);
+    --gradient-hero: hsl(240 6% 7%);
+    --gradient-card: hsl(240 6% 10%);
+    --gradient-primary: hsl(243 75% 63%);
+    --gradient-mint: hsl(152 55% 45%);
 
-    /* Ombres offset solides */
-    /* Ombres offset solides — accent yellow pour pop visuel sur fond navy */
-    --shadow-sm: 3px 3px 0 0 hsl(65 100% 50%);
-    --shadow-md: 5px 5px 0 0 hsl(65 100% 50%);
-    --shadow-lg: 7px 7px 0 0 hsl(65 100% 50%);
-    --shadow-glow-ok: 4px 4px 0 0 hsl(165 100% 57%);
-    --shadow-glow-warning: 4px 4px 0 0 hsl(65 100% 50%);
-    --shadow-glow-danger: 4px 4px 0 0 hsl(0 84% 65%);
+    /* Ombres douces, discrètes — élévation, pas d'effet post-it */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 12px 28px -8px rgba(0, 0, 0, 0.45), 0 4px 8px -4px rgba(0, 0, 0, 0.25);
+    --shadow-glow-ok: 0 1px 3px 0 hsl(152 55% 45% / 0.25);
+    --shadow-glow-warning: 0 1px 3px 0 hsl(38 92% 50% / 0.25);
+    --shadow-glow-danger: 0 1px 3px 0 hsl(0 72% 55% / 0.25);
 
-    --sidebar-background: 224 56% 9%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 65 100% 50%;
-    --sidebar-primary-foreground: 224 56% 9%;
-    --sidebar-accent: 165 100% 57%;
-    --sidebar-accent-foreground: 224 56% 9%;
-    --sidebar-border: 230 35% 22%;
-    --sidebar-ring: 50 100% 62%;
+    --sidebar-background: 240 6% 7%;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-primary: 243 75% 63%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 16%;
+    --sidebar-accent-foreground: 0 0% 97%;
+    --sidebar-border: 240 5% 18%;
+    --sidebar-ring: 243 75% 63%;
   }
 
   .dark {
-    --background: 224 56% 9%;
-    --foreground: 0 0% 100%;
-    --card: 222 33% 14%;
-    --card-foreground: 0 0% 100%;
-    --popover: 222 33% 14%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 65 100% 50%;
-    --primary-foreground: 224 56% 9%;
-    --secondary: 222 28% 20%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 222 25% 18%;
-    --muted-foreground: 220 14% 65%;
-    --accent: 165 100% 57%;
-    --accent-foreground: 224 56% 9%;
-    --budget-ok: 165 100% 57%;
-    --budget-ok-soft: 165 60% 16%;
-    --budget-warning: 65 100% 50%;
-    --budget-warning-soft: 65 60% 16%;
-    --budget-danger: 0 84% 65%;
-    --budget-danger-soft: 0 50% 20%;
-    --destructive: 0 84% 65%;
+    --background: 240 6% 7%;
+    --foreground: 0 0% 97%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 97%;
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 97%;
+    --primary: 243 75% 63%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 0 0% 97%;
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 5% 16%;
+    --accent-foreground: 0 0% 97%;
+    --budget-ok: 152 55% 45%;
+    --budget-ok-soft: 152 35% 15%;
+    --budget-warning: 38 92% 50%;
+    --budget-warning-soft: 38 55% 16%;
+    --budget-danger: 0 72% 55%;
+    --budget-danger-soft: 0 45% 18%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 30% 24%;
-    --input: 222 30% 24%;
-    --ring: 65 100% 50%;
-    --sidebar-background: 224 56% 9%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 65 100% 50%;
-    --sidebar-primary-foreground: 224 56% 9%;
-    --sidebar-accent: 165 100% 57%;
-    --sidebar-accent-foreground: 224 56% 9%;
-    --sidebar-border: 222 30% 24%;
-    --sidebar-ring: 65 100% 50%;
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 243 75% 63%;
+    --sidebar-background: 240 6% 7%;
+    --sidebar-foreground: 0 0% 97%;
+    --sidebar-primary: 243 75% 63%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 16%;
+    --sidebar-accent-foreground: 0 0% 97%;
+    --sidebar-border: 240 5% 18%;
+    --sidebar-ring: 243 75% 63%;
   }
 }
 
@@ -156,98 +155,69 @@
   .bg-gradient-mint { background-color: hsl(var(--accent)); background-image: none; }
   .bg-gradient-card { background-color: hsl(var(--card)); background-image: none; }
 
-  /* Flat card — aplat + bordure nette + ombre offset */
+  /* Carte sobre — aplat + bordure discrète, pas d'ombre offset */
   .glass-card {
     background: hsl(var(--card));
-    border: 2px solid hsl(var(--border));
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    border: 1px solid hsl(var(--border));
   }
 
   .bg-grid {
     background-image: none;
   }
-
-  /* Ombre offset solide réutilisable */
-  .shadow-flat {
-    box-shadow: 5px 5px 0 0 hsl(65 100% 50%);
-  }
-  .shadow-flat-sm {
-    box-shadow: 3px 3px 0 0 hsl(65 100% 50%);
-  }
-
-  /* Kill all backdrop blurs — incompatible avec flat design */
-  .backdrop-blur,
-  .backdrop-blur-sm,
-  .backdrop-blur-md,
-  .backdrop-blur-lg,
-  .backdrop-blur-xl,
-  .backdrop-blur-2xl,
-  .backdrop-blur-3xl {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Kill blur halos décoratifs */
-  .blur-3xl, .blur-2xl, .blur-xl {
-    filter: none !important;
-    opacity: 0 !important;
-  }
 }
 
 @layer components {
   .budget-card {
-    @apply glass-card rounded-2xl p-6 shadow-flat;
+    @apply glass-card rounded-2xl p-6 shadow-sm;
   }
-
 
   .hero-amount {
     @apply text-6xl md:text-7xl lg:text-8xl font-display font-bold tracking-tight;
   }
 
   .status-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border-2;
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border;
   }
 
   .status-ok {
-    @apply bg-budget-ok-soft text-budget-ok border-budget-ok;
+    @apply bg-budget-ok-soft text-budget-ok border-budget-ok/40;
   }
 
   .status-warning {
-    @apply bg-budget-warning-soft text-budget-warning border-budget-warning;
+    @apply bg-budget-warning-soft text-budget-warning border-budget-warning/40;
   }
 
   .status-danger {
-    @apply bg-budget-danger-soft text-budget-danger border-budget-danger;
+    @apply bg-budget-danger-soft text-budget-danger border-budget-danger/40;
   }
 
-  /* Donald speech bubble flat */
+  /* Bulle de dialogue du mascot, sobre */
   .speech-bubble {
-    @apply relative bg-card rounded-2xl p-4 border-2 border-primary shadow-flat;
+    @apply relative bg-card rounded-2xl p-4 border border-border shadow-md;
   }
 
   .speech-bubble::after {
     content: '';
     position: absolute;
-    bottom: -12px;
+    bottom: -10px;
     left: 30px;
     width: 0;
     height: 0;
-    border-left: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-top: 14px solid hsl(var(--card));
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid hsl(var(--card));
   }
 
   .speech-bubble::before {
     content: '';
     position: absolute;
-    bottom: -15px;
+    bottom: -12px;
     left: 28px;
     width: 0;
     height: 0;
-    border-left: 14px solid transparent;
-    border-right: 14px solid transparent;
-    border-top: 16px solid hsl(var(--primary) / 0.4);
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 14px solid hsl(var(--border));
   }
 }
 
@@ -285,28 +255,6 @@
   }
 }
 
-@keyframes bounce-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) rotate(-10deg);
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-  }
-  70% {
-    transform: scale(0.9) rotate(-3deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
-}
-
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
@@ -326,14 +274,6 @@
 
 .animate-slide-in-bottom {
   animation: slide-in-bottom 0.3s ease-out;
-}
-
-.animate-bounce-in {
-  animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.animate-wiggle {
-  animation: wiggle 0.3s ease-in-out;
 }
 
 .animate-float {

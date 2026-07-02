@@ -68,7 +68,7 @@ export function BottomNavBar({ activeTab, onNavigate, alertsCount = 0 }: BottomN
               >
                 <Icon className="w-5 h-5" />
                 {showBadge && (
-                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.8)]">
+                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-budget-warning text-[9px] font-bold text-budget-warning-foreground shadow-glow-warning">
                     {alertsCount > 9 ? '9+' : alertsCount}
                   </span>
                 )}

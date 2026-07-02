@@ -110,7 +110,7 @@ export function SettingsSheet({
                 <div className="relative w-11 h-11 shrink-0 rounded-xl bg-secondary/60 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-foreground" />
                   {row.badge && row.badge > 0 ? (
-                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.7)]">
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-budget-warning text-[9px] font-bold text-budget-warning-foreground shadow-glow-warning">
                       {row.badge > 9 ? '9+' : row.badge}
                     </span>
                   ) : null}

@@ -228,7 +228,7 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button type="button" onClick={() => handleDelete(parent)}
-                    className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-400">
+                    className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -270,7 +270,7 @@ export function CategoryTreeManagerSheet({ open, onOpenChange, accountId }: Cate
                               <Pencil className="w-3 h-3" />
                             </button>
                             <button type="button" onClick={() => deleteCategory(sub.id)}
-                              className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-400">
+                              className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>

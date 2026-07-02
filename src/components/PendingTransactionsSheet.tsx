@@ -72,7 +72,7 @@ export function PendingTransactionsSheet({
           <SheetTitle className="font-display text-xl flex items-center gap-2">
             🏦 Transactions à catégoriser
             {pending.length > 0 && (
-              <span className="ml-1 h-6 min-w-6 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+              <span className="ml-1 h-6 min-w-6 px-1.5 flex items-center justify-center rounded-full bg-budget-warning text-[11px] font-bold text-budget-warning-foreground shadow-glow-warning">
                 {pending.length}
               </span>
             )}

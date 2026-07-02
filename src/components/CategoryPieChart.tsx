@@ -355,7 +355,7 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, 
             className={cn(
               'font-display font-semibold leading-tight',
               isSub ? 'text-xs' : 'text-sm',
-              isExceeded ? 'text-destructive' : isWarning ? 'text-amber-500' : 'text-foreground'
+              isExceeded ? 'text-budget-danger' : isWarning ? 'text-budget-warning' : 'text-foreground'
             )}
           >
             {formatCurrencyCompact(d.value)}
@@ -382,7 +382,7 @@ function Row({ d, total, pieIdx, setActiveIdx, onCategoryClick, isSub, hasSubs, 
           <div
             className={cn(
               'h-full rounded-full transition-all duration-500',
-              isExceeded ? 'bg-destructive' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+              isExceeded ? 'bg-budget-danger' : isWarning ? 'bg-budget-warning' : 'bg-budget-ok'
             )}
             style={{ width: `${capPct}%` }}
           />

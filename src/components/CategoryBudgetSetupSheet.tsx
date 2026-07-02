@@ -211,7 +211,7 @@ export function CategoryBudgetSetupSheet({
                   </Badge>
 
                   {row.dirty && (
-                    <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-budget-warning shrink-0 animate-pulse" />
                   )}
                   {row.expanded ? (
                     <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -286,7 +286,7 @@ export function CategoryBudgetSetupSheet({
                           <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                             Alerte à
                           </Label>
-                          <span className="text-sm font-bold text-amber-400">
+                          <span className="text-sm font-bold text-budget-warning">
                             {row.warningThreshold}%
                           </span>
                         </div>

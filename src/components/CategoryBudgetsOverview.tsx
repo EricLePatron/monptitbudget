@@ -96,10 +96,10 @@ export function CategoryBudgetsOverview({
                     className={cn(
                       'h-full rounded-full transition-all duration-700',
                       totalSpentCapped > totalBudgeted
-                        ? 'bg-red-500'
+                        ? 'bg-budget-danger'
                         : totalSpentCapped / totalBudgeted > 0.8
-                        ? 'bg-amber-500'
-                        : 'bg-emerald-500'
+                        ? 'bg-budget-warning'
+                        : 'bg-budget-ok'
                     )}
                     style={{
                       width: `${Math.min(100, (totalSpentCapped / totalBudgeted) * 100)}%`,
@@ -110,26 +110,26 @@ export function CategoryBudgetsOverview({
 
               {/* Status chips */}
               {exceeded.length > 0 && (
-                <div className="flex items-center gap-1.5 rounded-xl bg-red-500/10 border border-red-500/30 px-3 py-2">
-                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                <div className="flex items-center gap-1.5 rounded-xl bg-budget-danger-soft border border-budget-danger/30 px-3 py-2">
+                  <AlertTriangle className="w-4 h-4 text-budget-danger shrink-0" />
                   <div>
-                    <p className="text-[10px] text-red-400 font-bold uppercase">{exceeded.length} dépassé{exceeded.length > 1 ? 's' : ''}</p>
+                    <p className="text-[10px] text-budget-danger font-bold uppercase">{exceeded.length} dépassé{exceeded.length > 1 ? 's' : ''}</p>
                   </div>
                 </div>
               )}
               {warning.length > 0 && (
-                <div className="flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2">
-                  <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="flex items-center gap-1.5 rounded-xl bg-budget-warning-soft border border-budget-warning/30 px-3 py-2">
+                  <TrendingUp className="w-4 h-4 text-budget-warning shrink-0" />
                   <div>
-                    <p className="text-[10px] text-amber-400 font-bold uppercase">{warning.length} en alerte</p>
+                    <p className="text-[10px] text-budget-warning font-bold uppercase">{warning.length} en alerte</p>
                   </div>
                 </div>
               )}
               {ok.length > 0 && (
-                <div className="flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-1.5 rounded-xl bg-budget-ok-soft border border-budget-ok/30 px-3 py-2">
+                  <CheckCircle2 className="w-4 h-4 text-budget-ok shrink-0" />
                   <div>
-                    <p className="text-[10px] text-emerald-400 font-bold uppercase">{ok.length} dans les limites</p>
+                    <p className="text-[10px] text-budget-ok font-bold uppercase">{ok.length} dans les limites</p>
                   </div>
                 </div>
               )}
