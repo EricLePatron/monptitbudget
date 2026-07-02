@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -16,7 +16,6 @@ import {
   calculateBudgetMetrics,
   getBudgetStatus,
   formatCurrencyCompact,
-  isPureSpendingExpense,
 } from '@/lib/budget';
 import { useWeeklyOverview } from '@/hooks/useWeeklyOverview';
 import { cn } from '@/lib/utils';
@@ -59,18 +58,15 @@ export function WeeklyOverviewSheet({
   isCurrentMonth,
   onGoToCurrentMonth,
 }: WeeklyOverviewSheetProps) {
-  // "Courbe" only cares about pure discretionary spending — direct debits
-  // and bank transfers weigh on the monthly budget (Accueil, DailyForecastSheet)
-  // but aren't day-to-day spending, so they're excluded here only.
-  const pureExpenses = useMemo(() => expenses.filter(isPureSpendingExpense), [expenses]);
-
-  const metrics = calculateBudgetMetrics(config, pureExpenses);
+  // Same "all expenses" scope as Accueil (calculateBudgetMetrics), so the
+  // "reste aujourd'hui" hero here always matches the Accueil figure exactly.
+  const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
 
   const { overview, loading } = useWeeklyOverview(
     isCurrentMonth ? accountId : null,
     isCurrentMonth ? config : null,
-    pureExpenses,
+    expenses,
     open
   );
 
@@ -97,9 +93,6 @@ export function WeeklyOverviewSheet({
             <LineChartIcon className="w-5 h-5" />
             Ta semaine
           </SheetTitle>
-          <SheetDescription className="text-center text-xs">
-            Dépenses du quotidien uniquement — hors prélèvements et virements
-          </SheetDescription>
         </SheetHeader>
 
         <div className="overflow-y-auto flex-1 -mx-6 px-6 pb-6">

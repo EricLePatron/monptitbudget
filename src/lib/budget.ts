@@ -64,23 +64,6 @@ export function getExpensesForDay(expenses: Expense[], dateKey: string): Expense
   return expenses.filter(e => e.date === dateKey);
 }
 
-/**
- * "Pure spending" excludes direct debits and bank transfers: they weigh on
- * the monthly budget but aren't day-to-day discretionary spending. Used by
- * the "Courbe" tab only — calculateBudgetMetrics/calculateDailyForecasts and
- * the Accueil/DailyForecastSheet views keep using every expense as before.
- */
-export function isPureSpendingExpense(expense: Expense): boolean {
-  if (expense.isDirectDebit) return false;
-  // Covers both "VIR SEPA" and the full "VIREMENT SEPA" wording (varies by
-  // bank). \b on both ends keeps "VIR"/"SEPA" as whole words, so it doesn't
-  // fire on an unrelated word merely starting with those letters (e.g. a
-  // "...VIR SEPARATION..." style label wouldn't match "SEPA" inside
-  // "SEPARATION").
-  if (expense.name && /\bVIR(?:EMENT)?\s*SEPA\b/i.test(expense.name)) return false;
-  return true;
-}
-
 export function getTotalExpensesForDay(expenses: Expense[], dateKey: string): number {
   return getExpensesForDay(expenses, dateKey).reduce((sum, e) => sum + e.amount, 0);
 }
