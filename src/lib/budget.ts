@@ -72,7 +72,12 @@ export function getExpensesForDay(expenses: Expense[], dateKey: string): Expense
  */
 export function isPureSpendingExpense(expense: Expense): boolean {
   if (expense.isDirectDebit) return false;
-  if (expense.name && /VIR\s*SEPA/i.test(expense.name)) return false;
+  // Covers both "VIR SEPA" and the full "VIREMENT SEPA" wording (varies by
+  // bank). \b on both ends keeps "VIR"/"SEPA" as whole words, so it doesn't
+  // fire on an unrelated word merely starting with those letters (e.g. a
+  // "...VIR SEPARATION..." style label wouldn't match "SEPA" inside
+  // "SEPARATION").
+  if (expense.name && /\bVIR(?:EMENT)?\s*SEPA\b/i.test(expense.name)) return false;
   return true;
 }
 
