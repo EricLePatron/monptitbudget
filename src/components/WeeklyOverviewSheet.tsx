@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   BudgetConfig,
   Expense,
@@ -60,10 +61,11 @@ export function WeeklyOverviewSheet({
   const metrics = calculateBudgetMetrics(config, expenses);
   const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
 
-  const { overview } = useWeeklyOverview(
+  const { overview, loading } = useWeeklyOverview(
     isCurrentMonth ? accountId : null,
     isCurrentMonth ? config : null,
-    expenses
+    expenses,
+    open
   );
 
   const chartData = useMemo(() => {
@@ -111,6 +113,15 @@ export function WeeklyOverviewSheet({
                 <Calendar className="w-4 h-4 mr-1.5" />
                 Aller au mois en cours
               </Button>
+            </div>
+          ) : loading ? (
+            <div className="space-y-4">
+              {/* Skeleton — only shown while the adjacent month's data (week
+                  straddling a month boundary) is being fetched, so numbers
+                  don't flash from an incomplete 0€ to their real value. */}
+              <Skeleton className="w-full h-24 rounded-3xl" />
+              <Skeleton className="w-full h-56 rounded-3xl" />
+              <Skeleton className="w-full h-16 rounded-3xl" />
             </div>
           ) : (
             <div className="space-y-4">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import {
@@ -24,11 +25,23 @@ import {
 export function useWeeklyOverview(
   accountId: string | null,
   primaryConfig: BudgetConfig | null,
-  primaryExpenses: Expense[]
+  primaryExpenses: Expense[],
+  open: boolean
 ) {
   const { user } = useAuth();
 
-  const weekDates = useMemo(() => getCurrentWeekDates(), []);
+  // WeeklyOverviewSheet stays mounted permanently (like the other Sheets),
+  // so this can't be computed once at mount time (empty deps) — a session
+  // left open across a Sunday → Monday midnight would otherwise keep
+  // pointing at last week forever. Recomputing whenever the sheet opens is
+  // enough in practice and keeps `weekDates` referentially stable while the
+  // sheet stays open/closed (important: `adjacentMonthKey` below and the
+  // fetch effect depend on it, so a fresh array on every render would
+  // re-trigger the adjacent-month fetch on every render too).
+  // `open` isn't read inside the callback — it's used purely as a trigger to
+  // force a fresh computation each time the sheet is opened.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const weekDates = useMemo(() => getCurrentWeekDates(), [open]);
 
   // Distinct {month, year} pairs touched by the current week that are NOT
   // the primary month.
@@ -67,7 +80,17 @@ export function useWeeklyOverview(
 
       if (cancelled) return;
 
-      if (budgetError || !budgetData) {
+      if (budgetError) {
+        toast.error('Erreur lors du chargement du mois voisin — le total de la semaine peut être incomplet');
+        setAdjacent(null);
+        setLoadingAdjacent(false);
+        return;
+      }
+
+      if (!budgetData) {
+        // No budget configured for the adjacent month — legitimate case, not
+        // an error (and since expenses require a budget_id, it also means
+        // there is genuinely nothing to fetch for those days).
         setAdjacent(null);
         setLoadingAdjacent(false);
         return;
@@ -82,6 +105,7 @@ export function useWeeklyOverview(
       if (cancelled) return;
 
       if (expensesError) {
+        toast.error('Erreur lors du chargement du mois voisin — le total de la semaine peut être incomplet');
         setAdjacent(null);
         setLoadingAdjacent(false);
         return;
