@@ -144,7 +144,7 @@ export function RecurringDebitsCalendarSheet({
               </div>
               <div className="h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-amber-500/70 to-amber-500"
+                  className="h-full bg-budget-warning"
                   style={{
                     width: `${Math.min(100, (total / Math.max(monthlyBudget, 1)) * 100)}%`,
                   }}
@@ -163,12 +163,12 @@ export function RecurringDebitsCalendarSheet({
                       −{formatCurrencyCompact(pastTotal)}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-2.5 py-2">
-                    <p className="text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                  <div className="rounded-xl bg-budget-warning-soft border border-budget-warning/30 px-2.5 py-2">
+                    <p className="text-[9px] uppercase tracking-wider text-budget-warning font-semibold flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       À venir
                     </p>
-                    <p className="text-sm font-display font-bold tabular-nums text-amber-700 dark:text-amber-300 mt-0.5">
+                    <p className="text-sm font-display font-bold tabular-nums text-budget-warning mt-0.5">
                       −{formatCurrencyCompact(upcomingTotal)}
                     </p>
                   </div>
@@ -204,7 +204,7 @@ export function RecurringDebitsCalendarSheet({
                         isToday
                           ? 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
                           : isUpcoming
-                            ? 'border-amber-500/30 bg-amber-500/[0.04]'
+                            ? 'border-budget-warning/30 bg-budget-warning-soft/40'
                             : 'border-border/60 bg-card/40 opacity-70',
                       )}
                     >
@@ -216,7 +216,7 @@ export function RecurringDebitsCalendarSheet({
                               isToday
                                 ? 'bg-primary text-primary-foreground border-primary'
                                 : isUpcoming
-                                  ? 'bg-amber-500/15 border-amber-500/40'
+                                  ? 'bg-budget-warning-soft border-budget-warning/40'
                                   : 'bg-muted/60 border-border/60',
                             )}
                           >
@@ -226,7 +226,7 @@ export function RecurringDebitsCalendarSheet({
                                 isToday
                                   ? 'text-primary-foreground/80'
                                   : isUpcoming
-                                    ? 'text-amber-600 dark:text-amber-400'
+                                    ? 'text-budget-warning'
                                     : 'text-muted-foreground',
                               )}
                             >
@@ -252,7 +252,7 @@ export function RecurringDebitsCalendarSheet({
                                 </span>
                               )}
                               {isUpcoming && !isToday && (
-                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center gap-0.5">
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-budget-warning-soft text-budget-warning flex items-center gap-0.5">
                                   <Clock className="w-2.5 h-2.5" />
                                   À venir
                                 </span>

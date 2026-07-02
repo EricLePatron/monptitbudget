@@ -22,14 +22,14 @@ export function AlertsBanner({ alerts, onOpenOverview }: AlertsBannerProps) {
       className={cn(
         'w-full max-w-sm mx-auto rounded-2xl border overflow-hidden animate-fade-in-up',
         exceeded.length > 0
-          ? 'border-red-500/40 bg-red-500/8 shadow-[0_0_20px_-6px_rgba(239,68,68,0.4)]'
-          : 'border-amber-500/40 bg-amber-500/8 shadow-[0_0_20px_-6px_rgba(245,158,11,0.3)]'
+          ? 'border-budget-danger/40 bg-budget-danger-soft shadow-glow-danger'
+          : 'border-budget-warning/40 bg-budget-warning-soft shadow-glow-warning'
       )}
     >
       {/* Top strip */}
       <div className={cn(
         'h-0.5',
-        exceeded.length > 0 ? 'bg-gradient-to-r from-red-500 to-red-400' : 'bg-gradient-to-r from-amber-500 to-amber-400'
+        exceeded.length > 0 ? 'bg-budget-danger' : 'bg-budget-warning'
       )} />
 
       <div className="px-3.5 py-3">
@@ -37,13 +37,13 @@ export function AlertsBanner({ alerts, onOpenOverview }: AlertsBannerProps) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             {exceeded.length > 0 ? (
-              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-budget-danger shrink-0" />
             ) : (
-              <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
+              <TrendingUp className="w-4 h-4 text-budget-warning shrink-0" />
             )}
             <span className={cn(
               'text-xs font-bold uppercase tracking-wide',
-              exceeded.length > 0 ? 'text-red-400' : 'text-amber-400'
+              exceeded.length > 0 ? 'text-budget-danger' : 'text-budget-warning'
             )}>
               {exceeded.length > 0
                 ? `${exceeded.length} plafond${exceeded.length > 1 ? 's' : ''} dépassé${exceeded.length > 1 ? 's' : ''}`
@@ -67,8 +67,8 @@ export function AlertsBanner({ alerts, onOpenOverview }: AlertsBannerProps) {
               className={cn(
                 'flex items-center gap-2 rounded-xl px-2.5 py-2',
                 alert.type === 'exceeded'
-                  ? 'bg-red-500/10'
-                  : 'bg-amber-500/10'
+                  ? 'bg-budget-danger-soft'
+                  : 'bg-budget-warning-soft'
               )}
             >
               {/* Color dot */}
@@ -91,7 +91,7 @@ export function AlertsBanner({ alerts, onOpenOverview }: AlertsBannerProps) {
               <div className="text-right shrink-0">
                 <span className={cn(
                   'text-xs font-bold tabular-nums',
-                  alert.type === 'exceeded' ? 'text-red-400' : 'text-amber-400'
+                  alert.type === 'exceeded' ? 'text-budget-danger' : 'text-budget-warning'
                 )}>
                   {alert.type === 'exceeded'
                     ? `+${formatCurrencyCompact(alert.spent - alert.cap)}`
@@ -119,8 +119,8 @@ export function AlertsBanner({ alerts, onOpenOverview }: AlertsBannerProps) {
             className={cn(
               'mt-2.5 w-full flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide py-1.5 rounded-lg transition-colors',
               exceeded.length > 0
-                ? 'text-red-400 hover:bg-red-500/10'
-                : 'text-amber-400 hover:bg-amber-500/10'
+                ? 'text-budget-danger hover:bg-budget-danger-soft'
+                : 'text-budget-warning hover:bg-budget-warning-soft'
             )}
           >
             Voir tous les plafonds

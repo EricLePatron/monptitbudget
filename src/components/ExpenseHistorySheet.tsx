@@ -298,7 +298,7 @@ export function ExpenseHistorySheet({
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground capitalize flex items-center gap-2">
                   {!isUpcomingGroup && <span>{formatDate(date)}</span>}
                   {(isUpcomingGroup || allUpcoming || (someUpcoming && date > todayStr)) && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-bold normal-case tracking-normal">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-budget-warning-soft text-budget-warning border border-budget-warning/30 text-[9px] font-bold normal-case tracking-normal">
                       <Clock className="w-2.5 h-2.5" />
                       À venir
                     </span>
@@ -315,13 +315,13 @@ export function ExpenseHistorySheet({
                           key={expense.id}
                           className={`group relative p-3 rounded-2xl border transition-all ${
                             upcoming
-                              ? 'bg-amber-500/[0.06] border-amber-500/30 hover:border-amber-500/50'
+                              ? 'bg-budget-warning-soft/40 border-budget-warning/30 hover:border-budget-warning/50'
                               : 'bg-gradient-to-br from-secondary/60 to-secondary/30 border-border/50 hover:border-primary/30 hover:shadow-md'
                           }`}
                         >
                           <div className="flex items-start gap-3">
                             <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm ${
-                              upcoming ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-background/80'
+                              upcoming ? 'bg-budget-warning-soft border border-budget-warning/30' : 'bg-background/80'
                             }`}>
                               {emoji}
                             </div>
@@ -331,7 +331,7 @@ export function ExpenseHistorySheet({
                                   {expense.name || 'Dépense'}
                                 </p>
                                 <span className={`font-display font-bold text-base tabular-nums shrink-0 ${
-                                  upcoming ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'
+                                  upcoming ? 'text-budget-warning' : 'text-foreground'
                                 }`}>
                                   -{formatCurrencyCompact(expense.amount)}
                                 </span>
@@ -369,7 +369,7 @@ export function ExpenseHistorySheet({
                                       onClick={() => setDirectDebitFilter(prev => prev === 'only' ? 'all' : 'only')}
                                       className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors flex items-center gap-1 ${
                                         upcoming
-                                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/25'
+                                          ? 'bg-budget-warning-soft text-budget-warning border-budget-warning/40 hover:bg-budget-warning-soft/80'
                                           : 'bg-primary/15 text-primary border-primary/30 hover:bg-primary/25'
                                       }`}
                                     >
