@@ -45,21 +45,23 @@ const FRENCH_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet
 
 // ── Main handler ─────────────────────────────────────────────────────────────
 serve(async (req) => {
-  // Simple auth gate (called by pg_cron with Authorization header)
+  // Strict auth gate — requires a configured CRON_SECRET matched exactly.
   const auth = req.headers.get("Authorization") ?? "";
-  if (CRON_SECRET && !auth.includes(CRON_SECRET)) {
+  const expected = `Bearer ${CRON_SECRET}`;
+  if (!CRON_SECRET || auth !== expected) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   try {
     const result = await generateAndSendReport();
-    return new Response(JSON.stringify(result), {
+    // Do not leak recipient list in the response body.
+    return new Response(JSON.stringify({ success: result.success, week: result.week }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("weekly-budget-report error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
