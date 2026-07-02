@@ -6,7 +6,6 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
-  Tooltip,
 } from 'recharts';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -116,14 +115,20 @@ export function WeeklyOverviewSheet({
           ) : (
             <div className="space-y-4">
               {/* 1. Hero */}
-              <div className="rounded-3xl glass-card shadow-lg p-5 text-center">
+              <div
+                className={cn(
+                  'rounded-3xl glass-card shadow-lg p-5 text-center',
+                  status === 'danger' && 'shadow-glow-danger'
+                )}
+              >
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">
                   Il te reste aujourd'hui
                 </p>
                 <p
                   className={cn(
                     'font-display font-bold text-4xl tabular-nums',
-                    STATUS_TEXT_CLASS[status]
+                    STATUS_TEXT_CLASS[status],
+                    status === 'danger' && 'animate-pulse'
                   )}
                 >
                   {formatCurrencyCompact(metrics.remainingToday)}
@@ -172,7 +177,7 @@ export function WeeklyOverviewSheet({
                             />
                           );
                         }}
-                        activeDot={{ r: 5 }}
+                        activeDot={false}
                         connectNulls={false}
                         isAnimationActive={false}
                       />
@@ -184,19 +189,9 @@ export function WeeklyOverviewSheet({
                         strokeDasharray="4 4"
                         strokeOpacity={0.6}
                         dot={false}
-                        activeDot={{ r: 4 }}
+                        activeDot={false}
                         connectNulls={false}
                         isAnimationActive={false}
-                      />
-                      <Tooltip
-                        formatter={(value: number) => formatCurrencyCompact(value)}
-                        labelFormatter={(label) => label}
-                        contentStyle={{
-                          background: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: 12,
-                          fontSize: 12,
-                        }}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
