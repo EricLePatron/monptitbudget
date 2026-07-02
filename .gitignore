@@ -33,3 +33,6 @@ lerna-debug.log*
 # Duplicate lockfiles
 *\ *.json
 package-lock\ *.json
+
+# Claude Code agent worktrees
+.claude/worktrees/
