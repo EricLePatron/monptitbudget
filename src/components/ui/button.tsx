@@ -9,13 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/10 shadow-flat-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 border-2 border-destructive/80 shadow-flat-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-        outline: "border-2 border-border bg-card hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2 border-border",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm active:scale-[0.98]",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm active:scale-[0.98]",
+        outline: "border border-border bg-card hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        success: "bg-budget-ok text-budget-ok-foreground hover:bg-budget-ok/90 border-2 border-budget-ok-foreground/10 shadow-flat-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+        success: "bg-budget-ok text-budget-ok-foreground hover:bg-budget-ok/90 shadow-sm active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-4 py-2",
