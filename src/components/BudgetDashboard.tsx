@@ -9,6 +9,7 @@ import { AccountMembersSheet } from './AccountMembersSheet';
 import { AccountSelector } from './AccountSelector';
 import { DonaldSticker } from './DonaldSticker';
 import { DailyForecastSheet } from './DailyForecastSheet';
+import { WeeklyOverviewSheet } from './WeeklyOverviewSheet';
 import { SavingsSheet } from './SavingsSheet';
 
 import { CategoryBudgetsOverview } from './CategoryBudgetsOverview';
@@ -94,6 +95,7 @@ export function BudgetDashboard({
   const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   const [membersSheetOpen, setMembersSheetOpen] = useState(false);
   const [forecastOpen, setForecastOpen] = useState(false);
+  const [curveOpen, setCurveOpen] = useState(false);
   const [savingsOpen, setSavingsOpen] = useState(false);
   const [bankSheetOpen, setBankSheetOpen] = useState(false);
   const [sharingAccountId, setSharingAccountId] = useState<string | null>(null);
@@ -117,6 +119,11 @@ export function BudgetDashboard({
       setHistoryInitialSubcategory(null);
       setActiveTab('home');
     }
+  };
+
+  const handleCurveOpenChange = (open: boolean) => {
+    setCurveOpen(open);
+    if (!open) setActiveTab('home');
   };
 
   // Whether one of the sub-sheets reachable from the "Réglages" hub is
@@ -149,6 +156,7 @@ export function BudgetDashboard({
 
   const handleNavigate = (tab: NavTab) => {
     setActiveTab(tab);
+    if (tab === 'curve') setCurveOpen(true);
     if (tab === 'history') setHistoryOpen(true);
     if (tab === 'settings') setSettingsOpen(true);
     // 'home' has no Sheet to open — it just resets the visual state.
@@ -386,7 +394,7 @@ export function BudgetDashboard({
         <div className="h-[calc(4rem+max(env(safe-area-inset-bottom),8px)+72px)]" />
       </main>
 
-      {/* PWA-style bottom tab bar — Accueil / Historique / Réglages */}
+      {/* PWA-style bottom tab bar — Accueil / Courbe / Historique / Réglages */}
       <BottomNavBar activeTab={activeTab} onNavigate={handleNavigate} alertsCount={alerts.length} />
 
       {/* Floating "+" — add expense. Home tab only, and only for the current/future month. */}
@@ -426,6 +434,17 @@ export function BudgetDashboard({
         onOpenChange={setForecastOpen}
         config={config}
         expenses={expenses}
+      />
+
+      {/* Weekly Overview Sheet — "Courbe" tab */}
+      <WeeklyOverviewSheet
+        open={curveOpen}
+        onOpenChange={handleCurveOpenChange}
+        config={config}
+        expenses={expenses}
+        accountId={currentAccount?.id ?? null}
+        isCurrentMonth={isCurrentMonth}
+        onGoToCurrentMonth={onGoToCurrentMonth}
       />
 
       {/* Expense History Sheet */}
