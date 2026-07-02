@@ -392,7 +392,7 @@ export function BudgetDashboard({
       {/* Floating "+" — add expense. Home tab only, and only for the current/future month. */}
       {activeTab === 'home' && (metrics.isCurrentMonth || metrics.isFutureMonth) && (
         <div
-          className="fixed z-40 inset-x-0 bottom-[calc(4rem+max(env(safe-area-inset-bottom),8px)-14px)] flex justify-center pointer-events-none"
+          className="fixed z-40 inset-x-0 bottom-[calc(4rem+max(env(safe-area-inset-bottom),8px)-4px)] flex justify-center pointer-events-none"
         >
           <Button
             size="icon"

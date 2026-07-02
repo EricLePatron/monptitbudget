@@ -85,7 +85,7 @@ export function SettingsSheet({
     {
       icon: CalendarClock,
       title: 'Prélèvements',
-      subtitle: 'Calendrier des prélèvements récurrents projetés',
+      subtitle: 'Prélèvements récurrents projetés',
       onClick: handle(onOpenRecurringDebits),
     },
   ];
