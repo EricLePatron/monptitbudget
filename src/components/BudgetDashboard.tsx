@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddExpenseSheet } from './AddExpenseSheet';
 import { ExpenseHistorySheet } from './ExpenseHistorySheet';
@@ -124,10 +124,32 @@ export function BudgetDashboard({
     if (!open) setActiveTab('home');
   };
 
-  const handleSettingsOpenChange = (open: boolean) => {
-    setSettingsOpen(open);
-    if (!open) setActiveTab('home');
-  };
+  // Whether one of the sub-sheets reachable from the "Réglages" hub is
+  // currently open.
+  const settingsChildOpen =
+    editBudgetOpen ||
+    manageAccountsOpen ||
+    bankSheetOpen ||
+    savingsOpen ||
+    overviewOpen ||
+    treeManagerOpen ||
+    pendingSheetOpen;
+
+  // SettingsSheet closes itself (open=false) then, 150ms later, opens the
+  // chosen sub-sheet (see handle() in SettingsSheet.tsx) — this delay avoids
+  // two Radix Sheets being mounted at the same time. During that gap no
+  // sheet is open at all, so resetting `activeTab` to 'home' synchronously
+  // made the bottom nav flash back to "Accueil" (and briefly show the FAB
+  // again) before the sub-sheet appeared. Instead, wait a bit longer than
+  // that 150ms delay before falling back to "Accueil", and skip the reset
+  // entirely if a sub-sheet did open in the meantime.
+  useEffect(() => {
+    if (settingsOpen || settingsChildOpen) return;
+    const timer = setTimeout(() => {
+      setActiveTab((prev) => (prev === 'settings' ? 'home' : prev));
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [settingsOpen, settingsChildOpen]);
 
   const handleNavigate = (tab: NavTab) => {
     setActiveTab(tab);
@@ -374,15 +396,19 @@ export function BudgetDashboard({
 
       {/* Floating "+" — add expense. Home tab only, and only for the current/future month. */}
       {activeTab === 'home' && (metrics.isCurrentMonth || metrics.isFutureMonth) && (
-        <Button
-          size="icon"
-          onClick={() => setSheetOpen(true)}
-          className="fixed z-40 left-1/2 -translate-x-1/2 bottom-[calc(4rem+max(env(safe-area-inset-bottom),8px)-14px)] h-16 w-16 rounded-full shadow-xl text-2xl font-bold border-4 border-background"
-          title="Ajouter une dépense"
-          aria-label="Ajouter une dépense"
+        <div
+          className="fixed z-40 inset-x-0 bottom-[calc(4rem+max(env(safe-area-inset-bottom),8px)-14px)] flex justify-center pointer-events-none"
         >
-          <Plus className="w-7 h-7" />
-        </Button>
+          <Button
+            size="icon"
+            onClick={() => setSheetOpen(true)}
+            className="pointer-events-auto h-16 w-16 rounded-full shadow-xl text-2xl font-bold border-4 border-background"
+            title="Ajouter une dépense"
+            aria-label="Ajouter une dépense"
+          >
+            <Plus className="w-7 h-7" />
+          </Button>
+        </div>
       )}
 
       {/* Add Expense Sheet */}
@@ -415,6 +441,15 @@ export function BudgetDashboard({
         onDeleteExpense={onDeleteExpense}
         onEditExpense={(exp) => {
           setHistoryOpen(false);
+          // Reset the category/subcategory filter the same way
+          // handleHistoryOpenChange(false) would, so that re-opening the
+          // history from the nav bar later shows the full list again
+          // instead of staying stuck on whatever category was used to open
+          // it here. Don't route through handleHistoryOpenChange itself:
+          // it also resets `activeTab` to 'home', which would change which
+          // nav tab is highlighted while EditExpenseSheet is open.
+          setHistoryInitialCategory(null);
+          setHistoryInitialSubcategory(null);
           setEditingExpense(exp);
         }}
         categories={categories}
@@ -535,7 +570,7 @@ export function BudgetDashboard({
       {/* Settings Sheet — central access to all secondary actions */}
       <SettingsSheet
         open={settingsOpen}
-        onOpenChange={handleSettingsOpenChange}
+        onOpenChange={setSettingsOpen}
         pendingCount={pendingCount}
         alertsCount={alerts.length}
         onOpenBudgetSetup={() => setEditBudgetOpen(true)}

@@ -49,7 +49,11 @@ export function BottomNavBar({ activeTab, onNavigate, alertsCount = 0 }: BottomN
               key={item.key}
               type="button"
               onClick={() => onNavigate(item.key)}
-              aria-label={item.label}
+              aria-label={
+                showBadge
+                  ? `${item.label}, ${alertsCount} alerte${alertsCount > 1 ? 's' : ''}`
+                  : item.label
+              }
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'relative flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-1.5 transition-colors active:scale-95',
@@ -64,7 +68,9 @@ export function BottomNavBar({ activeTab, onNavigate, alertsCount = 0 }: BottomN
               >
                 <Icon className="w-5 h-5" />
                 {showBadge && (
-                  <span className="absolute -top-0.5 right-1 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(245,158,11,0.8)]">
+                    {alertsCount > 9 ? '9+' : alertsCount}
+                  </span>
                 )}
               </span>
               <span className={cn('text-[10px] leading-none', isActive ? 'font-bold' : 'font-medium')}>
