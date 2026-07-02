@@ -386,7 +386,7 @@ export function BudgetDashboard({
         <div className="h-[calc(4rem+max(env(safe-area-inset-bottom),8px)+72px)]" />
       </main>
 
-      {/* PWA-style bottom tab bar — Accueil / Historique / Prélèvements / Réglages */}
+      {/* PWA-style bottom tab bar — Accueil / Historique / Réglages */}
       <BottomNavBar activeTab={activeTab} onNavigate={handleNavigate} alertsCount={alerts.length} />
 
       {/* Floating "+" — add expense. Home tab only, and only for the current/future month. */}
