@@ -17,10 +17,14 @@ import {
  * Reuses the already-loaded primary month's config/expenses whenever the
  * calendar week fits entirely within it (the common case — no network call).
  * When the week straddles a month boundary, it fetches the adjacent month's
- * budget + expenses (same query shape as useBudget) so the rollover
- * projection stays correct. If that adjacent month has no budget configured,
+ * budget + expenses (same query shape as useBudget) so the flat daily
+ * allowance stays correct. If that adjacent month has no budget configured,
  * there is nothing to fetch: since expenses always require a budget_id, its
  * days simply have 0€ actually spent (handled by calculateWeeklyOverview).
+ *
+ * Fetched expenses are passed through as-is (not pre-filtered here) —
+ * calculateWeeklyOverview/calculateFlatDailyMetrics exclude bank transfers
+ * internally (see isTransferExpense).
  */
 export function useWeeklyOverview(
   accountId: string | null,

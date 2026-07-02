@@ -7,13 +7,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   BudgetConfig,
   Expense,
-  calculateBudgetMetrics,
+  calculateFlatDailyMetrics,
   getBudgetStatus,
   formatCurrencyCompact,
 } from '@/lib/budget';
@@ -58,8 +58,12 @@ export function WeeklyOverviewSheet({
   isCurrentMonth,
   onGoToCurrentMonth,
 }: WeeklyOverviewSheetProps) {
-  const metrics = calculateBudgetMetrics(config, expenses);
-  const status = getBudgetStatus(metrics.remainingToday, metrics.dailyBudget);
+  // Flat split of what's left this month (transfers excluded, direct debits
+  // kept) across the days remaining — deliberately NOT the rollover system
+  // used by Accueil/DailyForecastSheet (calculateBudgetMetrics), so this
+  // "reste aujourd'hui" can differ from Accueil's on purpose.
+  const metrics = calculateFlatDailyMetrics(config, expenses);
+  const status = getBudgetStatus(metrics.remainingToday, metrics.dailyAllowance);
 
   const { overview, loading } = useWeeklyOverview(
     isCurrentMonth ? accountId : null,
@@ -74,8 +78,10 @@ export function WeeklyOverviewSheet({
       label: d.label,
       isToday: d.isToday,
       actual: d.isFuture ? null : (d.spent ?? 0),
+      // Flat reference: today's point connects the two lines using the
+      // actual amount spent so far, every future day sits on the constant
+      // daily allowance.
       projected: d.isToday ? d.spent : d.isFuture ? d.projectedBudget : null,
-      reference: overview.theoreticalDailyBudget,
     }));
   }, [overview]);
 
@@ -91,6 +97,9 @@ export function WeeklyOverviewSheet({
             <LineChartIcon className="w-5 h-5" />
             Ta semaine
           </SheetTitle>
+          <SheetDescription className="text-center text-xs">
+            Hors virements · réparti à parts égales sur les jours restants
+          </SheetDescription>
         </SheetHeader>
 
         <div className="overflow-y-auto flex-1 -mx-6 px-6 pb-6">
@@ -162,7 +171,7 @@ export function WeeklyOverviewSheet({
                       />
                       <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
                       <ReferenceLine
-                        y={overview?.theoreticalDailyBudget ?? 0}
+                        y={overview?.dailyAllowance ?? 0}
                         stroke="hsl(var(--muted-foreground))"
                         strokeDasharray="2 3"
                         strokeOpacity={0.5}
