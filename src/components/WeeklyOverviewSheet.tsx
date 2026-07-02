@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -97,6 +97,9 @@ export function WeeklyOverviewSheet({
             <LineChartIcon className="w-5 h-5" />
             Ta semaine
           </SheetTitle>
+          <SheetDescription className="text-center text-xs">
+            Dépenses du quotidien uniquement — hors prélèvements et virements
+          </SheetDescription>
         </SheetHeader>
 
         <div className="overflow-y-auto flex-1 -mx-6 px-6 pb-6">
