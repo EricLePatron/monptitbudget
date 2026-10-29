@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -16,6 +16,11 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [projectedExpenses, setProjectedExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  // True once the first load for the current account/month completed.
+  // Background refreshes (expense validated, bank sync, …) must NOT flip
+  // loading back to true: Index renders a full-screen loader while loading,
+  // which would unmount the dashboard and close any open sheet.
+  const hasLoadedRef = useRef(false);
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
     deductions?: BudgetConfig['deductions'];
