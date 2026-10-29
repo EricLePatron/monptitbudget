@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -16,6 +16,12 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [projectedExpenses, setProjectedExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  // True once the first load for the current account/month completed.
+  // Background refreshes (expense validated, bank sync, …) must NOT flip
+  // loading back to true: Index renders a full-screen loader while loading,
+  // which would unmount the dashboard and close any open sheet.
+  const hasLoadedRef = useRef(false);
+  const lastLoadKeyRef = useRef<string | null>(null);
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
     deductions?: BudgetConfig['deductions'];
@@ -38,8 +44,14 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       return;
     }
 
+    // Show the full-screen loader only when switching account/month or on
+    // first load — background refreshes stay silent so open sheets survive.
+    const loadKey = `${accountId}-${targetMonth}-${targetYear}`;
+    const isFreshContext = lastLoadKeyRef.current !== loadKey;
+    lastLoadKeyRef.current = loadKey;
+
     try {
-      setLoading(true);
+      if (isFreshContext || !hasLoadedRef.current) setLoading(true);
 
       // Get budget for target month/year for this account
       const { data: budgetData, error: budgetError } = await supabase
@@ -119,6 +131,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     } catch {
       toast.error('Erreur lors du chargement du budget');
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   }, [user, accountId, targetMonth, targetYear]);
