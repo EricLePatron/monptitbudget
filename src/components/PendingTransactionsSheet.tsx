@@ -7,7 +7,7 @@ import { CategorySelector } from './CategorySelector';
 import { PendingTransaction } from '@/hooks/usePendingTransactions';
 import { ExpenseCategory } from '@/hooks/useExpenseCategories';
 import { formatCurrencyCompact } from '@/lib/budget';
-import { Check, EyeOff, ChevronsDown } from 'lucide-react';
+import { Check, EyeOff, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -62,6 +62,24 @@ export function PendingTransactionsSheet({
     setRow(tx.id, { saving: false });
   };
 
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const resolve = (tx: PendingTransaction) => {
+    const row = getRow(tx.id);
+    return {
+      cat: row.category || tx.suggestedCategory || '',
+      sub: row.category ? row.subcategory : (row.subcategory || tx.suggestedSubcategory),
+    };
+  };
+  const validatableCount = pending.filter((tx) => resolve(tx).cat).length;
+  const handleValidateAll = async () => {
+    setBulkSaving(true);
+    for (const tx of [...pending]) {
+      const { cat, sub } = resolve(tx);
+      if (cat) await onValidate(tx.id, cat, sub);
+    }
+    setBulkSaving(false);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -80,6 +98,18 @@ export function PendingTransactionsSheet({
           <SheetDescription className="text-sm text-muted-foreground">
             Assignez chaque transaction bancaire à une catégorie.
           </SheetDescription>
+          {validatableCount > 0 && (
+            <Button
+              onClick={handleValidateAll}
+              disabled={bulkSaving}
+              className="mt-2 w-full gap-2"
+            >
+              <CheckCheck className="w-4 h-4" />
+              {bulkSaving
+                ? 'Validation…'
+                : `Tout valider (${validatableCount})`}
+            </Button>
+          )}
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto space-y-3 pr-0.5">
@@ -174,14 +204,6 @@ export function PendingTransactionsSheet({
           )}
 
           {/* Validate all with same category — quick bulk action */}
-          {pending.length > 2 && (
-            <div className="rounded-2xl border border-dashed border-border/50 px-4 py-3 text-center">
-              <p className="text-xs text-muted-foreground">
-                <ChevronsDown className="w-3.5 h-3.5 inline mr-1" />
-                Validez chaque transaction une par une pour un suivi précis.
-              </p>
-            </div>
-          )}
         </div>
       </SheetContent>
     </Sheet>
