@@ -136,11 +136,6 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     }
   }, [user, accountId, targetMonth, targetYear]);
 
-  // A new account/month selection must show the loader again
-  useEffect(() => {
-    hasLoadedRef.current = false;
-  }, [accountId, targetMonth, targetYear]);
-
   useEffect(() => {
     loadBudget();
   }, [loadBudget]);
