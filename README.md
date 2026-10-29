@@ -67,12 +67,12 @@ Built it entirely myself. No dev agency, no team. Every product decision, every 
 │  │  + RLS         │  │  email OTP   │  │    (Deno / TypeScript) ││
 │  └──────┬────────┘  └──────────────┘  └──────────┬─────────────┘│
 │         │                                          │              │
-│  ┌────────────────┐                    ┌───────────▼────────────┐ │
-│  │   (auto jobs)  │                    │ bank-sync (PSD2)       │ │
-│  │ Mon 07:00 UTC  │                    │ bank-sync (PSD2)       │ │
-│  └────────────────┘                    │ scan-receipt (Vision)  │ │
-│                                        │ bank-connect           │ │
-│                                        │ send-invitation-email  │ │
+│                                       ┌───────────▼────────────┐ │
+│                                       │ bank-sync (PSD2)       │ │
+│                                       │ scan-receipt (Vision)  │ │
+│                                       │ bank-connect           │ │
+│                                       │ send-invitation-email  │ │
+│                                       └───────────┬────────────┘ │
 │                                        └───────────┬────────────┘ │
 └────────────────────────────────────────────────────┼─────────────┘
                                                       │
