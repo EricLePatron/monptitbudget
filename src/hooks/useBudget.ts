@@ -124,9 +124,15 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     } catch {
       toast.error('Erreur lors du chargement du budget');
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   }, [user, accountId, targetMonth, targetYear]);
+
+  // A new account/month selection must show the loader again
+  useEffect(() => {
+    hasLoadedRef.current = false;
+  }, [accountId, targetMonth, targetYear]);
 
   useEffect(() => {
     loadBudget();
