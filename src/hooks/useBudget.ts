@@ -44,7 +44,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
     }
 
     try {
-      setLoading(true);
+      if (!hasLoadedRef.current) setLoading(true);
 
       // Get budget for target month/year for this account
       const { data: budgetData, error: budgetError } = await supabase
