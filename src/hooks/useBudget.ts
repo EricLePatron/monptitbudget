@@ -21,6 +21,7 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
   // loading back to true: Index renders a full-screen loader while loading,
   // which would unmount the dashboard and close any open sheet.
   const hasLoadedRef = useRef(false);
+  const lastLoadKeyRef = useRef<string | null>(null);
   const [previousBudgetSuggestion, setPreviousBudgetSuggestion] = useState<{
     salary?: number;
     deductions?: BudgetConfig['deductions'];
@@ -43,8 +44,14 @@ export function useBudget(accountId: string | null, selectedMonth?: SelectedMont
       return;
     }
 
+    // Show the full-screen loader only when switching account/month or on
+    // first load — background refreshes stay silent so open sheets survive.
+    const loadKey = `${accountId}-${targetMonth}-${targetYear}`;
+    const isFreshContext = lastLoadKeyRef.current !== loadKey;
+    lastLoadKeyRef.current = loadKey;
+
     try {
-      if (!hasLoadedRef.current) setLoading(true);
+      if (isFreshContext || !hasLoadedRef.current) setLoading(true);
 
       // Get budget for target month/year for this account
       const { data: budgetData, error: budgetError } = await supabase
