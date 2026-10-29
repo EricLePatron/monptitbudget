@@ -67,8 +67,8 @@ Built it entirely myself. No dev agency, no team. Every product decision, every 
 │  │  + RLS         │  │  email OTP   │  │    (Deno / TypeScript) ││
 │  └──────┬────────┘  └──────────────┘  └──────────┬─────────────┘│
 │         │                                          │              │
-│  ┌──────▼────────┐                    ┌───────────▼────────────┐ │
-│  │   pg_cron      │──── HTTP POST ───▶│ weekly-budget-report   │ │
+│  ┌────────────────┐                    ┌───────────▼────────────┐ │
+│  │   (auto jobs)  │                    │ bank-sync (PSD2)       │ │
 │  │ Mon 07:00 UTC  │                    │ bank-sync (PSD2)       │ │
 │  └────────────────┘                    │ scan-receipt (Vision)  │ │
 │                                        │ bank-connect           │ │
@@ -127,7 +127,6 @@ Every table is protected by Row-Level Security via a custom `has_account_access(
 
 | Function | Trigger | Description |
 |----------|---------|-------------|
-| `weekly-budget-report` | pg_cron every Monday 07:00 UTC | Queries last 4 weeks of data, builds a rich HTML email, sends via Resend |
 | `bank-sync` | Manual / on-demand | Fetches transactions from Enable Banking, deduplicates, AI-categorizes |
 | `bank-connect` | Manual | Initiates PSD2 OAuth flow; signs JWT with RSA-256 in Deno's Web Crypto API |
 | `scan-receipt` | On photo upload | Sends image to Vision AI, extracts amount + suggested category |
