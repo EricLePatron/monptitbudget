@@ -260,7 +260,7 @@ export function BudgetDashboard({
     <div className="min-h-screen flex flex-col">
       {/* Header — compact mobile-first */}
       <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 relative z-10">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-1.5">
           {/* Account Selector */}
           <AccountSelector
             accounts={accounts}
@@ -298,20 +298,19 @@ export function BudgetDashboard({
           <Button
             type="button"
             variant="ghost"
-            size="icon"
             onClick={() => setPendingSheetOpen(true)}
             className={cn(
-              'relative h-9 w-9 rounded-full border transition-all',
+              'relative h-8 rounded-full border px-2.5 gap-1.5 shrink-0 transition-all active:scale-[0.97]',
               pendingCount > 0
                 ? 'bg-budget-warning-soft border-budget-warning/50 text-budget-warning hover:bg-budget-warning-soft/80 shadow-glow-warning animate-pulse-soft'
-                : 'bg-card/80 border-border/60 text-foreground hover:bg-card shadow-sm',
+                : 'bg-card/80 border-border/60 text-muted-foreground hover:bg-card hover:text-foreground shadow-sm',
             )}
             title="Transactions à catégoriser"
             aria-label="Transactions à catégoriser"
           >
             <Inbox className="w-4 h-4" />
             {pendingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-budget-warning text-[9px] font-bold text-budget-warning-foreground shadow-glow-warning">
+              <span className="h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-budget-warning text-[10px] font-bold text-budget-warning-foreground">
                 {pendingCount > 9 ? '9+' : pendingCount}
               </span>
             )}
