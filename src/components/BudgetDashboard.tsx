@@ -260,27 +260,29 @@ export function BudgetDashboard({
     <div className="min-h-screen flex flex-col">
       {/* Header — compact mobile-first */}
       <header className="px-3 pt-[max(env(safe-area-inset-top),8px)] pb-2 relative z-10">
-        <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center justify-between gap-1 min-w-0">
           {/* Account Selector */}
-          <AccountSelector
-            accounts={accounts}
-            currentAccount={currentAccount}
-            onSwitch={onSwitchAccount}
-            onManage={() => setManageAccountsOpen(true)}
-          />
+          <div className="min-w-0 shrink">
+            <AccountSelector
+              accounts={accounts}
+              currentAccount={currentAccount}
+              onSwitch={onSwitchAccount}
+              onManage={() => setManageAccountsOpen(true)}
+            />
+          </div>
 
           {/* Month Navigation */}
-          <div className="flex items-center gap-0.5 bg-card/80 border border-border/60 rounded-full px-1 py-0.5 shadow-sm">
+          <div className="flex items-center gap-0 bg-card/80 border border-border/60 rounded-full px-0.5 py-0.5 shadow-sm min-w-0 shrink">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={onPreviousMonth}
-              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-6 rounded-full text-foreground hover:bg-secondary shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="font-semibold text-sm text-foreground whitespace-nowrap px-2">
+            <span className="font-semibold text-xs text-foreground whitespace-nowrap px-1 truncate">
               {getMonthName(config.month)} {config.year}
             </span>
             <Button
@@ -288,7 +290,7 @@ export function BudgetDashboard({
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-6 rounded-full text-foreground hover:bg-secondary shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
