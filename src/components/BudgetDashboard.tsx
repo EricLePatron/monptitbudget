@@ -290,7 +290,7 @@ export function BudgetDashboard({
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-7 w-7 rounded-full text-foreground hover:bg-secondary"
+              className="h-7 w-6 rounded-full text-foreground hover:bg-secondary shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
